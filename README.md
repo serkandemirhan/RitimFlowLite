@@ -1,11 +1,14 @@
-# Ritim Flow Lite · UX-01
+# Ritim Flow Lite — UX-02 Dashboard
 
-Mevcut main dalındaki uygulamanın UX-01 geliştirme paketi. Mevcut fonksiyonlar korunur, harici CSS/JS ile tema, mobil navigasyon ve erişilebilirlik iyileştirmeleri eklenir.
+UX-01 tasarım altyapısı üzerinde UX-02 eyleme dönük dashboard güncellemesi.
 
-## Kurulum
+- KPI kartlarından sipariş/iş emri listelerine yönlendirme
+- Geciken sipariş, duraklatılan iş, sevkiyata hazırlanabilecek sipariş için aksiyon merkezi
+- Sipariş ilerleme kartından sipariş detayına geçiş
+- Makine ve son hareketler mevcut uygulamadan korunur
+- Mobil ve masaüstü responsive yapı
 
-ZIP içindeki index.html ve assets klasörünü deponun köküne yükleyin. Canlı sitenin mevcut sürümünü yedekleyin.
+## Yayınlama
+Arşivdeki dosyaları deponun kök klasörüne aynı dizin yapısıyla yükleyin. UX-01 dosyaları da dahildir. index.html mevcut depo sürümünün yerine geçer. Önce commit farkını kontrol edin.
 
-## Sınırlar
-
-Bu paket UX-01 temel kabuk iyileştirmesidir. Dashboard iş mantığı, gerçek kullanıcı senkronizasyonu ve üretim kuralları değişmez.
+**Not:** Demo sipariş aşama dağılımları örnektir; üretim veritabanı ile senkron değildir. Miktar muhasebesi, rol yetkisi ve canlı veri entegrasyonu bu UX paketinde tamamlanmamıştır.
