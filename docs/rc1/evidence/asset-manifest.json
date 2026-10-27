@@ -1,0 +1,372 @@
+{
+  "format": 1,
+  "release": "ritim-flow-lite-demo-v1.0-rc1",
+  "sourceDigest": "33c2d8246743b84e6fc1e6b4d386d8402f4387cc75b6d4e18c02ca8267b4a064",
+  "assets": [
+    {
+      "source": "index.html",
+      "sha256": "2f887d158bbd92b537a4213db85c0fb9633704ebed21c0635f736dcce7ea84ae",
+      "bytes": 68183,
+      "target": "index.html",
+      "sourceSha256": "66228956fa3f859bcd75163a2c0e5c70b48e8ae590705d4356a789d9c481fb25"
+    },
+    {
+      "source": "ritim_flow_lite_sales_polished.html",
+      "sha256": "dcf9b52b3111ae2c3e384bf11b1e5b448120ee93f56fef0eaaec15830048b7a1",
+      "bytes": 67933,
+      "target": "ritim_flow_lite_sales_polished.html",
+      "sourceSha256": "560ccc10fe047bfc3d08465849b4e42488d825b4cf237081e29ef2b4db895696"
+    },
+    {
+      "source": "assets/css/persistence.css",
+      "sha256": "1d571481863adcf76ee9092c5c57968f287e0e768044f666c0b9c7f32de3fb98",
+      "bytes": 627,
+      "target": "assets/css/persistence.1d571481863adcf76ee9092c5c57968f287e0e768044f666c0b9c7f32de3fb98.css",
+      "sourceSha256": "1d571481863adcf76ee9092c5c57968f287e0e768044f666c0b9c7f32de3fb98"
+    },
+    {
+      "source": "assets/css/ux-audit.css",
+      "sha256": "3ee6c517f6991074f6ac0825a4871ec214297a183b2ae062f8d3209c357f8437",
+      "bytes": 1017,
+      "target": "assets/css/ux-audit.3ee6c517f6991074f6ac0825a4871ec214297a183b2ae062f8d3209c357f8437.css",
+      "sourceSha256": "3ee6c517f6991074f6ac0825a4871ec214297a183b2ae062f8d3209c357f8437"
+    },
+    {
+      "source": "assets/css/ux-foundation.css",
+      "sha256": "d84cca3915bddbe3b64372722f3b73ce04296f64be6e19a33fb079c28e4e1d84",
+      "bytes": 2083,
+      "target": "assets/css/ux-foundation.d84cca3915bddbe3b64372722f3b73ce04296f64be6e19a33fb079c28e4e1d84.css",
+      "sourceSha256": "d84cca3915bddbe3b64372722f3b73ce04296f64be6e19a33fb079c28e4e1d84"
+    },
+    {
+      "source": "assets/css/ux-logistics.css",
+      "sha256": "ca5ad8b17549a716172a8cb70e12837ea393dc2b31d1e1d327e450ed71dc8e31",
+      "bytes": 1515,
+      "target": "assets/css/ux-logistics.ca5ad8b17549a716172a8cb70e12837ea393dc2b31d1e1d327e450ed71dc8e31.css",
+      "sourceSha256": "ca5ad8b17549a716172a8cb70e12837ea393dc2b31d1e1d327e450ed71dc8e31"
+    },
+    {
+      "source": "assets/css/ux-operator.css",
+      "sha256": "3e2af507f7abb22e01633b7bd436335c6d7ea913fa63502c5707d39e13ef510a",
+      "bytes": 1826,
+      "target": "assets/css/ux-operator.3e2af507f7abb22e01633b7bd436335c6d7ea913fa63502c5707d39e13ef510a.css",
+      "sourceSha256": "3e2af507f7abb22e01633b7bd436335c6d7ea913fa63502c5707d39e13ef510a"
+    },
+    {
+      "source": "assets/css/ux-orders-workorders.css",
+      "sha256": "7faa9a4a89b0a1c04c43d198b403bac29fff8bc7a93f16eecd80a13a2d66e51a",
+      "bytes": 1889,
+      "target": "assets/css/ux-orders-workorders.7faa9a4a89b0a1c04c43d198b403bac29fff8bc7a93f16eecd80a13a2d66e51a.css",
+      "sourceSha256": "7faa9a4a89b0a1c04c43d198b403bac29fff8bc7a93f16eecd80a13a2d66e51a"
+    },
+    {
+      "source": "assets/css/ux-p1.css",
+      "sha256": "eae6d5f019dda3ea9115c4c47530a9d647090676298c9a4f75efd9753d8d2a76",
+      "bytes": 3040,
+      "target": "assets/css/ux-p1.eae6d5f019dda3ea9115c4c47530a9d647090676298c9a4f75efd9753d8d2a76.css",
+      "sourceSha256": "eae6d5f019dda3ea9115c4c47530a9d647090676298c9a4f75efd9753d8d2a76"
+    },
+    {
+      "source": "assets/js/concurrency-ui.js",
+      "sha256": "db11a5e760a8cc1ffb25fb9d802b53044744ffc421a4bee9d5e5dab0c07a8332",
+      "bytes": 11098,
+      "target": "assets/js/concurrency-ui.db11a5e760a8cc1ffb25fb9d802b53044744ffc421a4bee9d5e5dab0c07a8332.js",
+      "sourceSha256": "db11a5e760a8cc1ffb25fb9d802b53044744ffc421a4bee9d5e5dab0c07a8332"
+    },
+    {
+      "source": "assets/js/drawing-service.js",
+      "sha256": "370adf73cede05922e22cc0abd9901b440e2db770758c7aa3ced5f9839f692ef",
+      "bytes": 2721,
+      "target": "assets/js/drawing-service.370adf73cede05922e22cc0abd9901b440e2db770758c7aa3ced5f9839f692ef.js",
+      "sourceSha256": "370adf73cede05922e22cc0abd9901b440e2db770758c7aa3ced5f9839f692ef"
+    },
+    {
+      "source": "assets/js/integrity.js",
+      "sha256": "8ece7c78cfe808e29594129a64512084eb2a1ffcd2e198d445b9bdb60efcc5f7",
+      "bytes": 53440,
+      "target": "assets/js/integrity.8ece7c78cfe808e29594129a64512084eb2a1ffcd2e198d445b9bdb60efcc5f7.js",
+      "sourceSha256": "8ece7c78cfe808e29594129a64512084eb2a1ffcd2e198d445b9bdb60efcc5f7"
+    },
+    {
+      "source": "assets/js/legacy-archive.js",
+      "sha256": "543861836132bd9f08dedd62ad4a36468d23e1bb72520611dfcbd57cd3da7908",
+      "bytes": 808,
+      "target": "assets/js/legacy-archive.543861836132bd9f08dedd62ad4a36468d23e1bb72520611dfcbd57cd3da7908.js",
+      "sourceSha256": "543861836132bd9f08dedd62ad4a36468d23e1bb72520611dfcbd57cd3da7908"
+    },
+    {
+      "source": "assets/js/operation-ledger.js",
+      "sha256": "41bc341b6dfe848443a57d2eede97b4a10b13eb37a1f65bb045e706ecd620859",
+      "bytes": 5266,
+      "target": "assets/js/operation-ledger.41bc341b6dfe848443a57d2eede97b4a10b13eb37a1f65bb045e706ecd620859.js",
+      "sourceSha256": "41bc341b6dfe848443a57d2eede97b4a10b13eb37a1f65bb045e706ecd620859"
+    },
+    {
+      "source": "assets/js/persistence-ui.js",
+      "sha256": "f0b075f25ba7a8127e20c685030b9d366819ab82dabc723d7a127ddd7ee7ccac",
+      "bytes": 5863,
+      "target": "assets/js/persistence-ui.f0b075f25ba7a8127e20c685030b9d366819ab82dabc723d7a127ddd7ee7ccac.js",
+      "sourceSha256": "f0b075f25ba7a8127e20c685030b9d366819ab82dabc723d7a127ddd7ee7ccac"
+    },
+    {
+      "source": "assets/js/persistence.js",
+      "sha256": "2374ba05d5e801063ef4d03f5f98c7272419fe1d5a7ba9d3ac10d47d629d0ccf",
+      "bytes": 15845,
+      "target": "assets/js/persistence.2374ba05d5e801063ef4d03f5f98c7272419fe1d5a7ba9d3ac10d47d629d0ccf.js",
+      "sourceSha256": "2374ba05d5e801063ef4d03f5f98c7272419fe1d5a7ba9d3ac10d47d629d0ccf"
+    },
+    {
+      "source": "assets/js/planning-service.js",
+      "sha256": "5b49a4cef5cf00a736a072952392c152a042d00c7e38db264196683783563d6f",
+      "bytes": 7808,
+      "target": "assets/js/planning-service.5b49a4cef5cf00a736a072952392c152a042d00c7e38db264196683783563d6f.js",
+      "sourceSha256": "5b49a4cef5cf00a736a072952392c152a042d00c7e38db264196683783563d6f"
+    },
+    {
+      "source": "assets/js/quality-service.js",
+      "sha256": "bef903d2bcfd2423acaf278a369b53ef196e0a60e1c0ec879e212cfe47ae9b14",
+      "bytes": 5572,
+      "target": "assets/js/quality-service.bef903d2bcfd2423acaf278a369b53ef196e0a60e1c0ec879e212cfe47ae9b14.js",
+      "sourceSha256": "bef903d2bcfd2423acaf278a369b53ef196e0a60e1c0ec879e212cfe47ae9b14"
+    },
+    {
+      "source": "assets/js/quantity-model.js",
+      "sha256": "3cc372312875b6e415181b7b8a133cd5135012507fc984dc7c3213f127e2b1f1",
+      "bytes": 13267,
+      "target": "assets/js/quantity-model.3cc372312875b6e415181b7b8a133cd5135012507fc984dc7c3213f127e2b1f1.js",
+      "sourceSha256": "3cc372312875b6e415181b7b8a133cd5135012507fc984dc7c3213f127e2b1f1"
+    },
+    {
+      "source": "assets/js/shipment-service.js",
+      "sha256": "2d680086b786f81a4240ba49df918a57fda4e5610d028da9b33f24d62aab928f",
+      "bytes": 5580,
+      "target": "assets/js/shipment-service.2d680086b786f81a4240ba49df918a57fda4e5610d028da9b33f24d62aab928f.js",
+      "sourceSha256": "2d680086b786f81a4240ba49df918a57fda4e5610d028da9b33f24d62aab928f"
+    },
+    {
+      "source": "assets/js/stock-ledger.js",
+      "sha256": "eea7cafaf21f9b59e953d6272386599a3d744a88a4f8cde604c18c21baf9ede3",
+      "bytes": 1145,
+      "target": "assets/js/stock-ledger.eea7cafaf21f9b59e953d6272386599a3d744a88a4f8cde604c18c21baf9ede3.js",
+      "sourceSha256": "eea7cafaf21f9b59e953d6272386599a3d744a88a4f8cde604c18c21baf9ede3"
+    },
+    {
+      "source": "assets/js/stock-service.js",
+      "sha256": "9888d63edbe2aff43d0dc424a2580bb11b919e5fcc5233f294d58d87c853329e",
+      "bytes": 11156,
+      "target": "assets/js/stock-service.9888d63edbe2aff43d0dc424a2580bb11b919e5fcc5233f294d58d87c853329e.js",
+      "sourceSha256": "9888d63edbe2aff43d0dc424a2580bb11b919e5fcc5233f294d58d87c853329e"
+    },
+    {
+      "source": "assets/js/transactions.js",
+      "sha256": "dbd9751b2a83e537e7af79b7c102fe518f87e41d5ece31a28963ef1d3c0f7e39",
+      "bytes": 9185,
+      "target": "assets/js/transactions.dbd9751b2a83e537e7af79b7c102fe518f87e41d5ece31a28963ef1d3c0f7e39.js",
+      "sourceSha256": "dbd9751b2a83e537e7af79b7c102fe518f87e41d5ece31a28963ef1d3c0f7e39"
+    },
+    {
+      "source": "assets/js/transfer-ledger.js",
+      "sha256": "df9a1986eab89c0559cd0f15b0ea108fadc077e2f64a69e7530290ad417a3a2c",
+      "bytes": 6805,
+      "target": "assets/js/transfer-ledger.df9a1986eab89c0559cd0f15b0ea108fadc077e2f64a69e7530290ad417a3a2c.js",
+      "sourceSha256": "df9a1986eab89c0559cd0f15b0ea108fadc077e2f64a69e7530290ad417a3a2c"
+    },
+    {
+      "source": "assets/js/transfer-service.js",
+      "sha256": "a2bb2c39448debd1db9ed8a68490a47ddeeaf5ac89411778913951053c40946f",
+      "bytes": 6587,
+      "target": "assets/js/transfer-service.a2bb2c39448debd1db9ed8a68490a47ddeeaf5ac89411778913951053c40946f.js",
+      "sourceSha256": "a2bb2c39448debd1db9ed8a68490a47ddeeaf5ac89411778913951053c40946f"
+    },
+    {
+      "source": "assets/js/ux-audit.js",
+      "sha256": "997d19878a86cd284b111d7f13e00794920f5ed8184dfcc0a5f803dcf1026059",
+      "bytes": 5412,
+      "target": "assets/js/ux-audit.997d19878a86cd284b111d7f13e00794920f5ed8184dfcc0a5f803dcf1026059.js",
+      "sourceSha256": "997d19878a86cd284b111d7f13e00794920f5ed8184dfcc0a5f803dcf1026059"
+    },
+    {
+      "source": "assets/js/ux-logistics.js",
+      "sha256": "44e4d615cff3515f8b6149ae29c0a554c8dfc21b78bfea78c801df6fc3213003",
+      "bytes": 13782,
+      "target": "assets/js/ux-logistics.44e4d615cff3515f8b6149ae29c0a554c8dfc21b78bfea78c801df6fc3213003.js",
+      "sourceSha256": "44e4d615cff3515f8b6149ae29c0a554c8dfc21b78bfea78c801df6fc3213003"
+    },
+    {
+      "source": "assets/js/ux-operator.js",
+      "sha256": "b963712876e3717b5f1f93876cf729711a67700cfe5251f89812215a823ae5f3",
+      "bytes": 19457,
+      "target": "assets/js/ux-operator.b963712876e3717b5f1f93876cf729711a67700cfe5251f89812215a823ae5f3.js",
+      "sourceSha256": "b963712876e3717b5f1f93876cf729711a67700cfe5251f89812215a823ae5f3"
+    },
+    {
+      "source": "assets/js/ux-orders-workorders.js",
+      "sha256": "cf704f3e0a1fc48c66abf779c11b97c809639e57f01baee68b45a61307a705bb",
+      "bytes": 5533,
+      "target": "assets/js/ux-orders-workorders.cf704f3e0a1fc48c66abf779c11b97c809639e57f01baee68b45a61307a705bb.js",
+      "sourceSha256": "cf704f3e0a1fc48c66abf779c11b97c809639e57f01baee68b45a61307a705bb"
+    },
+    {
+      "source": "assets/js/ux-p1.js",
+      "sha256": "ac9da7cb291e1194143bf72bf4fb1ff3c012304d1bd790ba8e394603beeb996d",
+      "bytes": 16228,
+      "target": "assets/js/ux-p1.ac9da7cb291e1194143bf72bf4fb1ff3c012304d1bd790ba8e394603beeb996d.js",
+      "sourceSha256": "ac9da7cb291e1194143bf72bf4fb1ff3c012304d1bd790ba8e394603beeb996d"
+    },
+    {
+      "source": "assets/js/ux-planning.js",
+      "sha256": "4116bde2c957ba9e2276e10f3aaa275b23dac233d8cc59d8b1191a7a3b58bfa0",
+      "bytes": 8776,
+      "target": "assets/js/ux-planning.4116bde2c957ba9e2276e10f3aaa275b23dac233d8cc59d8b1191a7a3b58bfa0.js",
+      "sourceSha256": "4116bde2c957ba9e2276e10f3aaa275b23dac233d8cc59d8b1191a7a3b58bfa0"
+    },
+    {
+      "source": "assets/js/ux-quality-drawings.js",
+      "sha256": "7518501e7727f244131e2672730882ca3e1b081c2b5838254f626130e284e4d6",
+      "bytes": 6901,
+      "target": "assets/js/ux-quality-drawings.7518501e7727f244131e2672730882ca3e1b081c2b5838254f626130e284e4d6.js",
+      "sourceSha256": "7518501e7727f244131e2672730882ca3e1b081c2b5838254f626130e284e4d6"
+    },
+    {
+      "source": "assets/js/ux-shell.js",
+      "sha256": "3cf39b6e17af3af474f8a77167b9ae86f447c4ef17d6dcf872fabda1f4f64379",
+      "bytes": 2097,
+      "target": "assets/js/ux-shell.3cf39b6e17af3af474f8a77167b9ae86f447c4ef17d6dcf872fabda1f4f64379.js",
+      "sourceSha256": "3cf39b6e17af3af474f8a77167b9ae86f447c4ef17d6dcf872fabda1f4f64379"
+    },
+    {
+      "source": "assets/js/ux-stock.js",
+      "sha256": "531a0c8d44f8fa0ff832e3509239500b1b8a71a6942b87e60f733aa6caa15242",
+      "bytes": 8296,
+      "target": "assets/js/ux-stock.531a0c8d44f8fa0ff832e3509239500b1b8a71a6942b87e60f733aa6caa15242.js",
+      "sourceSha256": "531a0c8d44f8fa0ff832e3509239500b1b8a71a6942b87e60f733aa6caa15242"
+    },
+    {
+      "source": "assets/js/ux-transfers.js",
+      "sha256": "31de1e42b8b7dfd2dffd079dc5b988f54093dd42bfd3ca245b0a709898af8166",
+      "bytes": 7182,
+      "target": "assets/js/ux-transfers.31de1e42b8b7dfd2dffd079dc5b988f54093dd42bfd3ca245b0a709898af8166.js",
+      "sourceSha256": "31de1e42b8b7dfd2dffd079dc5b988f54093dd42bfd3ca245b0a709898af8166"
+    },
+    {
+      "source": "assets/js/workforce-service.js",
+      "sha256": "c41b2a3e08c68de396d92aab4eeb5913390814217f2877ba14d02e7aa4d3f2bf",
+      "bytes": 3045,
+      "target": "assets/js/workforce-service.c41b2a3e08c68de396d92aab4eeb5913390814217f2877ba14d02e7aa4d3f2bf.js",
+      "sourceSha256": "c41b2a3e08c68de396d92aab4eeb5913390814217f2877ba14d02e7aa4d3f2bf"
+    },
+    {
+      "source": "teknikResim.pdf",
+      "sha256": "4e779585bdd81426e98a68a880ca719d92aa288eb5eb6c84519e96ee7d778974",
+      "bytes": 27665,
+      "target": "teknikResim.pdf",
+      "sourceSha256": "4e779585bdd81426e98a68a880ca719d92aa288eb5eb6c84519e96ee7d778974"
+    }
+  ],
+  "scripts": [
+    {
+      "source": "assets/js/persistence.js",
+      "deferred": false
+    },
+    {
+      "source": "assets/js/transfer-ledger.js",
+      "deferred": false
+    },
+    {
+      "source": "assets/js/stock-ledger.js",
+      "deferred": false
+    },
+    {
+      "source": "assets/js/operation-ledger.js",
+      "deferred": false
+    },
+    {
+      "source": "assets/js/quantity-model.js",
+      "deferred": false
+    },
+    {
+      "source": "assets/js/integrity.js",
+      "deferred": false
+    },
+    {
+      "source": "assets/js/transactions.js",
+      "deferred": false
+    },
+    {
+      "source": "assets/js/planning-service.js",
+      "deferred": false
+    },
+    {
+      "source": "assets/js/transfer-service.js",
+      "deferred": false
+    },
+    {
+      "source": "assets/js/shipment-service.js",
+      "deferred": false
+    },
+    {
+      "source": "assets/js/persistence-ui.js",
+      "deferred": false
+    },
+    {
+      "source": "assets/js/concurrency-ui.js",
+      "deferred": false
+    },
+    {
+      "source": "assets/js/ux-shell.js",
+      "deferred": true
+    },
+    {
+      "source": "assets/js/ux-orders-workorders.js",
+      "deferred": true
+    },
+    {
+      "source": "assets/js/ux-operator.js",
+      "deferred": false
+    },
+    {
+      "source": "assets/js/ux-logistics.js",
+      "deferred": false
+    },
+    {
+      "source": "assets/js/ux-transfers.js",
+      "deferred": false
+    },
+    {
+      "source": "assets/js/ux-planning.js",
+      "deferred": false
+    },
+    {
+      "source": "assets/js/ux-audit.js",
+      "deferred": false
+    },
+    {
+      "source": "assets/js/stock-service.js",
+      "deferred": false
+    },
+    {
+      "source": "assets/js/quality-service.js",
+      "deferred": false
+    },
+    {
+      "source": "assets/js/drawing-service.js",
+      "deferred": false
+    },
+    {
+      "source": "assets/js/workforce-service.js",
+      "deferred": false
+    },
+    {
+      "source": "assets/js/ux-p1.js",
+      "deferred": false
+    },
+    {
+      "source": "assets/js/ux-quality-drawings.js",
+      "deferred": false
+    },
+    {
+      "source": "assets/js/ux-stock.js",
+      "deferred": false
+    }
+  ]
+}

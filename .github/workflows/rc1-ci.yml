@@ -1,0 +1,50 @@
+name: Demo RC1 verification
+
+on:
+  pull_request:
+    branches: [main, 'release/**']
+  push:
+    branches: ['release/**']
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Domain, browser and RC1 artifact verification
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install exact dependencies
+        run: npm ci
+      - name: Install matching Chromium and Linux libraries
+        run: npx playwright install --with-deps chromium
+      - name: Verify source and packaged release
+        run: npm run test:ci
+      - name: Locate the exact verified public directory
+        id: candidate
+        run: node -e "console.log('public-root='+require('./scripts/build-rc1.cjs').build().publicRoot)" >> "$GITHUB_OUTPUT"
+      - name: Publish verified candidate for review (no deployment)
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: rc1-public
+          path: ${{ steps.candidate.outputs.public-root }}/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Preserve checksums and test evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: rc1-verification
+          path: |
+            artifacts/
+            dist/ritim-flow-lite-demo-v1.0-rc1/*/manifest.json
+          if-no-files-found: error
+          retention-days: 14

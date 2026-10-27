@@ -1,0 +1,26 @@
+{
+  "name": "ritim-flow-lite-demo",
+  "version": "1.0.0-rc.1",
+  "private": true,
+  "description": "Ritim Flow Lite local demo release candidate",
+  "engines": {
+    "node": "22.x",
+    "npm": "10.x"
+  },
+  "packageManager": "npm@10.9.3",
+  "scripts": {
+    "test": "npm run test:domain && npm run test:packaging && npm run test:browser",
+    "test:domain": "node scripts/run-domain.cjs",
+    "test:packaging": "node --test tests/rc1-packaging.test.cjs tests/rc1-domain-gate.test.cjs tests/rc1-upgrade-rollback.test.cjs",
+    "test:browser": "node scripts/run-browser.cjs",
+    "test:rc1": "node scripts/run-browser.cjs --rc1",
+    "test:ci": "npm run test:domain && npm run test:packaging && npm run build:rc1 && npm run verify:rc1 && npm run test:smoke && npm run test:browser && npm run test:rc1",
+    "build:rc1": "node scripts/build-rc1.cjs",
+    "verify:rc1": "node scripts/build-rc1.cjs --verify",
+    "browser:install": "playwright install chromium",
+    "test:smoke": "node scripts/smoke-rc1.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.64.1"
+  }
+}

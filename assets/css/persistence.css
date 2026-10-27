@@ -1,0 +1,5 @@
+/* Recovery remains usable at narrow widths and with long diagnostic keys. */
+[data-recovery] { max-width: 760px; margin: 0 auto; overflow-wrap: anywhere; }
+[data-recovery] .btn { white-space: normal; min-height: 44px; height: auto; margin-bottom: 8px; }
+[data-recovery] input[type=file] { max-width: 100%; min-height: 44px; }
+#concurrency-notice{position:sticky;top:0;z-index:45;display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:10px 18px;background:#fff4d7;color:#614600;font-size:13px;overflow-wrap:anywhere}#concurrency-notice[hidden]{display:none}#concurrency-notice .btn{white-space:normal;min-height:44px}

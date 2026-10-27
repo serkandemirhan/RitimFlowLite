@@ -1,0 +1,189 @@
+/* P1 layout and accessible action surfaces */
+.main,
+.view,
+.detail-grid,
+.detail-grid > * {
+  min-width: 0;
+}
+.ux07-wrap {
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+.ux07-wrap > .card {
+  min-width: 0;
+}
+.ux07-table-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.ux-dashboard-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 16px;
+}
+.ux-dash-title,
+.ux-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.ux-panel-head h3,
+.ux-dash-title h2 {
+  margin: 4px 0;
+}
+.ux-kpi-link {
+  text-align: left;
+  cursor: pointer;
+}
+.ux-kpi-link small {
+  display: block;
+  color: #60738c;
+  margin-top: 8px;
+}
+.ux-action-item,
+.ux-flow-order {
+  display: flex;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  gap: 12px;
+  padding: 14px 0;
+  align-items: center;
+  border-bottom: 1px solid #e4ebf5;
+  min-height: 64px;
+}
+.ux-action-copy {
+  flex: 1;
+  min-width: 0;
+}
+.ux-action-copy strong,
+.ux-action-copy small,
+.ux-action-copy em,
+.ux-flow-order small {
+  display: block;
+}
+.ux-action-copy small,
+.ux-flow-order small {
+  color: #60738c;
+  margin-top: 5px;
+}
+.ux-action-copy em {
+  font-size: 11px;
+  margin-top: 5px;
+  font-style: normal;
+}
+.ux-action-icon {
+  padding: 10px;
+  border-radius: 12px;
+  background: #eef3ff;
+  color: #2458d4;
+}
+.ux-action-icon.delay {
+  background: #fff0e3;
+  color: #b34a0c;
+}
+.ux-count {
+  font-size: 12px;
+  color: #60738c;
+}
+.ux-panel-foot {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.ux-flow-order {
+  flex-wrap: wrap;
+}
+.ux-flow-order > span:first-child {
+  flex: 1;
+}
+.ux-flow-track {
+  height: 6px;
+  flex-basis: 100%;
+  background: #eaf0f8;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.ux-flow-track i {
+  display: block;
+  height: 100%;
+  background: #315fe5;
+}
+.p1-alerts,
+.p1-menu {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+.p1-alerts > button {
+  text-align: left;
+}
+.p1-alerts b {
+  font-size: 24px;
+  display: block;
+}
+.p1-context {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.btn,
+.filter-chip,
+.tab {
+  min-height: 44px;
+}
+.filterbar {
+  overflow: auto;
+}
+.card p {
+  overflow-wrap: anywhere;
+}
+.ux05-wrap > .card {
+  min-width: 0;
+}
+.ux05-wrap .select {
+  max-width: 100%;
+}
+.bottomnav {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.ux-dashboard button {
+  font: inherit;
+}
+.modal-body .tech-stage {
+  max-width: 100%;
+}
+@media (max-width: 820px) {
+  .ux-dashboard-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ux-dash-title {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .p1-menu .btn {
+    white-space: normal;
+  }
+  .ux07-table {
+    min-width: 620px;
+  }
+  .main {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .toast {
+    max-width: calc(100vw - 28px);
+    white-space: normal;
+  }
+  .p1-alerts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "head": "a28d5621f175f2e3f5f101396807d9eba60c4ff7",
+  "headIndexSha256": "d7471ee5f3708299173f6d22a80e6ac4094ada6f3a99f649aa21a1b021a9095e",
+  "candidate": "33c2d8246743b84e6fc1e6b4d386d8402f4387cc75b6d4e18c02ca8267b4a064",
+  "entryReferences": [
+    "assets/css/ux-foundation.css",
+    "assets/css/ux-operator.css",
+    "assets/css/ux-logistics.css",
+    "assets/css/ux-audit.css",
+    "assets/js/ux-shell.js",
+    "assets/css/ux-orders-workorders.css",
+    "assets/js/ux-orders-workorders.js",
+    "assets/js/ux-operator.js",
+    "assets/js/ux-logistics.js",
+    "assets/js/ux-audit.js"
+  ],
+  "missingFromCandidate": [
+    "assets/css/ux-foundation.css",
+    "assets/css/ux-operator.css",
+    "assets/css/ux-logistics.css",
+    "assets/css/ux-audit.css",
+    "assets/js/ux-shell.js",
+    "assets/css/ux-orders-workorders.css",
+    "assets/js/ux-orders-workorders.js",
+    "assets/js/ux-operator.js",
+    "assets/js/ux-logistics.js",
+    "assets/js/ux-audit.js"
+  ],
+  "transactionBootstrapReferenced": false,
+  "transactionModuleReferenced": false,
+  "limitation": "Local HEAD is not proof of the currently deployed Pages artifact or actual cache behavior."
+}
