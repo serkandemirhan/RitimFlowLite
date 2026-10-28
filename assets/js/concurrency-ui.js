@@ -133,6 +133,11 @@
     check();
   }
   async function submit(mutate, { success, after, command, commandId }) {
+    if (bootstrapRequired) {
+      const message = "Demo güvenli şekilde başlatılmadan kayıt yapılamaz.";
+      toast(message);
+      return {ok:false, code:"DEMO_NOT_INITIALIZED", message};
+    }
     const intent = command || {
         kind: "custom",
         args: { source: String(mutate), view, chosenJob, fields: form() },

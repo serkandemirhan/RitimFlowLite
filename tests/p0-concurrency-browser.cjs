@@ -14,7 +14,7 @@ const root = path.resolve(process.env.RITIM_APP_ROOT || path.resolve(__dirname, 
     root,
     process.env.P0_EVIDENCE_DIR || "docs/p0-08/evidence/concurrency-browser",
   ),
-  key = "ritimLiteAnonymousDemoV1";
+  key = "ritimFlowLite:fictional-demo:v1";
 const results = [],
   telemetry = [];
 let browser, server, base, current;

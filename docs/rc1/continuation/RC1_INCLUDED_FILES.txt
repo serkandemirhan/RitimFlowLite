@@ -48,6 +48,9 @@ docs/P0_IMPLEMENTATION_REPORT.md
 docs/P1_IMPLEMENTATION_REPORT.md
 docs/RC1_ASSET_MANIFEST.md
 docs/RC1_CONTINUATION_REVIEW.md
+docs/RC1_DEMO_ISOLATION_FILES.txt
+docs/RC1_DEMO_ISOLATION_REPORT.md
+docs/RC1_LEGACY_MIGRATION_REVIEW.md
 docs/RC1_RELEASE_REPORT.md
 docs/RELEASE_CHECKLIST.md
 docs/RELEASE_RISK_REPORT.md
@@ -72,6 +75,7 @@ ritim_flow_lite_sales_polished.html
 scripts/build-rc1.cjs
 scripts/run-browser.cjs
 scripts/run-domain.cjs
+scripts/run-isolation.cjs
 scripts/smoke-rc1.cjs
 teknikResim.pdf
 tests/browser-transactions.cjs
@@ -91,6 +95,10 @@ tests/p0-transfer-fixture.cjs
 tests/p0-transfer.test.cjs
 tests/p1-browser.cjs
 tests/p1-domain.test.cjs
+tests/rc1-coexistence-browser.cjs
 tests/rc1-domain-gate.test.cjs
+tests/rc1-init-browser.cjs
+tests/rc1-legacy-isolation-browser.cjs
+tests/rc1-legacy-preflight.test.cjs
 tests/rc1-packaging.test.cjs
 tests/rc1-upgrade-rollback.test.cjs

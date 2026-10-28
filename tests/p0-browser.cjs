@@ -9,7 +9,7 @@ const http = require("node:http");
 const { fresh, completed } = require("./p0-fixtures.cjs");
 const root = path.resolve(process.env.RITIM_APP_ROOT || path.resolve(__dirname, "..")),
   out = path.resolve(root, process.env.P0_EVIDENCE_DIR || "docs/p0/evidence");
-const key = "ritimLiteAnonymousDemoV1",
+const key = "ritimFlowLite:fictional-demo:v1",
   results = [],
   telemetry = [];
 let browser, server, base, current;

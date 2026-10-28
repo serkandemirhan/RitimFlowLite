@@ -8,7 +8,7 @@
   "use strict";
   const VERSION = 1,
     FORMAT = "ritim-flow-lite",
-    BASE_KEY = "ritimLiteAnonymousDemoV1";
+    BASE_KEY = "ritimFlowLite:fictional-demo:v1";
   const object = (x) =>
     x !== null && typeof x === "object" && !Array.isArray(x);
   const count = (x) => Number.isSafeInteger(x) && x >= 0;

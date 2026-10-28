@@ -12,7 +12,7 @@ const root = path.resolve(process.env.RITIM_APP_ROOT || path.resolve(__dirname, 
     root,
     process.env.P0_EVIDENCE_DIR || "docs/p0-06/evidence/integrity-browser",
   );
-const key = "ritimLiteAnonymousDemoV1",
+const key = "ritimFlowLite:fictional-demo:v1",
   results = [],
   applicationErrors = [];
 let browser, server, base;

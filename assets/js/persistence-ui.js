@@ -1,5 +1,35 @@
 /* Application state is replaced only after the common store confirms its write. */
 let recoveryVisible = false;
+let bootstrapPending = false;
+function renderDemoBootstrap() {
+  const root = document.getElementById("app");
+  root.innerHTML = '<main class="main"><section class="card pad"><h1>Kurgusal Demo</h1><p>Bu sürüm bağımsız kurgusal veriler kullanır. Önceki demo verileri okunmaz veya değiştirilmez.</p><p id="demo-bootstrap-status"></p><button class="btn" id="demo-bootstrap-retry">Güvenli Başlatmayı Tekrar Dene</button></section></main>';
+  document.getElementById("demo-bootstrap-status").textContent = bootstrapError || "Demo güvenli şekilde başlatılıyor…";
+  const retry = document.getElementById("demo-bootstrap-retry");
+  retry.disabled = bootstrapPending;
+  retry.onclick = initializeDemo;
+}
+async function initializeDemo() {
+  if (bootstrapPending || !bootstrapRequired) return;
+  bootstrapPending = true;
+  bootstrapError = "";
+  renderDemoBootstrap();
+  const result = await dataSession.commit(() => ({ok:true}), {
+    id: "fictional-demo-v1-initialize", actor: initial.user,
+    intent: {kind:"demo.initialize", args:{version:1}}
+  });
+  bootstrapPending = false;
+  if (result.ok) {
+    state = result.state;
+    bootstrapRequired = false;
+    render();
+    window.RitimConcurrencyUI?.check?.();
+  } else {
+    bootstrapError = result.message || "Demo başlatılamadı; hiçbir başarı bildirimi verilmedi.";
+    renderDemoBootstrap();
+  }
+}
+
 async function commitState(
   mutate,
   { success = "", after = () => render(), command, commandId } = {},

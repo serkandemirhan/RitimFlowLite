@@ -1,5 +1,17 @@
 # Ritim Flow Lite — P0/P1 release checklist
 
+Yerel son sonuçlar: **292/292 alan, 12/12 paketleme/karakterizasyon, 1/1 smoke, kaynak 110/110 ve artifact 110/110 tarayıcı**; ek izolasyon suite'leri kaynak ve artifact için ayrı ayrı **7/7**. Uygulama hatası 0. `test:ci` komutuna izolasyon suite'leri ilk tam koşu başladıktan sonra eklendi; onlar ayrıca çalıştırıldı, güncel birleşik komut henüz tek seferde çalıştırılmadı. `npm ci` başarılı. GitHub Actions **NOT EXECUTED**.
+
+## 28 Ekim 2026 — bağımsız kurgusal demo
+
+**Yayın kararı NO-GO:** GitHub Actions, gerçek cihaz kabulü ve candidate incelemesi açık. Yeni kaynak, `ritimFlowLite:fictional-demo:v1` anahtarını kullanır; eski sabit anahtarlar okunup otomatik aktarılmaz veya değiştirilmez. İlk kurulum Web Locks altında sürümlü komut makbuzuyla kaydedilir; kota veya kilit yokluğunda kayıt kapalıdır. Recovery yeni namespace ve açık yedek kopyalarıyla çalışır. Bu, keyfî aynı-origin koduna karşı güvenlik sınırı değildir. Önceki legacy import incelemesi eski stratejinin tarihsel kaydıdır.
+
+Yerel kurgusal testte `a28d5621f175f2e3f5f101396807d9eba60c4ff7` geçmiş commit'inden çıkarılan gerçek eski HTML/JS ile aynı origin'de yeni UI'dan sipariş oluşturuldu, korumalı test fixture'ı ile üretim tamamlanmış hale getirildi ve yeni sevkiyat yapıldı. Eski sayfanın `saveShipment()` çağrısı yalnız eski key'i değiştirdi; yeni sipariş, sevkiyat, işlem makbuzları ve reload korundu. Yeni ikinci sekmede tekrar komutu idempotentti. Bu yerel commit, halen yayınlanan Pages sürümünün doğrulanması değildir. 5 başlangıç/kurtarma ve 2 birlikte çalışma kontrolü kaynak ve artifact'ta ayrı ayrı başarılıdır. [Ayrıntılar](RC1_DEMO_ISOLATION_REPORT.md).
+
+## 27 Ekim 2026 — legacy migration incelemesi
+
+**NO-GO; güvenli namespace/import henüz uygulanmadı.** İki sekmeli karakterizasyon, bilinen sabit anahtarlı eski yazıcının ayrı key'deki deneme kaydına dokunmadığını; ancak lock'a katılmayan eski writer'ın kaynak değerini değiştirip geri almasının byte karşılaştırmalarıyla kesin algılanamayacağını gösterdi. 3/3 schema/integrity preflight ve 2/2 browser karakterizasyonu geçti; bunlar entegre kabul testi değildir. Mevcut candidate hâlâ eski anahtarı kullanır ve yayına uygun değildir. [İnceleme ve kalan işler](RC1_LEGACY_MIGRATION_REVIEW.md).
+
 ## 27 Ekim 2026 — sabit RC1 aday doğrulaması
 
 Ayrı worktree'deki `release/demo-v1.0-rc1` branch'i, korunan main index'inden bağımsız hazırlanmıştır. Tam repository envanteri [RC1_INCLUDED_FILES.txt](rc1/continuation/RC1_INCLUDED_FILES.txt); 37 public asset hash'i [manifestte](RC1_ASSET_MANIFEST.md) yer alır. Aday kimliği için `git rev-parse release/demo-v1.0-rc1`; bir commit kendi SHA'sını kendi içinde taşıyamaz. Tam sonuçlar [aday doğrulama raporunda](rc1/continuation/RC1_CANDIDATE_VERIFICATION.md).

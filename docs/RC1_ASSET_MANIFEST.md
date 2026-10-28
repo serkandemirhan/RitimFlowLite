@@ -1,5 +1,50 @@
 # Demo v1.0 RC1 — public asset manifest
 
+## 28 Ekim 2026 — bağımsız demo güncel asset listesi
+
+Güncel `sourceDigest`: `2115312901943a3f882fdea5c0212a4daa21ad3a2795fe756b7e0429b3ab2b55`. Aşağıdaki 37 dosya güncel artifact'tır; sonraki eski tablo 27 Ekim candidate'ının tarihsel kaydıdır. Makine manifesti [asset-manifest.json](rc1/evidence/asset-manifest.json).
+
+| Kaynak | Public ad | SHA-256 |
+|---|---|---|
+| `index.html` | `index.html` | `52711f26caf92d4ba0d9636eaaa32d8135a097ce92fdeaf16181a77cedb49cda` |
+| `ritim_flow_lite_sales_polished.html` | `ritim_flow_lite_sales_polished.html` | `dcf9b52b3111ae2c3e384bf11b1e5b448120ee93f56fef0eaaec15830048b7a1` |
+| `assets/css/persistence.css` | `assets/css/persistence.1d571481863adcf76ee9092c5c57968f287e0e768044f666c0b9c7f32de3fb98.css` | `1d571481863adcf76ee9092c5c57968f287e0e768044f666c0b9c7f32de3fb98` |
+| `assets/css/ux-audit.css` | `assets/css/ux-audit.3ee6c517f6991074f6ac0825a4871ec214297a183b2ae062f8d3209c357f8437.css` | `3ee6c517f6991074f6ac0825a4871ec214297a183b2ae062f8d3209c357f8437` |
+| `assets/css/ux-foundation.css` | `assets/css/ux-foundation.d84cca3915bddbe3b64372722f3b73ce04296f64be6e19a33fb079c28e4e1d84.css` | `d84cca3915bddbe3b64372722f3b73ce04296f64be6e19a33fb079c28e4e1d84` |
+| `assets/css/ux-logistics.css` | `assets/css/ux-logistics.ca5ad8b17549a716172a8cb70e12837ea393dc2b31d1e1d327e450ed71dc8e31.css` | `ca5ad8b17549a716172a8cb70e12837ea393dc2b31d1e1d327e450ed71dc8e31` |
+| `assets/css/ux-operator.css` | `assets/css/ux-operator.3e2af507f7abb22e01633b7bd436335c6d7ea913fa63502c5707d39e13ef510a.css` | `3e2af507f7abb22e01633b7bd436335c6d7ea913fa63502c5707d39e13ef510a` |
+| `assets/css/ux-orders-workorders.css` | `assets/css/ux-orders-workorders.7faa9a4a89b0a1c04c43d198b403bac29fff8bc7a93f16eecd80a13a2d66e51a.css` | `7faa9a4a89b0a1c04c43d198b403bac29fff8bc7a93f16eecd80a13a2d66e51a` |
+| `assets/css/ux-p1.css` | `assets/css/ux-p1.eae6d5f019dda3ea9115c4c47530a9d647090676298c9a4f75efd9753d8d2a76.css` | `eae6d5f019dda3ea9115c4c47530a9d647090676298c9a4f75efd9753d8d2a76` |
+| `assets/js/concurrency-ui.js` | `assets/js/concurrency-ui.81819f496b51c06437b03ead5b083f050626c0a3896ec36361ca0f2f76b62d42.js` | `81819f496b51c06437b03ead5b083f050626c0a3896ec36361ca0f2f76b62d42` |
+| `assets/js/drawing-service.js` | `assets/js/drawing-service.370adf73cede05922e22cc0abd9901b440e2db770758c7aa3ced5f9839f692ef.js` | `370adf73cede05922e22cc0abd9901b440e2db770758c7aa3ced5f9839f692ef` |
+| `assets/js/integrity.js` | `assets/js/integrity.8ece7c78cfe808e29594129a64512084eb2a1ffcd2e198d445b9bdb60efcc5f7.js` | `8ece7c78cfe808e29594129a64512084eb2a1ffcd2e198d445b9bdb60efcc5f7` |
+| `assets/js/legacy-archive.js` | `assets/js/legacy-archive.543861836132bd9f08dedd62ad4a36468d23e1bb72520611dfcbd57cd3da7908.js` | `543861836132bd9f08dedd62ad4a36468d23e1bb72520611dfcbd57cd3da7908` |
+| `assets/js/operation-ledger.js` | `assets/js/operation-ledger.41bc341b6dfe848443a57d2eede97b4a10b13eb37a1f65bb045e706ecd620859.js` | `41bc341b6dfe848443a57d2eede97b4a10b13eb37a1f65bb045e706ecd620859` |
+| `assets/js/persistence-ui.js` | `assets/js/persistence-ui.0c28197de4e97ddcdc062c4df11327be797f33ec170e3947dd74d3145d0f2081.js` | `0c28197de4e97ddcdc062c4df11327be797f33ec170e3947dd74d3145d0f2081` |
+| `assets/js/persistence.js` | `assets/js/persistence.ea3559c2b1fea0f458063257b8c66fd69c3d87dbe42b553f5dbc90459b605f63.js` | `ea3559c2b1fea0f458063257b8c66fd69c3d87dbe42b553f5dbc90459b605f63` |
+| `assets/js/planning-service.js` | `assets/js/planning-service.5b49a4cef5cf00a736a072952392c152a042d00c7e38db264196683783563d6f.js` | `5b49a4cef5cf00a736a072952392c152a042d00c7e38db264196683783563d6f` |
+| `assets/js/quality-service.js` | `assets/js/quality-service.bef903d2bcfd2423acaf278a369b53ef196e0a60e1c0ec879e212cfe47ae9b14.js` | `bef903d2bcfd2423acaf278a369b53ef196e0a60e1c0ec879e212cfe47ae9b14` |
+| `assets/js/quantity-model.js` | `assets/js/quantity-model.3cc372312875b6e415181b7b8a133cd5135012507fc984dc7c3213f127e2b1f1.js` | `3cc372312875b6e415181b7b8a133cd5135012507fc984dc7c3213f127e2b1f1` |
+| `assets/js/shipment-service.js` | `assets/js/shipment-service.2d680086b786f81a4240ba49df918a57fda4e5610d028da9b33f24d62aab928f.js` | `2d680086b786f81a4240ba49df918a57fda4e5610d028da9b33f24d62aab928f` |
+| `assets/js/stock-ledger.js` | `assets/js/stock-ledger.eea7cafaf21f9b59e953d6272386599a3d744a88a4f8cde604c18c21baf9ede3.js` | `eea7cafaf21f9b59e953d6272386599a3d744a88a4f8cde604c18c21baf9ede3` |
+| `assets/js/stock-service.js` | `assets/js/stock-service.9888d63edbe2aff43d0dc424a2580bb11b919e5fcc5233f294d58d87c853329e.js` | `9888d63edbe2aff43d0dc424a2580bb11b919e5fcc5233f294d58d87c853329e` |
+| `assets/js/transactions.js` | `assets/js/transactions.dbd9751b2a83e537e7af79b7c102fe518f87e41d5ece31a28963ef1d3c0f7e39.js` | `dbd9751b2a83e537e7af79b7c102fe518f87e41d5ece31a28963ef1d3c0f7e39` |
+| `assets/js/transfer-ledger.js` | `assets/js/transfer-ledger.df9a1986eab89c0559cd0f15b0ea108fadc077e2f64a69e7530290ad417a3a2c.js` | `df9a1986eab89c0559cd0f15b0ea108fadc077e2f64a69e7530290ad417a3a2c` |
+| `assets/js/transfer-service.js` | `assets/js/transfer-service.a2bb2c39448debd1db9ed8a68490a47ddeeaf5ac89411778913951053c40946f.js` | `a2bb2c39448debd1db9ed8a68490a47ddeeaf5ac89411778913951053c40946f` |
+| `assets/js/ux-audit.js` | `assets/js/ux-audit.997d19878a86cd284b111d7f13e00794920f5ed8184dfcc0a5f803dcf1026059.js` | `997d19878a86cd284b111d7f13e00794920f5ed8184dfcc0a5f803dcf1026059` |
+| `assets/js/ux-logistics.js` | `assets/js/ux-logistics.44e4d615cff3515f8b6149ae29c0a554c8dfc21b78bfea78c801df6fc3213003.js` | `44e4d615cff3515f8b6149ae29c0a554c8dfc21b78bfea78c801df6fc3213003` |
+| `assets/js/ux-operator.js` | `assets/js/ux-operator.b963712876e3717b5f1f93876cf729711a67700cfe5251f89812215a823ae5f3.js` | `b963712876e3717b5f1f93876cf729711a67700cfe5251f89812215a823ae5f3` |
+| `assets/js/ux-orders-workorders.js` | `assets/js/ux-orders-workorders.4a6b29d7220f5c26967ecb2a262c1bbb3f5b95bb783bbf2435061eec87243777.js` | `4a6b29d7220f5c26967ecb2a262c1bbb3f5b95bb783bbf2435061eec87243777` |
+| `assets/js/ux-p1.js` | `assets/js/ux-p1.ac9da7cb291e1194143bf72bf4fb1ff3c012304d1bd790ba8e394603beeb996d.js` | `ac9da7cb291e1194143bf72bf4fb1ff3c012304d1bd790ba8e394603beeb996d` |
+| `assets/js/ux-planning.js` | `assets/js/ux-planning.4116bde2c957ba9e2276e10f3aaa275b23dac233d8cc59d8b1191a7a3b58bfa0.js` | `4116bde2c957ba9e2276e10f3aaa275b23dac233d8cc59d8b1191a7a3b58bfa0` |
+| `assets/js/ux-quality-drawings.js` | `assets/js/ux-quality-drawings.7518501e7727f244131e2672730882ca3e1b081c2b5838254f626130e284e4d6.js` | `7518501e7727f244131e2672730882ca3e1b081c2b5838254f626130e284e4d6` |
+| `assets/js/ux-shell.js` | `assets/js/ux-shell.3cf39b6e17af3af474f8a77167b9ae86f447c4ef17d6dcf872fabda1f4f64379.js` | `3cf39b6e17af3af474f8a77167b9ae86f447c4ef17d6dcf872fabda1f4f64379` |
+| `assets/js/ux-stock.js` | `assets/js/ux-stock.531a0c8d44f8fa0ff832e3509239500b1b8a71a6942b87e60f733aa6caa15242.js` | `531a0c8d44f8fa0ff832e3509239500b1b8a71a6942b87e60f733aa6caa15242` |
+| `assets/js/ux-transfers.js` | `assets/js/ux-transfers.31de1e42b8b7dfd2dffd079dc5b988f54093dd42bfd3ca245b0a709898af8166.js` | `31de1e42b8b7dfd2dffd079dc5b988f54093dd42bfd3ca245b0a709898af8166` |
+| `assets/js/workforce-service.js` | `assets/js/workforce-service.c41b2a3e08c68de396d92aab4eeb5913390814217f2877ba14d02e7aa4d3f2bf.js` | `c41b2a3e08c68de396d92aab4eeb5913390814217f2877ba14d02e7aa4d3f2bf` |
+| `teknikResim.pdf` | `teknikResim.pdf` | `4e779585bdd81426e98a68a880ca719d92aa288eb5eb6c84519e96ee7d778974` |
+
+
 27 Ekim 2026. Aşağıdaki **37 dosya** public artifact kapsamıdır: 2 HTML, 7 CSS, 27 JavaScript, 1 PDF. JS/CSS dosyaları içerik hash’iyle adlandırılır; HTML bağlantılarında SHA-256 SRI vardır. JS/CSS/PDF içerikleri kaynakla byte düzeyinde aynıdır; yalnız iki HTML’nin statik JS/CSS adresleri ve integrity nitelikleri build sırasında değiştirilir. Kaynak dosyalar değiştirilmez.
 
 `sourceDigest`: `33c2d8246743b84e6fc1e6b4d386d8402f4387cc75b6d4e18c02ca8267b4a064`

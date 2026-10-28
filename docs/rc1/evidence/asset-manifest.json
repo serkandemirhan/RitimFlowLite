@@ -1,14 +1,14 @@
 {
   "format": 1,
   "release": "ritim-flow-lite-demo-v1.0-rc1",
-  "sourceDigest": "33c2d8246743b84e6fc1e6b4d386d8402f4387cc75b6d4e18c02ca8267b4a064",
+  "sourceDigest": "2115312901943a3f882fdea5c0212a4daa21ad3a2795fe756b7e0429b3ab2b55",
   "assets": [
     {
       "source": "index.html",
-      "sha256": "2f887d158bbd92b537a4213db85c0fb9633704ebed21c0635f736dcce7ea84ae",
-      "bytes": 68183,
+      "sha256": "52711f26caf92d4ba0d9636eaaa32d8135a097ce92fdeaf16181a77cedb49cda",
+      "bytes": 68366,
       "target": "index.html",
-      "sourceSha256": "66228956fa3f859bcd75163a2c0e5c70b48e8ae590705d4356a789d9c481fb25"
+      "sourceSha256": "5d0cd1d8fbf8bc9e9290c997f2e41beb58d074a9f19f48823e943d8e5bd3095f"
     },
     {
       "source": "ritim_flow_lite_sales_polished.html",
@@ -68,10 +68,10 @@
     },
     {
       "source": "assets/js/concurrency-ui.js",
-      "sha256": "db11a5e760a8cc1ffb25fb9d802b53044744ffc421a4bee9d5e5dab0c07a8332",
-      "bytes": 11098,
-      "target": "assets/js/concurrency-ui.db11a5e760a8cc1ffb25fb9d802b53044744ffc421a4bee9d5e5dab0c07a8332.js",
-      "sourceSha256": "db11a5e760a8cc1ffb25fb9d802b53044744ffc421a4bee9d5e5dab0c07a8332"
+      "sha256": "81819f496b51c06437b03ead5b083f050626c0a3896ec36361ca0f2f76b62d42",
+      "bytes": 11301,
+      "target": "assets/js/concurrency-ui.81819f496b51c06437b03ead5b083f050626c0a3896ec36361ca0f2f76b62d42.js",
+      "sourceSha256": "81819f496b51c06437b03ead5b083f050626c0a3896ec36361ca0f2f76b62d42"
     },
     {
       "source": "assets/js/drawing-service.js",
@@ -103,17 +103,17 @@
     },
     {
       "source": "assets/js/persistence-ui.js",
-      "sha256": "f0b075f25ba7a8127e20c685030b9d366819ab82dabc723d7a127ddd7ee7ccac",
-      "bytes": 5863,
-      "target": "assets/js/persistence-ui.f0b075f25ba7a8127e20c685030b9d366819ab82dabc723d7a127ddd7ee7ccac.js",
-      "sourceSha256": "f0b075f25ba7a8127e20c685030b9d366819ab82dabc723d7a127ddd7ee7ccac"
+      "sha256": "0c28197de4e97ddcdc062c4df11327be797f33ec170e3947dd74d3145d0f2081",
+      "bytes": 7233,
+      "target": "assets/js/persistence-ui.0c28197de4e97ddcdc062c4df11327be797f33ec170e3947dd74d3145d0f2081.js",
+      "sourceSha256": "0c28197de4e97ddcdc062c4df11327be797f33ec170e3947dd74d3145d0f2081"
     },
     {
       "source": "assets/js/persistence.js",
-      "sha256": "2374ba05d5e801063ef4d03f5f98c7272419fe1d5a7ba9d3ac10d47d629d0ccf",
-      "bytes": 15845,
-      "target": "assets/js/persistence.2374ba05d5e801063ef4d03f5f98c7272419fe1d5a7ba9d3ac10d47d629d0ccf.js",
-      "sourceSha256": "2374ba05d5e801063ef4d03f5f98c7272419fe1d5a7ba9d3ac10d47d629d0ccf"
+      "sha256": "ea3559c2b1fea0f458063257b8c66fd69c3d87dbe42b553f5dbc90459b605f63",
+      "bytes": 15852,
+      "target": "assets/js/persistence.ea3559c2b1fea0f458063257b8c66fd69c3d87dbe42b553f5dbc90459b605f63.js",
+      "sourceSha256": "ea3559c2b1fea0f458063257b8c66fd69c3d87dbe42b553f5dbc90459b605f63"
     },
     {
       "source": "assets/js/planning-service.js",
@@ -201,10 +201,10 @@
     },
     {
       "source": "assets/js/ux-orders-workorders.js",
-      "sha256": "cf704f3e0a1fc48c66abf779c11b97c809639e57f01baee68b45a61307a705bb",
-      "bytes": 5533,
-      "target": "assets/js/ux-orders-workorders.cf704f3e0a1fc48c66abf779c11b97c809639e57f01baee68b45a61307a705bb.js",
-      "sourceSha256": "cf704f3e0a1fc48c66abf779c11b97c809639e57f01baee68b45a61307a705bb"
+      "sha256": "4a6b29d7220f5c26967ecb2a262c1bbb3f5b95bb783bbf2435061eec87243777",
+      "bytes": 5418,
+      "target": "assets/js/ux-orders-workorders.4a6b29d7220f5c26967ecb2a262c1bbb3f5b95bb783bbf2435061eec87243777.js",
+      "sourceSha256": "4a6b29d7220f5c26967ecb2a262c1bbb3f5b95bb783bbf2435061eec87243777"
     },
     {
       "source": "assets/js/ux-p1.js",

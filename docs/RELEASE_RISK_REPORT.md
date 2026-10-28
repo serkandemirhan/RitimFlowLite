@@ -1,5 +1,11 @@
 # Ritim Flow Lite — release risk değerlendirmesi
 
+## 28 Ekim 2026 — bağımsız kurgusal demo
+
+**Yayın kararı NO-GO:** GitHub Actions, gerçek cihaz kabulü ve candidate incelemesi açık. Yeni kaynak, `ritimFlowLite:fictional-demo:v1` anahtarını kullanır; eski sabit anahtarlar okunup otomatik aktarılmaz veya değiştirilmez. İlk kurulum Web Locks altında sürümlü komut makbuzuyla kaydedilir; kota veya kilit yokluğunda kayıt kapalıdır. Recovery yeni namespace ve açık yedek kopyalarıyla çalışır. Bu, keyfî aynı-origin koduna karşı güvenlik sınırı değildir. Önceki legacy import incelemesi eski stratejinin tarihsel kaydıdır.
+
+Yerel kurgusal testte `a28d5621f175f2e3f5f101396807d9eba60c4ff7` geçmiş commit'inden çıkarılan gerçek eski HTML/JS ile aynı origin'de yeni UI'dan sipariş oluşturuldu, korumalı test fixture'ı ile üretim tamamlanmış hale getirildi ve yeni sevkiyat yapıldı. Eski sayfanın `saveShipment()` çağrısı yalnız eski key'i değiştirdi; yeni sipariş, sevkiyat, işlem makbuzları ve reload korundu. Yeni ikinci sekmede tekrar komutu idempotentti. Bu yerel commit, halen yayınlanan Pages sürümünün doğrulanması değildir. 5 başlangıç/kurtarma ve 2 birlikte çalışma kontrolü kaynak ve artifact'ta ayrı ayrı başarılıdır. [Ayrıntılar](RC1_DEMO_ISOLATION_REPORT.md).
+
 ## 27 Ekim 2026 — P0-08 sonrası
 
 Aynı profil/origin/veri anahtarını paylaşan güncel yerel istemciler için P0-08 uygulandı. Gerçek exclusive Web Lock altında son snapshot okunur, komut yeniden doğrulanır; hareket ve idempotency makbuzu aynı artan revizyonla yazılır. Storage event yalnız görünümü eski olarak işaretler; bir kilit değildir. Desteklenmeyen veya erişimi reddedilen kilit ortamında mutasyon kapalıdır. [Güncel kapsam, testler ve sınırlar](P0_08_IMPLEMENTATION_REPORT.md).

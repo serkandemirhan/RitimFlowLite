@@ -1,7 +1,6 @@
 /* UX-03 & UX-04 · Safe progressive enhancements to the existing demo */
 (function(){'use strict';
 const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const getState=()=>{try{return JSON.parse(localStorage.getItem('ritim-flow-lite-v4')||'null')}catch{return null}};
 function enrichDetails(){
  const stage= document.querySelector('#page .detail-grid'); if(!stage)return;
  const current=typeof window.chosenJob!=='undefined'?window.chosenJob:null;
