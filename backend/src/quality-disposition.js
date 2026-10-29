@@ -7,7 +7,7 @@ const {projectOutput}=require('./output-projection');
 async function source(c,s,order,job){
  const j=await c.query(`SELECT w.id,o.sequence,o.kind FROM work_orders w JOIN operations o ON (o.tenant_id,o.site_id,o.order_id,o.id)=(w.tenant_id,w.site_id,w.order_id,w.operation_id) WHERE w.tenant_id=$1 AND w.site_id=$2 AND w.order_id=$3 AND w.id=$4`,[s.tenantId,s.siteId,order,job]);
  if(!j.rowCount)fail(404,'NOT_FOUND','Work order not found');
- if(j.rows[0].sequence!==0||j.rows[0].kind!=='internal')fail(409,'OPERATION_UNSUPPORTED','Only first internal operation is supported');
+ if(![0,1].includes(j.rows[0].sequence)||j.rows[0].kind!=='internal')fail(409,'OPERATION_UNSUPPORTED','Only the first two internal operations are supported');
  if((await c.query("SELECT 1 FROM operations x WHERE x.tenant_id=$1 AND x.site_id=$2 AND x.order_id=$3 AND x.kind='external' AND EXISTS(SELECT 1 FROM operations y WHERE y.tenant_id=x.tenant_id AND y.site_id=x.site_id AND y.order_id=x.order_id AND y.sequence>x.sequence) LIMIT 1",[s.tenantId,s.siteId,order])).rowCount)fail(409,'OPERATION_UNSUPPORTED','Intermediate external operations are unsupported');
  if((await c.query('SELECT 1 FROM drawing_revisions WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 LIMIT 1',[s.tenantId,s.siteId,order])).rowCount)fail(409,'DRAWING_ACKNOWLEDGEMENT_UNSUPPORTED','Drawing revision acknowledgement is not implemented');
  await reconciled(c,s,job);

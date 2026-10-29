@@ -1,0 +1,7 @@
+/api/v1/session 401
+/health/ready 200
+NAME                                IMAGE                             COMMAND                  SERVICE     CREATED              STATUS                        PORTS
+ritimdownstreamverify-api-1         ritimdownstreamverify-api         "docker-entrypoint.s…"   api         22 seconds ago       Up 18 seconds (healthy)       127.0.0.1:63662->3000/tcp
+ritimdownstreamverify-db-1          postgres:16                       "docker-entrypoint.s…"   db          About a minute ago   Up About a minute (healthy)   5432/tcp
+ritimdownstreamverify-migrate-1     ritimdownstreamverify-migrate     "docker-entrypoint.s…"   migrate     23 seconds ago       Exited (0) 19 seconds ago
+ritimdownstreamverify-provision-1   ritimdownstreamverify-provision   "docker-entrypoint.s…"   provision   23 seconds ago       Exited (0) 18 seconds ago
