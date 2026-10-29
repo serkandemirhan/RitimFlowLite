@@ -1,0 +1,81 @@
+{
+  "date": "2026-10-29T08:01:18.737Z",
+  "browser": "Chrome via Playwright",
+  "results": [
+    {
+      "name": "B01-1440: persisted legacy data survives loading and read-only navigation",
+      "status": "PASS"
+    },
+    {
+      "name": "B02-1440: production→close→QA→partial shipment→return keeps every screen consistent",
+      "status": "FAIL",
+      "error": "locator.click: Timeout 7000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Üretim Sonucunu Kaydet', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <button class=\"btn primary full\" onclick=\"RitimUX05.production(\"WO-P0\")\">Üretim Sonucunu Kaydet</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\n    at Proxy.<anonymous> (/Users/user/projects/ritimFlowLite/RitimFlowLite-ux-sprint2/tests/browser-transactions.cjs:65:36)\n    at async result (/Users/user/projects/ritimFlowLite/RitimFlowLite-ux-sprint2/tests/p0-browser.cjs:97:3)\n    at async /Users/user/projects/ritimFlowLite/RitimFlowLite-ux-sprint2/tests/p0-browser.cjs:201:11\n    at async isolated (/Users/user/projects/ritimFlowLite/RitimFlowLite-ux-sprint2/tests/p0-browser.cjs:71:5)\n    at async run (/Users/user/projects/ritimFlowLite/RitimFlowLite-ux-sprint2/tests/p0-browser.cjs:19:5)\n    at async /Users/user/projects/ritimFlowLite/RitimFlowLite-ux-sprint2/tests/p0-browser.cjs:196:5"
+    },
+    {
+      "name": "B01-390: persisted legacy data survives loading and read-only navigation",
+      "status": "PASS"
+    },
+    {
+      "name": "B02-390: production→close→QA→partial shipment→return keeps every screen consistent",
+      "status": "PASS"
+    },
+    {
+      "name": "B01-360: persisted legacy data survives loading and read-only navigation",
+      "status": "PASS"
+    },
+    {
+      "name": "B02-360: production→close→QA→partial shipment→return keeps every screen consistent",
+      "status": "PASS"
+    },
+    {
+      "name": "B03: unsupported routes and preexisting final approvals cannot bypass terminal operation",
+      "status": "PASS"
+    },
+    {
+      "name": "B04: old openShip routes to guarded form; old saveShipment uses canonical command",
+      "status": "PASS"
+    },
+    {
+      "name": "B05: partial supplier movements retain caps, documents and good→QA→shipping chain",
+      "status": "PASS"
+    },
+    {
+      "name": "B06: UX05 250/150/100 equation and closure/overproduction guards remain intact",
+      "status": "PASS"
+    },
+    {
+      "name": "B07: UX05 inspection, rework and handover preserve quantities",
+      "status": "PASS"
+    },
+    {
+      "name": "B08: independent sales page cannot ship through UI, openShipment or ship",
+      "status": "PASS"
+    },
+    {
+      "name": "B09: read-only old approvals/dispatches stay visible but cannot release new inventory",
+      "status": "PASS"
+    },
+    {
+      "name": "B10: new model/service assets load on every route without app errors",
+      "status": "PASS"
+    },
+    {
+      "name": "B11: partial material receipts/allocations preserve free balance and reject excess",
+      "status": "PASS"
+    },
+    {
+      "name": "B12: manager restriction and legacy direct commit both revalidate final QA",
+      "status": "PASS"
+    }
+  ],
+  "telemetry": [
+    {
+      "test": "B02-1440: production→close→QA→partial shipment→return keeps every screen consistent",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    }
+  ],
+  "applicationErrors": [],
+  "passed": 15,
+  "failed": 1
+}

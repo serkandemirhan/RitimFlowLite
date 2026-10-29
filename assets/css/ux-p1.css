@@ -221,3 +221,22 @@
 .api-mobile-nav{display:none;gap:6px;flex-wrap:wrap;margin-bottom:12px}@media(max-width:820px){.api-mobile-nav{display:flex}}
 .api-shell [data-search][hidden]{display:none}
 @media(max-width:820px){.header-right .api-mode-link{display:none}}
+
+/* Sprint 2: clear operator identity and accessible quality configuration. */
+.ux05-top > div { min-width: 0; overflow-wrap: anywhere; }
+.ux05-top h2 { overflow-wrap: anywhere; }
+.ux-quality-policy { border: 0; margin: 0; padding: 0; min-width: 0; }
+.ux-quality-summary { margin-bottom: 12px; }
+.ux-quality-summary h2 { font-size: 17px; }
+.ux-quality-summary h2 span { color: #526b8b; font-size: 13px; }
+.ux-quality-summary .list-card, .ux-quality-record { display: grid; gap: 5px; width: 100%; min-width: 0; text-align: left; overflow-wrap: anywhere; }
+.ux-quality-record { padding: 12px 0; border-top: 1px solid #e5ebf2; }
+.ux-quality-record span, .ux-quality-summary .list-card span { color: #526b8b; font-size: 13px; }
+.ux05-secondary { display: grid; gap: 12px; min-width: 0; }
+.ux05-secondary > h3 { margin: 10px 0 0; color: #526b8b; font-size: 14px; }
+.ux05-secondary > .card { min-width: 0; }
+.ux05-wrap .btn, .ux-quality-summary .list-card { min-height: 44px; }
+.ux05-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ux05-metrics > div { padding: 9px; border-radius: 8px; }
+.ux05-metrics strong { font-size: 19px; }
+.ux05-metrics span { overflow-wrap: anywhere; }

@@ -14,8 +14,8 @@
   operatorJob = function (j) {
     const v = RitimDrawings.current(state, j.order);
     return (
-      `${v ? `<div class="card pad"><h3>Çizim Revizyonu ${h(v.revision)}</h3><p>${h(v.reason)}</p><button class="btn" onclick="showDrawing(${jsArg(j.order)})">Güncel Çizimi Aç</button><button class="btn" onclick="RitimQC.ack(${jsArg(j.id)})" ${RitimDrawings.acknowledged(state, j) ? "disabled" : ""}>Revizyonu Okudum ve Onayladım</button></div>` : ""}` +
-      operator(j)
+      operator(j) +
+      `${v ? `<div class="card pad"><h3>Çizim Revizyonu ${h(v.revision)}</h3><p>${h(v.reason)}</p><button class="btn" onclick="showDrawing(${jsArg(j.order)})">Güncel Çizimi Aç</button><button class="btn" onclick="RitimQC.ack(${jsArg(j.id)})" ${RitimDrawings.acknowledged(state, j) ? "disabled" : ""}>Revizyonu Okudum ve Onayladım</button></div>` : ""}`
     );
   };
   const block = drawingBlock;
@@ -65,8 +65,12 @@
     }
   };
   function quality() {
+    const completed = state.inspectionCases || [];
+    const pending = state.jobs.filter((j) => (j.ux05?.pending || 0) > 0);
+    const summary = `<section class="card pad ux-quality-summary"><h2>Kontrol Bekleyenler <span>${pending.length}</span></h2>${pending.map((j) => { const o = jo(j); return `<button class="list-card" onclick="RitimUX.openProduction(${jsArg(j.id)})"><b>${h(j.id)} · ${h(o.part)}</b><span>${h(o.partNo || "—")} · ${h(o.route?.[j.op] || "İmalat")} · Rev ${h(o.revision || "—")}</span><span>${j.ux05.pending} adet · Karar bekliyor</span></button>`; }).join("") || '<p>Kontrol bekleyen iş yok.</p>'}</section>`;
+    const history = `<section class="card pad ux-quality-summary"><h2>Tamamlanan Kontroller <span>${completed.length}</span></h2>${completed.map((q) => { const j = job(q.job), o = j ? jo(j) : {}; return `<div class="ux-quality-record"><b>${h(q.job)} · ${h(o.part || "—")}</b><span>${h(o.route?.[q.operation] || "—")} · ${h(q.qty)} adet · Kontrol anı revizyonu kayıtlı değil</span><span>Onay ${h(q.good)} · Hurda ${h(q.scrap)} · Rework ${h(q.rework)}</span></div>`; }).join("") || '<p>Henüz tamamlanan kontrol yok.</p>'}</section>`;
     const tasks = (state.reworkTasks || []).filter((t) => t.remaining > 0);
-    return `<div class="card pad"><h3>Rework İş Emirleri</h3>${state.jobs
+    return `${summary}<div class="card pad"><h3>Rework İş Emirleri</h3>${state.jobs
       .filter(
         (j) =>
           (j.ux05?.rework || 0) >
@@ -80,13 +84,13 @@
       )
       .join(
         "",
-      )}${tasks.map((t) => `<div class="card pad"><b>${h(t.id)}</b><p>${h(t.job)} · ${h(t.defect)}</p><label class="formfield">Rework operatörü<select class="select" id="rwo-${h(t.id)}">${RitimWorkforce.operators.map((u) => `<option ${u === t.owner ? "selected" : ""}>${h(u)}</option>`).join("")}</select></label><button class="btn" onclick="RitimQC.assign(${jsArg(t.id)})">Rework Operatörü Ata</button><p>Kalan: ${t.remaining} · İşlenmiş / kontrol bekliyor: ${t.executed}</p><p class="tiny">Kaynak kontrol: ${h(t.inspection)} · Girdi: ${t.inputLots.map(h).join(", ")}</p><label class="formfield">Yeniden işlenen adet<input class="input" id="rw-${h(t.id)}" type="number" min="1" value="${t.remaining - t.executed}"></label><button class="btn full" onclick="RitimQC.execute(${jsArg(t.id)})">Yeniden İşlemeyi Kaydet</button><button class="btn full" onclick="RitimUX.openProduction(${jsArg(t.job)})">Kalite Sonucunu Gir</button></div>`).join("") || "<p>Açık rework işi yok.</p>"}</div><div class="card pad"><h3>Operasyon Öz Kontrol Politikası</h3><p class="tiny">Yönetici onayı varsayılandır. Seçili operatöre yalnızca belirtilen operasyon için öz kontrol izni verilir. Koşullu sevkiyat kapalıdır.</p><label class="formfield">İş emrinin operasyonu<select id="policy-job" class="select">${state.jobs.map((j) => `<option value="${h(j.id)}">${h(j.id)} · ${h(jo(j).id)} · ${j.op + 1}</option>`).join("")}</select></label><label class="formfield">Öz kontrol kullanıcısı<select id="policy-user" class="select"><option value="">Yalnızca yönetici</option>${RitimWorkforce.operators.map((u) => `<option>${u}</option>`).join("")}</select></label><button class="btn full" onclick="RitimQC.policy()">Politikayı Kaydet</button></div>`;
+      )}${tasks.map((t) => `<div class="card pad"><b>${h(t.id)}</b><p>${h(t.job)} · ${h(t.defect)}</p><label class="formfield">Rework operatörü<select class="select" id="rwo-${h(t.id)}">${RitimWorkforce.operators.map((u) => `<option ${u === t.owner ? "selected" : ""}>${h(u)}</option>`).join("")}</select></label><button class="btn" onclick="RitimQC.assign(${jsArg(t.id)})">Rework Operatörü Ata</button><p>Kalan: ${t.remaining} · İşlenmiş / kontrol bekliyor: ${t.executed}</p><p class="tiny">Kaynak kontrol: ${h(t.inspection)} · Girdi: ${t.inputLots.map(h).join(", ")}</p><label class="formfield">Yeniden işlenen adet<input class="input" id="rw-${h(t.id)}" type="number" min="1" value="${t.remaining - t.executed}"></label><button class="btn full" onclick="RitimQC.execute(${jsArg(t.id)})">Yeniden İşlemeyi Kaydet</button><button class="btn full" onclick="RitimUX.openProduction(${jsArg(t.job)})">Kalite Sonucunu Gir</button></div>`).join("") || "<p>Açık rework işi yok.</p>"}</div>${history}<div class="card pad"><h3>Operasyon Öz Kontrol Politikası</h3>${state.user !== "Yönetici" ? '<p class="tiny">Politika yalnızca yönetici tarafından düzenlenebilir.</p>' : ""}<fieldset ${state.user !== "Yönetici" ? "disabled" : ""} class="ux-quality-policy"><p class="tiny">Yönetici onayı varsayılandır. Seçili operatöre yalnızca belirtilen operasyon için öz kontrol izni verilir. Koşullu sevkiyat kapalıdır.</p><label class="formfield">İş emrinin operasyonu<select id="policy-job" class="select">${state.jobs.map((j) => `<option value="${h(j.id)}">${h(j.id)} · ${h(jo(j).id)} · ${j.op + 1}</option>`).join("")}</select></label><label class="formfield">Öz kontrol kullanıcısı<select id="policy-user" class="select"><option value="">Yalnızca yönetici</option>${RitimWorkforce.operators.map((u) => `<option>${u}</option>`).join("")}</select></label><button class="btn full" onclick="RitimQC.policy()">Politikayı Kaydet</button></fieldset></div>`;
   }
   const oldRender = render;
   render = function () {
     oldRender();
     if (view === "quality")
-      el("page").insertAdjacentHTML("beforeend", quality());
+      el("page").innerHTML = quality();
   };
   window.RitimQC = {
     assign(id) {

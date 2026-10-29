@@ -28,7 +28,7 @@
   };
   const oldOperator = operatorJob;
   operatorJob = function (j) {
-    return workPanel(j) + oldOperator(j);
+    return oldOperator(j) + workPanel(j);
   };
   productionPage = function () {
     const j = selectedProduction ? job(selectedProduction) : byMachine(machine);

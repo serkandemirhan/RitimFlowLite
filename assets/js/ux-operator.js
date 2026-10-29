@@ -346,11 +346,21 @@
     const finished = j.good + j.scrap + x.pending + x.setup + x.rework;
     return `<div class="ux05-wrap">
  <div class="card ux05-hero">
-  <div class="ux05-top"><div><div class="eyebrow">${html(j.id)} · ${html(o.customer)}</div><h2>${html(o.part)}</h2><div class="tiny">${html(o.route?.[j.op] || "İmalat")} · ${html(j.machine)} · Rev ${html(o.revision)}</div></div><button class="btn sm" onclick="showDrawing(${jsArg(o.id)})">${I("image", 16)} Çizim</button></div>
+  <div class="ux05-top"><div><div class="eyebrow">${html(j.id)} · ${html(o.customer)}</div><h2>${html(o.part)}</h2><div class="tiny">Parça ${html(o.partNo || "—")} · ${html(o.route?.[j.op] || "İmalat")}</div><div class="tiny">Makine: ${html(j.machine || "Atanmamış")} · Operatör: ${html(j.owner || "Atanmamış")} · Rev ${html(o.revision || "—")}</div></div><button class="btn sm" onclick="showDrawing(${jsArg(o.id)})">${I("image", 16)} Çizim</button></div>
   <div class="ux05-progress"><strong>${j.good} <small>/ ${total} sağlam</small></strong>${badge(j.state)}</div>
   ${prog(j.good, total)}
+ </div>
+ <div class="card pad ux05-block"><h3>Üretim</h3>
+ <div class="ux05-inline"><select id="ux05-type" class="select" aria-label="Üretim sonucu">
+ <option value="pending">Kontrol Bekleyen</option><option value="good" ${(window.RitimQuality ? RitimQuality.canSelf(state, j) : state.user === "Yönetici") ? "" : "disabled"}>Sağlam · Yetkili Öz Kontrol</option><option value="scrap">Üretim Hurdası</option><option value="setup">Ayar Firesi</option></select>
+ <input id="ux05-qty" class="input ux05-number" type="number" min="1" step="1" inputmode="numeric" value="1" aria-label="Adet"></div>
+ <button class="btn ${j.state === "running" ? "primary" : ""} full" ${j.state !== "running" || !!x.handover || remaining === 0 ? "disabled" : ""} onclick="RitimUX05.production(${jsArg(j.id)})">Üretim Sonucunu Kaydet</button>
+ <div class="ux05-inline ux05-buttons">${j.state === "running" ? `<select id="ux05-pause-reason" class="select"><option>Makine arızası</option><option>Takım değişimi</option><option>Malzeme bekleme</option><option>Mola</option><option>Diğer</option></select><button class="btn softamber" onclick="RitimUX05.pause(${jsArg(j.id)})">Duraklat</button>` : j.state === "paused" && !x.handover ? `<button class="btn primary full" onclick="RitimUX05.resume(${jsArg(j.id)})">Üretime Devam Et</button>` : j.state === "waiting" ? `<button class="btn primary full" onclick="RitimUX05.start(${jsArg(j.id)})">İşe Başla</button>` : ""}</div>
+ </div>
+ <div class="card pad ux05-details"><h3>Miktar ayrıntısı</h3>
   <div class="ux05-metrics">
    ${[
+     ["Planlanan", total],
      ["Fiziksel alınan", b.received],
      ["Sağlam (toplam üretim)", j.good],
      ["Kontrol bekleyen", x.pending],
@@ -368,19 +378,13 @@
   </div>
   <div class="ux05-balance">${b.received} işe alınan = ${finished} sonuçlanan/bekleyen + ${remaining} henüz işlenmeyen${b.transferredOut ? ` + ${b.transferredOut} transfer çıkışı` : ``}</div>
  </div>
+ <section class="ux05-secondary" aria-label="Diğer iş emri işlemleri"><h3>Diğer işlemler</h3>
  ${window.RitimUXTransfers ? RitimUXTransfers.panel(j) : ""}
  ${x.handover ? `<div class="card pad ux05-handover"><strong>Vardiya devri bekleniyor</strong><p>${html(x.handover.note)}</p><p class="tiny">Devreden: ${html(x.handover.from)}</p><button class="btn primary full" onclick="RitimUX05.takeOver(${jsArg(j.id)})">İşi Devral</button></div>` : ""}
- <div class="card pad ux05-block"><h3>1 · Fiziksel Malzeme Teslimi</h3><p class="tiny">UX-06 iş emri tahsisi doğrulanır. İlk malzeme girişini Malzeme / Fason ekranından yapın.</p>
- <div class="ux05-inline"><input id="ux05-receive" class="input" type="number" min="1" step="1" inputmode="numeric" value="${receivedOpen > 0 ? Math.min(10, receivedOpen) : 0}" aria-label="Teslim miktarı"><button class="btn primary" ${!receivedOpen || ["complete", "shipped"].includes(j.state) ? "disabled" : ""} onclick="RitimUX05.receive(${jsArg(j.id)})">Teslim Aldım</button></div>
+ <div class="card pad ux05-block"><h3>Fiziksel Malzeme Teslimi</h3><p class="tiny">UX-06 iş emri tahsisi doğrulanır. İlk malzeme girişini Malzeme / Fason ekranından yapın.</p>
+ <div class="ux05-inline"><input id="ux05-receive" class="input" type="number" min="1" step="1" inputmode="numeric" value="${receivedOpen > 0 ? Math.min(10, receivedOpen) : 0}" aria-label="Teslim miktarı"><button class="btn" ${!receivedOpen || ["complete", "shipped"].includes(j.state) ? "disabled" : ""} onclick="RitimUX05.receive(${jsArg(j.id)})">Teslim Aldım</button></div>
  </div>
- <div class="card pad ux05-block"><h3>2 · Üretim Kaydı</h3>
- <div class="ux05-inline"><select id="ux05-type" class="select" aria-label="Üretim sonucu">
- <option value="pending">Kontrol Bekleyen</option><option value="good" ${(window.RitimQuality ? RitimQuality.canSelf(state, j) : state.user === "Yönetici") ? "" : "disabled"}>Sağlam · Yetkili Öz Kontrol</option><option value="scrap">Üretim Hurdası</option><option value="setup">Ayar Firesi</option></select>
- <input id="ux05-qty" class="input ux05-number" type="number" min="1" step="1" inputmode="numeric" value="1" aria-label="Adet"></div>
- <button class="btn primary full" ${j.state !== "running" || !!x.handover || remaining === 0 ? "disabled" : ""} onclick="RitimUX05.production(${jsArg(j.id)})">Üretim Sonucunu Kaydet</button>
- <div class="ux05-inline ux05-buttons">${j.state === "running" ? `<select id="ux05-pause-reason" class="select"><option>Makine arızası</option><option>Takım değişimi</option><option>Malzeme bekleme</option><option>Mola</option><option>Diğer</option></select><button class="btn softamber" onclick="RitimUX05.pause(${jsArg(j.id)})">Duraklat</button>` : j.state === "paused" && !x.handover ? `<button class="btn good full" onclick="RitimUX05.resume(${jsArg(j.id)})">Üretime Devam Et</button>` : j.state === "waiting" ? `<button class="btn good full" onclick="RitimUX05.start(${jsArg(j.id)})">İşe Başla</button>` : ""}</div>
- </div>
- <div class="card pad ux05-block"><h3>3 · Kalite Kontrol</h3><p class="tiny">Yalnızca yetkili kullanıcı kontrol sonucunu onaylar. Diğerleri açık miktarı izler.</p>
+ <div class="card pad ux05-block"><h3>Kalite Kontrol</h3><p class="tiny">Yalnızca yetkili kullanıcı kontrol sonucunu onaylar. Diğerleri açık miktarı izler.</p>
  <label class="formfield">Kontrol / rework açıklaması<input class="input" id="quality-defect"></label><div class="ux05-three"><label>Sağlam<input id="ux05-ig" type="number" min="0" value="0"></label><label>Hurda<input id="ux05-is" type="number" min="0" value="0"></label><label>Rework<input id="ux05-ir" type="number" min="0" value="0"></label></div>
  <button class="btn full" ${!x.pending || state.user !== "Yönetici" ? "disabled" : ""} onclick="RitimUX05.inspect(${jsArg(j.id)})">Kontrol Sonucunu Onayla (${x.pending} bekliyor)</button>
  <label class="formfield">Kaynak rework işi<select class="select" id="quality-task">${(
@@ -396,10 +400,10 @@
    )}</select></label><div class="ux05-three"><label>Rework → Sağlam<input id="ux05-rg" type="number" min="0" value="0"></label><label>Rework → Hurda<input id="ux05-rs" type="number" min="0" value="0"></label></div>
  <button class="btn full" ${!x.rework || state.user !== "Yönetici" ? "disabled" : ""} onclick="RitimUX05.rework(${jsArg(j.id)})">Rework Kontrolünü Onayla</button>
  </div>
- <div class="card pad ux05-block"><h3>4 · Vardiya Devri / Sonuçlandırma</h3><textarea id="ux05-handover-note" class="textarea" rows="2" placeholder="Sonraki operatöre takım, parça ve işlem notları…"></textarea>
+ <div class="card pad ux05-block"><h3>Vardiya Devri / Sonuçlandırma</h3><textarea id="ux05-handover-note" class="textarea" rows="2" placeholder="Sonraki operatöre takım, parça ve işlem notları…"></textarea>
  <div class="ux05-inline ux05-buttons"><button class="btn" ${x.handover || !["running", "paused"].includes(j.state) ? "disabled" : ""} onclick="RitimUX05.handover(${jsArg(j.id)})">Vardiya Devret</button><button class="btn" ${j.state === "complete" || j.state === "shipped" ? "disabled" : ""} onclick="RitimUX05.close(${jsArg(j.id)})">İş Emrini Kapat</button></div>
  <p class="tiny">Açık kontrol, rework, henüz işlenmeyen veya işe alınmamış miktar varsa doğrudan kapatma engellenir. Makine değişimi ve plan revizyonu yöneticinin ayrı işlemidir.</p>
- </div></div>`;
+ </div></section></div>`;
   };
   function run(fn, id) {
     const keys =
