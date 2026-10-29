@@ -1,5 +1,7 @@
 # B02 — Identity, tenant/site authorization and deployment
 
+> Historical B02 design: B03A now installs RLS and a runtime provisioning helper. See [B03A implementation](B03A_IMPLEMENTATION.md) for current status and limitations.
+
 Status: foundation only; not production ready. No MES write endpoint exists. The frontend remains unchanged. Cloud and on-premise use the same code, PostgreSQL migrations, API and permissions.
 
 ## Trust boundary

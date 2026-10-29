@@ -9,3 +9,11 @@
 7. **B08 deployments:** same immutable container and migrations for cloud/on-prem; TLS, secret management, production DB roles/RLS policy, backup/restore drills, disaster recovery, performance, load/security tests, deployment and migration rollback plan. Require real device acceptance and explicit release review.
 
 Browser localStorage import is a separate consent-based migration project; no automatic migration is included here. Both editions remain non-production until all critical security, business invariants and operations gates are complete.
+
+B03B development now includes first-operation order/route/planning APIs, guarded by an explicit isolated-development flag. Later-operation reservations, material, production and quality flows remain to be implemented; see [B03B implementation](B03B_ORDERS_PLANNING.md). Production write activation remains NO-GO.
+
+B03C provides an isolated, append-only same-operation physical dispatch/accept foundation. Production-to-lot consumption, QC reconciliation, adjacent-operation approved-good reservations, supplier flows, reversals and material-allocation commands remain open for subsequent development. See [B03C physical flow](B03C_PHYSICAL_FLOW.md).
+
+## B04A development boundary
+
+First-internal-operation lifecycle and reconciled input consumption are available only in isolated development. B04B must specify quality decisions and pending reconciliation, assignment/drawing acknowledgements and release boundaries before adding subsequent workflows; production activation remains NO-GO. See [B04A](B04A_PRODUCTION_EXECUTION.md).

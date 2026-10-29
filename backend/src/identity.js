@@ -29,7 +29,7 @@ async function authenticate(request,pool,verifier){
  if(!verifier)throw new HttpError(401,'UNAUTHENTICATED','Authentication unavailable');
  const claims=await verifier.verify(bearer(request.headers.authorization));
  if(!claims||typeof claims.issuer!=='string'||typeof claims.subject!=='string')throw new HttpError(401,'UNAUTHENTICATED','Invalid identity');
- const result=await pool.query('SELECT id, issuer, subject, display_name FROM users WHERE issuer=$1 AND subject=$2 AND disabled_at IS NULL',[claims.issuer,claims.subject]);
+ const result=await pool.query('SELECT * FROM ritim_identity($1,$2)',[claims.issuer,claims.subject]);
  if(result.rowCount!==1)throw new HttpError(401,'UNAUTHENTICATED','Identity is not active');
  const user=result.rows[0];
  return Object.freeze({verified:true,userId:user.id,issuer:user.issuer,subject:user.subject,displayName:user.display_name});

@@ -10,8 +10,10 @@ function loadConfig(env = process.env) {
     try { parsed = new URL(databaseUrl); } catch { throw new Error('DATABASE_URL must be a PostgreSQL URL'); }
     if (!['postgres:', 'postgresql:'].includes(parsed.protocol)) throw new Error('DATABASE_URL must be a PostgreSQL URL');
   }
+  if(env.RITIM_ISOLATED_DEVELOPMENT && !['true','false'].includes(env.RITIM_ISOLATED_DEVELOPMENT))throw new Error('Invalid isolated development flag');
+  if(env.RITIM_ISOLATED_DEVELOPMENT==='true' && !['test','development'].includes(env.NODE_ENV))throw new Error('Isolated development requires NODE_ENV test or development');
   const oidc=[env.OIDC_ISSUER,env.OIDC_AUDIENCE,env.OIDC_JWKS_URL];
   if(oidc.some(Boolean)&&!oidc.every(Boolean))throw new Error('OIDC_ISSUER, OIDC_AUDIENCE and OIDC_JWKS_URL must be configured together');
-  return Object.freeze({host:env.HOST || '127.0.0.1',port,logLevel:env.LOG_LEVEL || 'info',databaseUrl,ssl,oidc:oidc.every(Boolean)?{issuer:oidc[0],audience:oidc[1],jwksUrl:oidc[2]}:null});
+  return Object.freeze({host:env.HOST || '127.0.0.1',port,logLevel:env.LOG_LEVEL || 'info',databaseUrl,ssl,isolatedDevelopment:env.RITIM_ISOLATED_DEVELOPMENT==='true',oidc:oidc.every(Boolean)?{issuer:oidc[0],audience:oidc[1],jwksUrl:oidc[2]}:null});
 }
 module.exports = {loadConfig};

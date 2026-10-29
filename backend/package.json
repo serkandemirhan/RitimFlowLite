@@ -10,7 +10,7 @@
     "start": "node src/server.js",
     "migrate": "node src/migrate.js",
     "test": "node --test test/*.test.js",
-    "test:integration": "node --test test/integration.test.js test/b02-security.test.js",
+    "test:integration": "node --test test/integration.test.js test/b02-security.test.js test/b03a-rls.test.js test/b03a-migration-recovery.test.js test/b03b-planning.test.js test/b03c-flow.test.js test/b04a-production.test.js",
     "test:unit": "node --test test/foundation.test.js test/b02-auth.test.js"
   },
   "dependencies": {
