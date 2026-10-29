@@ -78,3 +78,7 @@ Paths are relative to `/api/v1/sites/{tenantId}/{siteId}/orders/{orderId}`. Both
 ### Downstream production (isolated development only)
 
 The existing `/work-orders/{workOrderId}/production/{start,pause,resume,results,complete,summary,balances}` contract also supports the immediately following internal operation. `results` consumes `{lotId, kind, quantity}` only from a physically received operation input lot owned by that work order. `GET /work-orders/{workOrderId}/operation-inputs` reports `received` and `availablePhysicalInput` separately, with lot genealogy. Dispatch/receipt can continue while the destination is running or paused. Drawing revisions still fail closed, quality remains an explicit separate decision and later operations are unsupported. See `DOWNSTREAM_PRODUCTION_READINESS.md`.
+
+### Operator/quality integration discovery and fictional input
+
+The isolated-development-only assignment options, fictional material intake/allocation and reload reads, production and quality event histories, and downstream discovery contracts are documented in [INTEGRATION_API_DEPENDENCIES.md](INTEGRATION_API_DEPENDENCIES.md). Fictional onboarding cannot be used as a real supplier receiving system. Existing physical receipt, assignment, downstream reservation and movement commands are reused and remain separate transactions.

@@ -1,0 +1,8 @@
+/api/v1/session 401
+/api/v1/sites/00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000002/orders/00000000-0000-4000-8000-000000000003/downstream-discovery 401
+/health/ready 200
+NAME                               IMAGE                            COMMAND                  SERVICE     CREATED              STATUS                            PORTS
+ritimcontractsverify-api-1         ritimcontractsverify-api         "docker-entrypoint.s…"   api         9 seconds ago        Up 6 seconds (health: starting)   127.0.0.1:63662->3000/tcp
+ritimcontractsverify-db-1          postgres:16                      "docker-entrypoint.s…"   db          About a minute ago   Up About a minute (healthy)       5432/tcp
+ritimcontractsverify-migrate-1     ritimcontractsverify-migrate     "docker-entrypoint.s…"   migrate     9 seconds ago        Exited (0) 7 seconds ago
+ritimcontractsverify-provision-1   ritimcontractsverify-provision   "docker-entrypoint.s…"   provision   9 seconds ago        Exited (0) 6 seconds ago
