@@ -121,7 +121,7 @@
       n = amount("ux05-qty", input),
       type = input["ux05-type"];
     if (window.RitimWorkforce && !RitimWorkforce.canWork(state, j))
-      return fail("İş başka operatöre atanmış");
+      return fail(j.owner ? "İş başka operatöre atanmış" : "İşin operatörü atanmamış; önce işi devralın veya yöneticiye atattırın");
     if (!j.machine) return fail("İş emrine makine atayın");
     if (window.RitimDrawings && !RitimDrawings.acknowledged(state, j))
       return fail("Güncel çizim revizyonunu okuyup onaylayın");
@@ -225,7 +225,7 @@
     const j = state.jobs.find((j) => j.id === id),
       reason = input["ux05-pause-reason"] || "Diğer";
     if (window.RitimWorkforce && !RitimWorkforce.canWork(state, j))
-      return fail("İş başka operatöre atanmış");
+      return fail(j.owner ? "İş başka operatöre atanmış" : "İşin operatörü atanmamış; önce işi devralın veya yöneticiye atattırın");
     if (j.state !== "running")
       return fail("Yalnızca çalışan iş duraklatılabilir");
     j.state = "paused";
@@ -238,7 +238,7 @@
     if (window.RitimDrawings && !RitimDrawings.acknowledged(state, j))
       return fail("Güncel çizim revizyonunu okuyup onaylayın");
     if (window.RitimWorkforce && !RitimWorkforce.canWork(state, j))
-      return fail("İş başka operatöre atanmış");
+      return fail(j.owner ? "İş başka operatöre atanmış" : "İşin operatörü atanmamış; önce işi devralın veya yöneticiye atattırın");
     if (j.state !== "paused" || ledger(j, true).handover)
       return fail("Devredilmeyi bekleyen iş devam ettirilemez");
     j.state = "running";
@@ -252,7 +252,7 @@
     if (window.RitimDrawings && !RitimDrawings.acknowledged(state, j))
       return fail("Güncel çizim revizyonunu okuyup onaylayın");
     if (window.RitimWorkforce && !RitimWorkforce.canWork(state, j))
-      return fail("İş başka operatöre atanmış");
+      return fail(j.owner ? "İş başka operatöre atanmış" : "İşin operatörü atanmamış; önce işi devralın veya yöneticiye atattırın");
     if (x.handover) return fail("Önce vardiya devralma gerekli");
     if (!eligibleStart(j, state))
       return fail("Önce üretilecek parçaları fiziksel teslim al");
@@ -265,7 +265,7 @@
       x = ledger(j, true),
       note = input["ux05-handover-note"]?.trim();
     if (window.RitimWorkforce && !RitimWorkforce.canWork(state, j))
-      return fail("İş başka operatöre atanmış");
+      return fail(j.owner ? "İş başka operatöre atanmış" : "İşin operatörü atanmamış; önce işi devralın veya yöneticiye atattırın");
     if (!note) return fail("Devir notu yazılmalı");
     if (!["running", "paused"].includes(j.state))
       return fail("Önce işi başlat");
@@ -290,7 +290,7 @@
     const j = state.jobs.find((j) => j.id === id),
       x = ledger(j, true);
     if (window.RitimWorkforce && !RitimWorkforce.canWork(state, j))
-      return fail("İş başka operatöre atanmış");
+      return fail(j.owner ? "İş başka operatöre atanmış" : "İşin operatörü atanmamış; önce işi devralın veya yöneticiye atattırın");
     if (j.state === "complete" || j.state === "shipped")
       return fail("İş zaten kapalı");
     if (

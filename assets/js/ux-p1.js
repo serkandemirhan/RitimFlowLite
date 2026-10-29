@@ -32,15 +32,20 @@
   };
   productionPage = function () {
     const j = selectedProduction ? job(selectedProduction) : byMachine(machine);
-    return `<div class="operator"><div class="operator-top"><label>Makine<select class="op-machine-select" aria-label="Makine seçimi" onchange="RitimUX.machine(this.value)">${MACHINES.map((m) => `<option value="${h(m.id)}" ${machine === m.id ? "selected" : ""}>${h(m.id)} · ${h(m.brand)}</option>`).join("")}</select></label></div>${j ? `<p class="tiny">Seçili iş emri: ${h(j.id)}</p>${!j.machine ? '<div class="ux6-alert">Bu iş emrine makine atanmamış. Üretime başlamadan önce yönetici makine atamalı.</div>' : ""}${operatorJob(j)}` : '<div class="card pad empty">Bu makinede aktif iş yok.</div>'}</div>`;
+    return `<div class="operator"><div class="operator-top"><label>${selectedProduction ? "İş emri makinesi" : "Makine filtresi"}<select class="op-machine-select" aria-label="Makine seçimi" onchange="RitimUX.machine(this.value)">${selectedProduction && !j?.machine ? '<option value="" selected disabled>Atanmamış</option>' : ""}${MACHINES.map((m) => `<option value="${h(m.id)}" ${(selectedProduction ? j?.machine : machine) === m.id ? "selected" : ""}>${h(m.id)} · ${h(m.brand)}</option>`).join("")}</select></label></div>${j ? `<p class="tiny">Seçili iş emri: ${h(j.id)}</p>${!j.machine ? '<div class="ux6-alert">Bu iş emrine makine atanmamış. Üretime başlamadan önce yönetici makine atamalı.</div>' : ""}${operatorJob(j)}` : '<div class="card pad empty">Bu makinede aktif iş yok.</div>'}</div>`;
   };
-  assignMachine = function (id, target) {
-    return mutate("machine", {
+  assignMachine = async function (id, target) {
+    const result = await mutate("machine", {
       id,
       target,
       reason: el("work-reason")?.value || "",
       machines: MACHINES.map((m) => m.id),
     });
+    if (!result.ok) {
+      const select = document.querySelector('[data-work-machine]');
+      if (select) select.value = job(id)?.machine || "";
+    }
+    return result;
   };
   const rememberList = () => {
     if (["orders", "jobs"].includes(view)) listState[view] = { search, filter };
@@ -387,4 +392,55 @@
     },
   };
   render();
+})();
+
+/* Keyboard access for dynamically rendered dialogs. No state or input rewriting. */
+(function () {
+  "use strict";
+  const overlay = document.getElementById("overlay");
+  if (!overlay) return;
+  let current = null, trigger = null, lastOutside = null;
+  document.addEventListener("pointerdown", (event) => {
+    const candidate = event.target.closest?.("button,a,input,select,textarea,[tabindex]");
+    if (candidate && !overlay.contains(candidate)) lastOutside = candidate;
+  }, true);
+  document.addEventListener("focusin", (event) => {
+    if (!overlay.contains(event.target) && !current) lastOutside = event.target;
+  }, true);
+  function visibleFocusable(dialog) {
+    return [...dialog.querySelectorAll('a[href],button,input,select,textarea,[tabindex]:not([tabindex="-1"])')]
+      .filter((el) => !el.disabled && el.getClientRects().length && el.getAttribute("aria-hidden") !== "true");
+  }
+  new MutationObserver(() => {
+    const next = overlay.querySelector('[role="dialog"],.modal');
+    if (next === current) return;
+    if (next) {
+      if (!current) {
+        const active = document.activeElement;
+        trigger = active && active !== document.body && !overlay.contains(active) ? active : lastOutside;
+      }
+      current = next;
+      next.setAttribute("role", "dialog");
+      next.setAttribute("aria-modal", "true");
+      const heading = next.querySelector("h1,h2,h3") || next;
+      if (!heading.hasAttribute("tabindex")) heading.setAttribute("tabindex", "-1");
+      heading.focus({ preventScroll: true });
+    } else if (current) {
+      current = null;
+      const previous = trigger; trigger = null;
+      if (previous?.isConnected && typeof previous.focus === "function") previous.focus({ preventScroll: true });
+    }
+  }).observe(overlay, { childList: true, subtree: true });
+  document.addEventListener("keydown", (event) => {
+    if (!current || !current.isConnected) return;
+    if (event.key === "Escape") {event.preventDefault();event.stopPropagation();closeModal();return;}
+    if (event.key !== "Tab") return;
+    const items = visibleFocusable(current), active = document.activeElement;
+    if (!items.length) {event.preventDefault();current.focus();return;}
+    if (event.shiftKey && (active === items[0] || !current.contains(active) || !items.includes(active))) {
+      event.preventDefault();items[items.length - 1].focus();
+    } else if (!event.shiftKey && (active === items[items.length - 1] || !current.contains(active))) {
+      event.preventDefault();items[0].focus();
+    }
+  }, true);
 })();

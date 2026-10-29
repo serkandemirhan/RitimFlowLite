@@ -213,7 +213,7 @@ async function picture(p, name) {
           await commit(p, "shipping", 15, "SHIP-B");
           assert.equal((await get(p)).net, 20);
           await p.evaluate(() => go("orders"));
-          assert.equal(await p.locator(".oc-percent").innerText(), "%100");
+          assert.match(await p.locator(".ux-order-progress").innerText(), /20 \/ 20 \(%100\)/);
           assert.equal(await p.locator(".oc-status").innerText(), "Tamamlandı");
           await p.evaluate(() => go("home"));
           assert.match(
@@ -231,7 +231,7 @@ async function picture(p, name) {
           assert.equal(x.ready, 0);
           assert.equal(x.complete, false);
           await p.evaluate(() => go("orders"));
-          assert.equal(await p.locator(".oc-percent").innerText(), "%75");
+          assert.match(await p.locator(".ux-order-progress").innerText(), /15 \/ 20 \(%75\)/);
           assert.equal(await p.locator(".oc-status").innerText(), "Kısmi Sevk");
           await picture(p, `net-return-${width}`);
           await p.evaluate(() => openOrder("SIP-P0"));

@@ -165,7 +165,7 @@ async function picture(p, name) {
     await p.locator("#additionalQty").fill(String(n));
     await p.locator("#additionalMachine").selectOption(machine);
     await p
-      .getByRole("button", { name: "İş Emri Oluştur", exact: true })
+      .getByRole("button", { name: "Plan Ekle", exact: true })
       .click();
   }
   async function inputMove(p, id, action) {
@@ -310,6 +310,7 @@ async function picture(p, name) {
       s.jobs[0].ux05.pending = 12;
       return isolated(s, 360, async (p) => {
         await planning(p);
+        await p.locator('[id="reduce-WO-P0"]').locator('xpath=ancestor::details').locator('summary').click();
         await p.locator('[id="reduce-WO-P0"]').fill("50");
         await p.locator('[id="reason-WO-P0"]').fill("Başlanmamış işi böl");
         await p.locator('[data-job="WO-P0"]').click();
@@ -337,6 +338,7 @@ async function picture(p, name) {
       isolated(completed({ route: ["İmalat", "Tesviye"] }), 390, async (p) => {
         await planning(p);
         await plan(p, "CANCEL", 20, 1);
+        await p.locator('[id="reduce-CANCEL"]').locator('xpath=ancestor::details').locator('summary').click();
         await p.locator('[id="reduce-CANCEL"]').fill("20");
         await p.locator('[id="reason-CANCEL"]').fill("Plan iptal");
         await p.locator('[data-job="CANCEL"]').click();
@@ -414,6 +416,7 @@ async function picture(p, name) {
       seed.jobs[0].ux05.received = 0;
       return isolated(seed, 360, async (p) => {
         await planning(p);
+        await p.locator('[id="reduce-WO-P0"]').locator('xpath=ancestor::details').locator('summary').click();
         await p.locator('[id="reduce-WO-P0"]').fill("20");
         await p.locator('[id="reason-WO-P0"]').fill("Tam iptal");
         await p.locator('[data-job="WO-P0"]').click();
