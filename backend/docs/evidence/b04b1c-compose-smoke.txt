@@ -1,0 +1,6 @@
+B04B-1C isolated fictional Compose smoke: PostgreSQL 16, temporary tmpfs storage, distinct migration owner and restricted runtime.
+Migrations 001–011 and runtime provisioning completed; database and API healthy.
+GET /health/ready: 200 ok.
+GET /api/v1/session without token: 401 UNAUTHENTICATED.
+POST /api/v1/.../assignment/handover without token: 401 UNAUTHENTICATED.
+Signed fictional JWT authorization and restricted-role security/concurrency are tested in the PostgreSQL integration suite. Live OIDC was not exercised.

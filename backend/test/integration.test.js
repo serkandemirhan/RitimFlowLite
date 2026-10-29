@@ -13,8 +13,8 @@ test('real PostgreSQL migrations, referential boundaries, rollback and append-on
  const pool=new Pool({connectionString:database,options:`-c search_path=${schema}`});
  const id=()=>crypto.randomUUID();const t=id(),t2=id(),s=id(),o=id(),op=id(),wo=id(),lot=id(),u=id(),event=id();
  try{
-  const results=await Promise.all([migrate(pool),migrate(pool)]);assert.deepEqual(results.flat(),['001','002','003','004','005','006','007','008','009','010']);assert.deepEqual(await migrate(pool),[]);
-  assert.equal((await pool.query('SELECT count(*)::int n FROM schema_migrations')).rows[0].n,10);
+  const results=await Promise.all([migrate(pool),migrate(pool)]);assert.deepEqual(results.flat(),['001','002','003','004','005','006','007','008','009','010','011']);assert.deepEqual(await migrate(pool),[]);
+  assert.equal((await pool.query('SELECT count(*)::int n FROM schema_migrations')).rows[0].n,11);
   await pool.query("INSERT INTO tenants(id,name) VALUES($1,'A'),($2,'B')",[t,t2]);
   await pool.query("INSERT INTO sites(tenant_id,id,code,name) VALUES($1,$2,'site','Site')",[t,s]);
   await pool.query("INSERT INTO users(id,issuer,subject,display_name) VALUES($1,'issuer','subject','User')",[u]);

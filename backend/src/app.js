@@ -25,7 +25,7 @@ function buildApp({pool,verifier=null,logger=false,isolatedDevelopment=false}={}
   });
   app.register(async function(api){
     api.addHook('onRequest',async (request,reply)=>{reply.header('cache-control','no-store');request.auth=await authenticate(request,pool,verifier)});
-    if(isolatedDevelopment) { require('./orders-planning').routes(api); require('./physical-flow').routes(api); require('./production-execution').routes(api); require('./quality-disposition').routes(api); require('./output-reservations').routes(api); }
+    if(isolatedDevelopment) { require('./orders-planning').routes(api); require('./physical-flow').routes(api); require('./production-execution').routes(api); require('./quality-disposition').routes(api); require('./output-reservations').routes(api); require('./assignment').routes(api); }
     api.get('/session',async req=>({identity:{id:req.auth.userId,issuer:req.auth.issuer,subject:req.auth.subject,displayName:req.auth.displayName},memberships:await listMemberships(pool,req.auth)}));
     api.get('/sites/:tenantId/:siteId/capabilities',async req=>inTransaction(pool,client=>authorizeScope(client,{identity:req.auth,tenantId:req.params.tenantId,siteId:req.params.siteId,capability:'site.read'})));
   },{prefix:'/api/v1'});

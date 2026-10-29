@@ -56,3 +56,17 @@ All routes below use `/api/v1/sites/{tenantId}/{siteId}/orders/{orderId}`, authe
 - `GET /output-lots/{outputLotId}/reservations`: returns produced, approved, rejected, rework-required, unresolved quality, outstanding reserved, cumulative released and available-approved quantities, plus reservations and ordered event history. Available approved quantity is a planning balance, not physical stock.
 
 The earlier B04B-1B foundation description of `eligibleForReservation: false` applied before reservation commands existed. Quality summaries now set this flag only when a linked output has approved quantity not already reserved; this flag does not guarantee a suitable destination or authorize physical movement. Historical events without linked output identity remain unavailable. Unsupported external/non-adjacent operations, physical downstream movement and downstream execution remain closed.
+
+### B04B-1C — isolated development assignment and completion
+
+The existing `POST …/production/complete` keeps the operator identity/assignment, work-order state and physical reconciliation gates. Its quality gate now requires all good/pending output to have explicit quality dispositions and rejects any rework-required quantity until a safe rework lifecycle exists. Historical production is not rewritten and a decision is not physical release. Quality decisions and completion serialize on the order lock.
+
+Manager-equivalent users with `orders.write` may call the following under `/api/v1/sites/{tenantId}/{siteId}/orders/{orderId}/work-orders/{workOrderId}/assignment`, with a durable `Idempotency-Key`:
+
+- `POST /operator`: `{ "operatorId": "uuid", "reason": "text" }`; assigns an active site operator to an unowned waiting/paused work order. Existing owners require explicit handover.
+- `POST /machine`: `{ "machineId": "uuid", "reason": "text" }`; changes machine for a waiting/paused assigned work order. Machine must belong to the site and be free.
+- `POST /handover`: `{ "previousOperatorId": "uuid", "newOperatorId": "uuid", "reason": "text" }`; verifies current owner and active new operator. No implicit takeover.
+
+These are independent append-audited, idempotent transactions; assignment history retains released prior rows. Downstream work orders still cannot execute production. Any drawing revision still blocks production and quality; no revision acknowledgement endpoint or automatic approval exists.
+
+The B04B-1C completion rule above supersedes the earlier B04B-1A note that resolved historical pending events always block completion; unresolved output and unsupported rework still block it.
