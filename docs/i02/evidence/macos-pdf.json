@@ -1,0 +1,13 @@
+{
+  "passed": 11,
+  "failed": 0,
+  "applicationErrors": [],
+  "requestFailures": [
+    {
+      "test": "P1-01/16 quoted unassigned job and drawing preserve context",
+      "kind": "requestfailed",
+      "url": "chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/index.html",
+      "message": "net::ERR_ABORTED"
+    }
+  ]
+}

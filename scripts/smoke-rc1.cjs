@@ -50,7 +50,7 @@ const {build,sha} = require('./build-rc1.cjs');
       applicationErrors:errors,knownFaviconConsole:consoles,requests,initialMainStoragePreserved:true,archiveReadOnly:true};
     const out=path.resolve(__dirname,'../artifacts/rc1-smoke');fs.mkdirSync(out,{recursive:true});
     fs.writeFileSync(path.join(out,'results.json'),JSON.stringify(record,null,2)+'\n');
-    console.log(JSON.stringify({passed:1,assetsChecked:37,applicationErrors:0,browser:record.browser}));
+    console.log(JSON.stringify({passed:1,assetsChecked:record.assetsChecked,applicationErrors:0,browser:record.browser}));
   } finally {
     await browser?.close();
     await new Promise(r=>server.close(r));

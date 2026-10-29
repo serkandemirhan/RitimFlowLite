@@ -1,0 +1,477 @@
+
+> ritim-mes-backend@0.1.0 test
+> node --test test/*.test.js
+
+TAP version 13
+# Subtest: verified JWT identity ignores self-asserted roles and tenant claims
+ok 1 - verified JWT identity ignores self-asserted roles and tenant claims
+  ---
+  duration_ms: 1034.052738
+  type: 'test'
+  ...
+# Subtest: missing, malformed and oversized bearer tokens fail closed
+ok 2 - missing, malformed and oversized bearer tokens fail closed
+  ---
+  duration_ms: 2.118687
+  type: 'test'
+  ...
+# Subtest: expired, wrong issuer, wrong audience, future iat, wrong typ and invalid signature rejected
+ok 3 - expired, wrong issuer, wrong audience, future iat, wrong typ and invalid signature rejected
+  ---
+  duration_ms: 224.772426
+  type: 'test'
+  ...
+# Subtest: required expiry, issuance time, subject and key id are enforced
+ok 4 - required expiry, issuance time, subject and key id are enforced
+  ---
+  duration_ms: 565.520412
+  type: 'test'
+  ...
+# Subtest: remote key rotation fetches new kid and rejects removed key after refresh
+ok 5 - remote key rotation fetches new kid and rejects removed key after refresh
+  ---
+  duration_ms: 324.009121
+  type: 'test'
+  ...
+# Subtest: insecure endpoints and unsafe algorithms are rejected
+ok 6 - insecure endpoints and unsafe algorithms are rejected
+  ---
+  duration_ms: 0.406715
+  type: 'test'
+  ...
+# Subtest: permission matrix explicitly separates site roles and denies unknown roles
+ok 7 - permission matrix explicitly separates site roles and denies unknown roles
+  ---
+  duration_ms: 0.241833
+  type: 'test'
+  ...
+# Subtest: B02 PostgreSQL scoped authorization and authenticated API
+    # Subtest: verified identity, memberships and capabilities ignore frontend role and scope claims
+    ok 1 - verified identity, memberships and capabilities ignore frontend role and scope claims
+      ---
+      duration_ms: 194.86384
+      type: 'test'
+      ...
+    # Subtest: expired, wrong issuer and audience are denied by HTTP authentication
+    ok 2 - expired, wrong issuer and audience are denied by HTTP authentication
+      ---
+      duration_ms: 18.946531
+      type: 'test'
+      ...
+    # Subtest: cross-site and cross-tenant access fail closed, including mismatched ownership
+    ok 3 - cross-site and cross-tenant access fail closed, including mismatched ownership
+      ---
+      duration_ms: 31.563573
+      type: 'test'
+      ...
+    # Subtest: operator escalation is rejected inside transaction without a receipt
+    ok 4 - operator escalation is rejected inside transaction without a receipt
+      ---
+      duration_ms: 10.091285
+      type: 'test'
+      ...
+    # Subtest: tenant administrators are scoped to their own tenant and revocation is immediate
+    ok 5 - tenant administrators are scoped to their own tenant and revocation is immediate
+      ---
+      duration_ms: 57.902639
+      type: 'test'
+      ...
+    # Subtest: platform admin requires an actual active database grant
+    ok 6 - platform admin requires an actual active database grant
+      ---
+      duration_ms: 33.844664
+      type: 'test'
+      ...
+    # Subtest: idempotency receipts are isolated between tenants and retries
+    ok 7 - idempotency receipts are isolated between tenants and retries
+      ---
+      duration_ms: 63.248685
+      type: 'test'
+      ...
+    # Subtest: revocation waits for an authorized transaction, then blocks later writes
+    ok 8 - revocation waits for an authorized transaction, then blocks later writes
+      ---
+      duration_ms: 213.608448
+      type: 'test'
+      ...
+    # Subtest: revoked memberships and disabled user are not returned or authorized
+    ok 9 - revoked memberships and disabled user are not returned or authorized
+      ---
+      duration_ms: 29.971605
+      type: 'test'
+      ...
+    1..9
+ok 8 - B02 PostgreSQL scoped authorization and authenticated API
+  ---
+  duration_ms: 2600.286327
+  type: 'test'
+  ...
+# Subtest: existing database upgrade, failed migration and isolated backup/restore
+    # Subtest: historical 001/002 data upgrades to 007 without changing records
+    ok 1 - historical 001/002 data upgrades to 007 without changing records
+      ---
+      duration_ms: 517.721327
+      type: 'test'
+      ...
+    # Subtest: failed migration rolls back its DDL and version record
+    ok 2 - failed migration rolls back its DDL and version record
+      ---
+      duration_ms: 92.114957
+      type: 'test'
+      ...
+# \# fictional backup sha256 94301336eb4b3735606af1d11f82bd3120669e7009e3ad16275912c1fe1b0d4f
+    # Subtest: backup restores into a separate fictional database with data and schema version intact
+    ok 3 - backup restores into a separate fictional database with data and schema version intact
+      ---
+      duration_ms: 2657.817532
+      type: 'test'
+      ...
+    1..3
+ok 9 - existing database upgrade, failed migration and isolated backup/restore
+  ---
+  duration_ms: 3556.578988
+  type: 'test'
+  ...
+# Subtest: B03A isolation on real PostgreSQL with actual restricted login
+    # Subtest: real runtime login lacks elevated rights and schema/membership modification
+    ok 1 - real runtime login lacks elevated rights and schema/membership modification
+      ---
+      duration_ms: 102.973108
+      type: 'test'
+      ...
+    # Subtest: all 25 business tables enforce RLS and runtime does not own them
+    ok 2 - all 25 business tables enforce RLS and runtime does not own them
+      ---
+      duration_ms: 6.885293
+      type: 'test'
+      ...
+    # Subtest: missing context fails closed and runtime cannot write domain rows
+    ok 3 - missing context fails closed and runtime cannot write domain rows
+      ---
+      duration_ms: 34.862274
+      type: 'test'
+      ...
+    # Subtest: authenticated API restricts sites, ignores forged headers and role escalation
+    ok 4 - authenticated API restricts sites, ignores forged headers and role escalation
+      ---
+      duration_ms: 210.7854
+      type: 'test'
+      ...
+    # Subtest: real HTTP listener serves health and verified session using restricted pool
+    ok 5 - real HTTP listener serves health and verified session using restricted pool
+      ---
+      duration_ms: 272.168099
+      type: 'test'
+      ...
+    # Subtest: readiness fails for missing runtime grants or migration version
+    ok 6 - readiness fails for missing runtime grants or migration version
+      ---
+      duration_ms: 54.445877
+      type: 'test'
+      ...
+    # Subtest: RLS filters accidental missing tenant filters in a scoped transaction
+    ok 7 - RLS filters accidental missing tenant filters in a scoped transaction
+      ---
+      duration_ms: 13.102746
+      type: 'test'
+      ...
+    # Subtest: RLS blocks cross-tenant idempotency writes in a scoped transaction
+    ok 8 - RLS blocks cross-tenant idempotency writes in a scoped transaction
+      ---
+      duration_ms: 13.219981
+      type: 'test'
+      ...
+    # Subtest: transaction rollback and pool reuse discard context
+    ok 9 - transaction rollback and pool reuse discard context
+      ---
+      duration_ms: 24.849331
+      type: 'test'
+      ...
+    # Subtest: idempotency receipts are isolated and failed authorization rolls back
+    ok 10 - idempotency receipts are isolated and failed authorization rolls back
+      ---
+      duration_ms: 128.741985
+      type: 'test'
+      ...
+    # Subtest: definer search path ignores malicious temporary tables; PUBLIC execute revoked
+    ok 11 - definer search path ignores malicious temporary tables; PUBLIC execute revoked
+      ---
+      duration_ms: 31.77176
+      type: 'test'
+      ...
+    # Subtest: concurrent revocation waits for active command and blocks subsequent command
+    ok 12 - concurrent revocation waits for active command and blocks subsequent command
+      ---
+      duration_ms: 231.994926
+      type: 'test'
+      ...
+    # Subtest: negative probe: arbitrary SQL as compromised runtime can forge mutable context
+    ok 13 - negative probe: arbitrary SQL as compromised runtime can forge mutable context
+      ---
+      duration_ms: 9.943539
+      type: 'test'
+      ...
+    1..13
+ok 10 - B03A isolation on real PostgreSQL with actual restricted login
+  ---
+  duration_ms: 2198.440805
+  type: 'test'
+  ...
+# Subtest: B03B isolated PostgreSQL order, route and planning API
+    # Subtest: endpoints are disabled by default and configuration fails closed
+    ok 1 - endpoints are disabled by default and configuration fails closed
+      ---
+      duration_ms: 41.026555
+      type: 'test'
+      ...
+    # Subtest: create order with no work order, retry is idempotent, authentication enforced
+    ok 2 - create order with no work order, retry is idempotent, authentication enforced
+      ---
+      duration_ms: 244.798892
+      type: 'test'
+      ...
+    # Subtest: ordered route defined once; retry retained; unauthorized user cannot escalate
+    ok 3 - ordered route defined once; retry retained; unauthorized user cannot escalate
+      ---
+      duration_ms: 93.767671
+      type: 'test'
+      ...
+    # Subtest: 10 ordered, two plans of 5, excess and duplicate commands
+    ok 4 - 10 ordered, two plans of 5, excess and duplicate commands
+      ---
+      duration_ms: 343.764041
+      type: 'test'
+      ...
+    # Subtest: unsupported later/external operation is explicit and cannot create work
+    ok 5 - unsupported later/external operation is explicit and cannot create work
+      ---
+      duration_ms: 244.447565
+      type: 'test'
+      ...
+    # Subtest: failed duplicate number rolls back route/work order and receipt
+    ok 6 - failed duplicate number rolls back route/work order and receipt
+      ---
+      duration_ms: 40.6184
+      type: 'test'
+      ...
+    # Subtest: failure after route inserts rolls back all operations and receipt
+    ok 7 - failure after route inserts rolls back all operations and receipt
+      ---
+      duration_ms: 202.670141
+      type: 'test'
+      ...
+    # Subtest: cross-tenant scope and role restrictions fail closed
+    ok 8 - cross-tenant scope and role restrictions fail closed
+      ---
+      duration_ms: 57.578783
+      type: 'test'
+      ...
+    # Subtest: concurrent planning serializes capacity and audit contains only success
+    ok 9 - concurrent planning serializes capacity and audit contains only success
+      ---
+      duration_ms: 318.516759
+      type: 'test'
+      ...
+    # Subtest: unreconciled compensation does not silently increase planning capacity
+    ok 10 - unreconciled compensation does not silently increase planning capacity
+      ---
+      duration_ms: 97.123341
+      type: 'test'
+      ...
+    # Subtest: work-order history does not change order net shipment progress
+    ok 11 - work-order history does not change order net shipment progress
+      ---
+      duration_ms: 49.586009
+      type: 'test'
+      ...
+    1..11
+ok 11 - B03B isolated PostgreSQL order, route and planning API
+  ---
+  duration_ms: 3176.438001
+  type: 'test'
+  ...
+# Subtest: B03C physical flow on PostgreSQL using restricted runtime
+    # Subtest: physical receipt derives only from existing material and active allocation
+    ok 1 - physical receipt derives only from existing material and active allocation
+      ---
+      duration_ms: 742.053956
+      type: 'test'
+      ...
+    # Subtest: dispatch subtracts source and remains in transit until explicit receipt; matches frontend
+    ok 2 - dispatch subtracts source and remains in transit until explicit receipt; matches frontend
+      ---
+      duration_ms: 572.10172
+      type: 'test'
+      ...
+    # Subtest: concurrent dispatch cannot overdraw or exceed destination capacity
+    ok 3 - concurrent dispatch cannot overdraw or exceed destination capacity
+      ---
+      duration_ms: 209.164431
+      type: 'test'
+      ...
+    # Subtest: overallocated historical reservation fails closed before physical receipt
+    ok 4 - overallocated historical reservation fails closed before physical receipt
+      ---
+      duration_ms: 150.868475
+      type: 'test'
+      ...
+    # Subtest: concurrent acceptance writes exactly one destination event
+    ok 5 - concurrent acceptance writes exactly one destination event
+      ---
+      duration_ms: 400.482642
+      type: 'test'
+      ...
+    # Subtest: cross-tenant and missing allocation denied without changes
+    ok 6 - cross-tenant and missing allocation denied without changes
+      ---
+      duration_ms: 47.494002
+      type: 'test'
+      ...
+    # Subtest: unsupported later operation and production history fail closed
+    ok 7 - unsupported later operation and production history fail closed
+      ---
+      duration_ms: 115.199539
+      type: 'test'
+      ...
+    # Subtest: intermediate external route remains unsupported
+    ok 8 - intermediate external route remains unsupported
+      ---
+      duration_ms: 116.575371
+      type: 'test'
+      ...
+    # Subtest: audit failure rolls back transfer, movement and idempotency
+    ok 9 - audit failure rolls back transfer, movement and idempotency
+      ---
+      duration_ms: 258.61447
+      type: 'test'
+      ...
+    # Subtest: physical ledger triggers reject updates and deletes
+    ok 10 - physical ledger triggers reject updates and deletes
+      ---
+      duration_ms: 29.078646
+      type: 'test'
+      ...
+    1..10
+ok 12 - B03C physical flow on PostgreSQL using restricted runtime
+  ---
+  duration_ms: 4016.492631
+  type: 'test'
+  ...
+# Subtest: B04A reconciled production using restricted runtime
+    # Subtest: machine, assignment, identity and physical receipt are required
+    ok 1 - machine, assignment, identity and physical receipt are required
+      ---
+      duration_ms: 829.064902
+      type: 'test'
+      ...
+    # Subtest: good, scrap and pending consume lots; pending is not approved
+    ok 2 - good, scrap and pending consume lots; pending is not approved
+      ---
+      duration_ms: 1019.625811
+      type: 'test'
+      ...
+    # Subtest: assigned operator cannot self-classify good without manager policy
+    ok 3 - assigned operator cannot self-classify good without manager policy
+      ---
+      duration_ms: 484.718492
+      type: 'test'
+      ...
+    # Subtest: concurrent results cannot consume the same stock and idempotency is durable
+    ok 4 - concurrent results cannot consume the same stock and idempotency is durable
+      ---
+      duration_ms: 380.330421
+      type: 'test'
+      ...
+    # Subtest: audit failure rolls back production event, ledger and receipt
+    ok 5 - audit failure rolls back production event, ledger and receipt
+      ---
+      duration_ms: 243.07104
+      type: 'test'
+      ...
+    # Subtest: completion requires all physical input consumed and no pending
+    ok 6 - completion requires all physical input consumed and no pending
+      ---
+      duration_ms: 513.063103
+      type: 'test'
+      ...
+    # Subtest: legacy production and drawing revisions fail closed
+    ok 7 - legacy production and drawing revisions fail closed
+      ---
+      duration_ms: 379.986244
+      type: 'test'
+      ...
+    # Subtest: assignment revocation waits for the transaction and denies subsequent execution
+    ok 8 - assignment revocation waits for the transaction and denies subsequent execution
+      ---
+      duration_ms: 329.276176
+      type: 'test'
+      ...
+    # Subtest: cross-tenant scope and unassigned operator cannot record production
+    ok 9 - cross-tenant scope and unassigned operator cannot record production
+      ---
+      duration_ms: 254.873563
+      type: 'test'
+      ...
+    1..9
+ok 13 - B04A reconciled production using restricted runtime
+  ---
+  duration_ms: 6378.330648
+  type: 'test'
+  ...
+# Subtest: environment configuration validates port, connection URL and TLS mode
+ok 14 - environment configuration validates port, connection URL and TLS mode
+  ---
+  duration_ms: 2.989608
+  type: 'test'
+  ...
+# Subtest: public health distinguishes process and database availability without exposing errors
+ok 15 - public health distinguishes process and database availability without exposing errors
+  ---
+  duration_ms: 348.667084
+  type: 'test'
+  ...
+# Subtest: session fails closed even with spoofed user and role headers
+ok 16 - session fails closed even with spoofed user and role headers
+  ---
+  duration_ms: 38.811397
+  type: 'test'
+  ...
+# Subtest: identity must be verified by the server
+ok 17 - identity must be verified by the server
+  ---
+  duration_ms: 0.992164
+  type: 'test'
+  ...
+# Subtest: no business mutations are exposed
+ok 18 - no business mutations are exposed
+  ---
+  duration_ms: 16.749723
+  type: 'test'
+  ...
+# Subtest: transaction commits once on one client and rolls back on failure
+ok 19 - transaction commits once on one client and rolls back on failure
+  ---
+  duration_ms: 0.888332
+  type: 'test'
+  ...
+# Subtest: command canonicalization is deterministic and unauthenticated commands never access storage
+ok 20 - command canonicalization is deterministic and unauthenticated commands never access storage
+  ---
+  duration_ms: 1.458947
+  type: 'test'
+  ...
+# Subtest: real PostgreSQL migrations, referential boundaries, rollback and append-only history
+ok 21 - real PostgreSQL migrations, referential boundaries, rollback and append-only history
+  ---
+  duration_ms: 1234.019821
+  type: 'test'
+  ...
+1..21
+# tests 76
+# suites 0
+# pass 76
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 12444.598708

@@ -2,13 +2,14 @@
 (function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory();else root.RitimApiAdapter=factory()})(globalThis,function(){
  'use strict';
  class ApiError extends Error {constructor(code,message,status){super(message);this.code=code;this.status=status}}
- function create({token,fetcher=globalThis.fetch,randomUUID=()=>globalThis.crypto.randomUUID()}){
+ function create({token,fetcher=globalThis.fetch,randomUUID=()=>globalThis.crypto.randomUUID(),timeoutMs=30000}){
+  if(!Number.isSafeInteger(timeoutMs)||timeoutMs<1)throw new TypeError('Invalid timeout');
   if(!token||typeof token!=='string')throw new ApiError('UNAUTHENTICATED','Oturum gerekli',401);
   let scope=null;
   async function request(path,{method='GET',body,key}={}){
    const headers={authorization:`Bearer ${token}`,accept:'application/json'};
    if(body!==undefined){headers['content-type']='application/json';headers['idempotency-key']=key||randomUUID()}
-   let response;try{response=await fetcher(`/api/v1${path}`,{method,headers,...(body!==undefined?{body:JSON.stringify(body)}:{}),cache:'no-store'})}catch(e){throw new ApiError('NETWORK_ERROR','Sunucuya ulaşılamadı; işlem durumu bilinmiyor. Aynı komut anahtarıyla tekrar deneyin.',0)}
+   let response;try{response=await fetcher(`/api/v1${path}`,{method,headers,...(body!==undefined?{body:JSON.stringify(body)}:{}),cache:'no-store',signal:AbortSignal.timeout(timeoutMs)})}catch(e){throw new ApiError('NETWORK_ERROR','Sunucuya ulaşılamadı; işlem durumu bilinmiyor. Aynı komut anahtarıyla tekrar deneyin.',0)}
    let json;try{json=await response.json()}catch(e){throw new ApiError('INVALID_RESPONSE','Sunucu yanıtı okunamadı.',response.status)}
    if(!response.ok)throw new ApiError(json?.error?.code||'API_ERROR',json?.error?.message||'Sunucu işlemi reddetti.',response.status);
    return json;

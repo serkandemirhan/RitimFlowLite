@@ -34,6 +34,7 @@ async function commitState(
   mutate,
   { success = "", after = () => render(), command, commandId } = {},
 ) {
+  if (typeof API_MODE !== 'undefined' && API_MODE) return { ok: false, message: 'API modunda yerel demo işlemleri kapalıdır.' };
   return RitimConcurrencyUI.submit(mutate, {
     success,
     after,

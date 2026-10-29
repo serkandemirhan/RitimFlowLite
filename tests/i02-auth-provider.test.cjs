@@ -1,0 +1,2 @@
+'use strict';const test=require('node:test'),assert=require('node:assert/strict'),{create}=require('../integration/auth-provider');
+test('provider interface never fabricates an identity',async()=>{assert.throws(()=>create({}),/provider/);await assert.rejects(create({getAccessToken:async()=>''}).accessToken(),/No access token/);assert.equal(await create({getAccessToken:async()=>'fictional-access-token'}).accessToken(),'fictional-access-token')});
