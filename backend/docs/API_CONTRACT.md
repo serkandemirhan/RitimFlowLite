@@ -33,3 +33,26 @@ Draft physical receipt, dispatch, acceptance and balance endpoints are documente
 ## B04A development-only production contract
 
 See [B04A production execution](B04A_PRODUCTION_EXECUTION.md) for authenticated lifecycle, result and reconciled-balance endpoints, idempotency and fail-closed quality/assignment boundaries. No final release or downstream stock is created.
+
+### B04B-1A — development-only production quality classification
+
+All paths below use `/api/v1/sites/{tenantId}/{siteId}/orders/{orderId}/work-orders/{workOrderId}/quality` and require a verified identity and authorized site membership. These routes exist only with isolated development enabled. `POST /decisions` requires `quality.write`, a persistent `Idempotency-Key`, and JSON `{ "eventId": "uuid", "lotId": "uuid", "outcome": "approved|rejected|rework", "quantity": 1, "evidence": "inspection reference" }`. The evidence is a required actor-supplied reference, not a verified inspection document or drawing approval. The source must be a reconciled good or pending output from the first supported internal operation. A single order lock serializes production and quality decisions. The response is 201 with decision ID, submitted fields, `classificationOnly: true` and `downstreamReleaseSupported: false`; duplicate keys replay the same result. Bad input is 400; unauthorized scope/role is 403; provenance, drawing restrictions and over-disposition fail closed with 409.
+
+`GET` requires `orders.read` and returns `outputs` per reconciled production event with `eventId`, `lotId`, `kind`, `produced`, `approved`, `rejected`, `rework` and `unresolved`; it also explicitly marks downstream release unsupported. Historical production quantities are not altered. Existing B04A completion continues to block on historical pending quantities even after classification; completion reconciliation is intentionally deferred. Output classified as approved is not physical stock available for dispatch or reservation. Drawing revisions fail closed because acknowledgement is not yet implemented.
+
+### B04B-1B output provenance extension
+
+For new `good` or `pending` production results, the existing response adds `outputLotId`, a server-generated event-specific UUID; existing `lotId` continues to identify the consumed input lot. Scrap and setup-scrap return `outputLotId: null`. The quality decision request keeps its original `eventId` and input `lotId` contract; optional `outputLotId`, when supplied, must match the server's provenance or the request fails with `INVALID_PROVENANCE`. New quality decisions carry a database-enforced link to the output identity. Older decisions remain unchanged.
+
+Quality summaries add `outputLotId`, `provenanceStatus` (`linked` or `historical_unreconciled`) and `eligibleForReservation: false`. Historical events are never backfilled or silently reinterpreted: null means no trustworthy output identity exists. Neither creation of an output identity nor approval releases stock. Reservations and downstream movement remain unsupported.
+
+### B04B-1B — isolated development output reservations
+
+All routes below use `/api/v1/sites/{tenantId}/{siteId}/orders/{orderId}`, authenticated server identity and authorized tenant/site scope. Mutations require `planning.write` and an `Idempotency-Key`. None of these commands dispatches, receives or releases physical inventory.
+
+- `POST /downstream-work-orders`: `{ "outputLotId": "uuid", "operationId": "uuid", "workOrderNumber": "text", "plannedQuantity": 8 }`. Creates a first adjacent internal-operation work order and its initial reservation atomically; returns work-order and reservation IDs with `physicalReceipt: false`.
+- `POST /output-reservations`: `{ "outputLotId": "uuid", "destinationWorkOrderId": "uuid", "quantity": 5 }`. Reserves additional approved quantity for an existing waiting adjacent work order only, within outstanding destination capacity.
+- `POST /output-reservations/{reservationId}/releases`: `{ "quantity": 3 }`. Appends a partial release against that reservation; retrying the same command key returns the same receipt.
+- `GET /output-lots/{outputLotId}/reservations`: returns produced, approved, rejected, rework-required, unresolved quality, outstanding reserved, cumulative released and available-approved quantities, plus reservations and ordered event history. Available approved quantity is a planning balance, not physical stock.
+
+The earlier B04B-1B foundation description of `eligibleForReservation: false` applied before reservation commands existed. Quality summaries now set this flag only when a linked output has approved quantity not already reserved; this flag does not guarantee a suitable destination or authorize physical movement. Historical events without linked output identity remain unavailable. Unsupported external/non-adjacent operations, physical downstream movement and downstream execution remain closed.

@@ -20,12 +20,12 @@ function buildApp({pool,verifier=null,logger=false,isolatedDevelopment=false}={}
   app.setNotFoundHandler((req,reply)=>reply.code(404).send({error:{code:'NOT_FOUND',message:'Route not found',requestId:req.id}}));
   app.get('/health/live',async()=>({status:'ok'}));
   app.get('/health/ready',async(request,reply)=>{
-    try {await checkReadiness(pool);return {status:'ok'};}
+    try {await checkReadiness(pool,{isolatedDevelopment});return {status:'ok'};}
     catch (_) {return reply.code(503).send({error:{code:'DATABASE_UNAVAILABLE',message:'Database unavailable',requestId:request.id}});}
   });
   app.register(async function(api){
     api.addHook('onRequest',async (request,reply)=>{reply.header('cache-control','no-store');request.auth=await authenticate(request,pool,verifier)});
-    if(isolatedDevelopment) { require('./orders-planning').routes(api); require('./physical-flow').routes(api); require('./production-execution').routes(api); }
+    if(isolatedDevelopment) { require('./orders-planning').routes(api); require('./physical-flow').routes(api); require('./production-execution').routes(api); require('./quality-disposition').routes(api); require('./output-reservations').routes(api); }
     api.get('/session',async req=>({identity:{id:req.auth.userId,issuer:req.auth.issuer,subject:req.auth.subject,displayName:req.auth.displayName},memberships:await listMemberships(pool,req.auth)}));
     api.get('/sites/:tenantId/:siteId/capabilities',async req=>inTransaction(pool,client=>authorizeScope(client,{identity:req.auth,tenantId:req.params.tenantId,siteId:req.params.siteId,capability:'site.read'})));
   },{prefix:'/api/v1'});

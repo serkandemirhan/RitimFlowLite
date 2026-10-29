@@ -1,0 +1,6 @@
+Isolated fictional Compose smoke: PostgreSQL 16, tmpfs database, separate migration and restricted runtime roles.
+Fresh migration 001–009 and runtime provisioning exited successfully; API and database healthy.
+GET /health/ready: 200 ok.
+GET /api/v1/session without credentials: 401 UNAUTHENTICATED.
+POST production/results without credentials: 401 UNAUTHENTICATED.
+Live OIDC provider was not tested; signed fictional JWT coverage is in the integration suite.

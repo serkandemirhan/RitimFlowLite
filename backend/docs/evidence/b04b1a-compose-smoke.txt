@@ -1,0 +1,8 @@
+B04B-1A isolated fictional Compose smoke
+postgres:16, separate migration and restricted runtime roles, database on container tmpfs.
+Migration and runtime provisioning completed successfully; API and database reported healthy.
+GET /health/ready: 200, status ok.
+GET /api/v1/session without token: 401 UNAUTHENTICATED.
+POST development quality decision without token: 401 UNAUTHENTICATED.
+The real signed-token fixture with simulated JWKS is exercised by the PostgreSQL integration suite, not by this Compose smoke. No live identity provider was verified.
+The fixture containers were stopped; no existing volume, container or user data was removed.
