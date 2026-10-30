@@ -11,7 +11,7 @@ async function guard(c,s,order,workOrder,roles,checkDrawing=true){
  const assignments=await c.query('SELECT * FROM ritim_lock_assignments($1,$2,$3)',[s.tenantId,s.siteId,workOrder]);
  if(assignments.rowCount!==1||!assignments.rows[0].machine_id||!assignments.rows[0].user_id)fail(409,'ASSIGNMENT_REQUIRED','One active machine and operator assignment is required');
  if(assignments.rows[0].user_id!==s.identity.userId)fail(403,'NOT_ASSIGNED','The verified operator is not assigned to this job');
- if(checkDrawing && (await c.query('SELECT 1 FROM drawing_revisions WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 LIMIT 1',[s.tenantId,s.siteId,order])).rowCount)fail(409,'DRAWING_ACKNOWLEDGEMENT_UNSUPPORTED','Drawing revision acknowledgement is not yet implemented');
+ if(checkDrawing){const drawing=await require('./drawing-acknowledgement').current(c,s,order,workOrder);if(drawing.required&&!drawing.acknowledged)fail(409,drawing.unpublished?'DRAWING_ACKNOWLEDGEMENT_UNSUPPORTED':'DRAWING_ACKNOWLEDGEMENT_REQUIRED','Current drawing requires explicit operator acknowledgement')}
  const received=await c.query("SELECT COALESCE(SUM(quantity_pieces),0) n FROM (SELECT quantity_pieces FROM physical_ledger WHERE tenant_id=$1 AND site_id=$2 AND work_order_id=$3 AND event_type IN ('receipt','accept') UNION ALL SELECT quantity_pieces FROM operation_receipts WHERE tenant_id=$1 AND site_id=$2 AND destination_work_order_id=$3) q",[s.tenantId,s.siteId,workOrder]);
  if(number(received.rows[0].n)>number(j.planned_qty))fail(409,'INTEGRITY_ERROR','Physical receipts exceed work order plan');
  return j;
