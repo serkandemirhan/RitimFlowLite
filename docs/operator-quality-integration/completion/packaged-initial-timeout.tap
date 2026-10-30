@@ -1,0 +1,27 @@
+TAP version 13
+# Subtest: two operations via premium UI and real Fastify/PostgreSQL
+not ok 1 - two operations via premium UI and real Fastify/PostgreSQL
+  ---
+  duration_ms: 68312.873492
+  type: 'test'
+  location: '/Users/user/projects/ritimFlowLite/RitimFlowLite-integration-operator-quality/tests/second-vertical-browser.cjs:4:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    locator.waitFor: Timeout 30000ms exceeded.
+    Call log:
+    [2m  - waiting for getByRole('button', { name: 'Üretim Kaydet' }) to be visible[22m
+    
+  code: 'ERR_TEST_FAILURE'
+  name: 'TimeoutError'
+  stack: |-
+    TestContext.<anonymous> (/Users/user/projects/ritimFlowLite/RitimFlowLite-integration-operator-quality/tests/second-vertical-browser.cjs:9:2721)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 70162.726001

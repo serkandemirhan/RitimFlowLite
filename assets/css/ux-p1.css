@@ -240,3 +240,8 @@
 .ux05-metrics > div { padding: 9px; border-radius: 8px; }
 .ux05-metrics strong { font-size: 19px; }
 .ux05-metrics span { overflow-wrap: anywhere; }
+
+/* API-mode assigned jobs keep long server values within the operator viewport. */
+.api-shell .ux05-wrap{min-width:0;grid-template-columns:minmax(0,1fr)}
+.api-shell .api-assigned-job{display:grid;justify-items:start;min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere;text-align:left}
+.api-shell .api-assigned-job>*{min-width:0;max-width:100%;overflow-wrap:anywhere}

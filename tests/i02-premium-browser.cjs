@@ -1,8 +1,8 @@
 'use strict';
 // Real PostgreSQL and Fastify; simulated JWKS serves real signed fictional identities.
 const test=require('node:test'),assert=require('node:assert/strict'),crypto=require('node:crypto'),{spawn}=require('node:child_process'),{createRequire}=require('node:module'),{pathToFileURL}=require('node:url');
-const backendRequire=createRequire(require('node:path').resolve('backend/package.json')),{Pool}=backendRequire('pg'),{chromium}=require('playwright');
-const {migrate}=require('../backend/src/migrate'),{provisionRuntime}=require('../backend/security/provision-runtime'),{buildApp}=require('../backend/src/app'),{makeOidcVerifier}=require('../backend/src/identity');
+const path=require('node:path'),backendRoot=path.resolve(process.env.RITIM_BACKEND_DIR||'backend');const backendRequire=createRequire(path.join(backendRoot,'package.json')),{Pool}=backendRequire('pg'),{chromium}=require('playwright');
+const {migrate}=require(path.join(backendRoot,'src/migrate')),{provisionRuntime}=require(path.join(backendRoot,'security/provision-runtime')),{buildApp}=require(path.join(backendRoot,'src/app')),{makeOidcVerifier}=require(path.join(backendRoot,'src/identity'));
 const db=process.env.TEST_DATABASE_URL;if(!db)throw Error('TEST_DATABASE_URL required; use isolated fictional database');
 test('I02 premium API wizard against Fastify/PostgreSQL',async()=>{
  const admin=new Pool({connectionString:db}),suffix=crypto.randomBytes(8).toString('hex'),schema='i01_'+suffix,owner='i01_owner_'+suffix,runtime='i01_app_'+suffix,id=()=>crypto.randomUUID(),ta=id(),tb=id(),sa=id(),sb=id(),sa2=id(),manager=id(),operator=id();let migrator,pool,app,browser,server;
