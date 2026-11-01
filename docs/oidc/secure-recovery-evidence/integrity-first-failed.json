@@ -1,0 +1,54 @@
+{
+  "date": "2026-11-01T08:49:43.928Z",
+  "results": [
+    {
+      "name": "pure audit 1440: 250/150/100, historical 60, physical 25 and planned 50",
+      "status": "FAIL",
+      "error": "page.goto: Timeout 7000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:51355/\", waiting until \"load\"\u001b[22m\n\n    at isolated (/Users/user/projects/ritimFlowLite/RitimFlowLite-integration-operator-quality/tests/p0-integrity-browser.cjs:45:16)\n    at async run (/Users/user/projects/ritimFlowLite/RitimFlowLite-integration-operator-quality/tests/p0-integrity-browser.cjs:21:5)\n    at async /Users/user/projects/ritimFlowLite/RitimFlowLite-integration-operator-quality/tests/p0-integrity-browser.cjs:86:5"
+    },
+    {
+      "name": "pure audit 390: 250/150/100, historical 60, physical 25 and planned 50",
+      "status": "FAIL",
+      "error": "page.waitForFunction: Timeout 7000ms exceeded.\n    at isolated (/Users/user/projects/ritimFlowLite/RitimFlowLite-integration-operator-quality/tests/p0-integrity-browser.cjs:46:16)\n    at async run (/Users/user/projects/ritimFlowLite/RitimFlowLite-integration-operator-quality/tests/p0-integrity-browser.cjs:21:5)\n    at async /Users/user/projects/ritimFlowLite/RitimFlowLite-integration-operator-quality/tests/p0-integrity-browser.cjs:86:5"
+    },
+    {
+      "name": "pure audit 360: 250/150/100, historical 60, physical 25 and planned 50",
+      "status": "PASS"
+    },
+    {
+      "name": "critical overplan and missing allocation surfaced; write blocked, raw unchanged",
+      "status": "PASS"
+    },
+    {
+      "name": "invalid new mutation rejected at shared commit before setItem; no success toast",
+      "status": "PASS"
+    },
+    {
+      "name": "invalid affected order blocked while another valid order can commit and reload",
+      "status": "PASS"
+    },
+    {
+      "name": "P0-07 recovery preserved: malformed",
+      "status": "PASS"
+    },
+    {
+      "name": "P0-07 recovery preserved: null fields",
+      "status": "PASS"
+    },
+    {
+      "name": "P0-07 recovery preserved: unsupported version",
+      "status": "PASS"
+    },
+    {
+      "name": "supported historical production is warning and audit never upgrades storage",
+      "status": "PASS"
+    },
+    {
+      "name": "machine reference validation blocks writes and preserves invalid stored data for read-only audit",
+      "status": "PASS"
+    }
+  ],
+  "applicationErrors": [],
+  "passed": 9,
+  "failed": 2
+}

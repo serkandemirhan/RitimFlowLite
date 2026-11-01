@@ -38,9 +38,11 @@
     "assets/js/ux-transfers.js",
     "assets/js/workforce-service.js",
     "teknikResim.pdf",
+    "integration/auth-provider.js",
     "integration/api-adapter.js",
-    "integration/pending-commands.js",
-    "integration/wizard-workflow.js",
+    "integration/server-pending-commands.js",
+    "integration/server-wizard-workflow.js",
+    "integration/legacy-recovery.js",
     "integration/premium-api.js"
   ]
 }

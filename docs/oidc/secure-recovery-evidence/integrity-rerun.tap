@@ -1,0 +1,12 @@
+PASS pure audit 1440: 250/150/100, historical 60, physical 25 and planned 50
+PASS pure audit 390: 250/150/100, historical 60, physical 25 and planned 50
+PASS pure audit 360: 250/150/100, historical 60, physical 25 and planned 50
+PASS critical overplan and missing allocation surfaced; write blocked, raw unchanged
+PASS invalid new mutation rejected at shared commit before setItem; no success toast
+PASS invalid affected order blocked while another valid order can commit and reload
+PASS P0-07 recovery preserved: malformed
+PASS P0-07 recovery preserved: null fields
+PASS P0-07 recovery preserved: unsupported version
+PASS supported historical production is warning and audit never upgrades storage
+PASS machine reference validation blocks writes and preserves invalid stored data for read-only audit
+{"passed":11,"failed":0,"applicationErrors":0}

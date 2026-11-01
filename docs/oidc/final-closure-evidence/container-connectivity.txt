@@ -1,0 +1,1 @@
+API image joined to ritim-oidc-fixture2_default: fetch https://localhost:44739/realms/ritim-dev/.well-known/openid-configuration -> OIDC_CONNECTIVITY_FAILED ECONNREFUSED. No TLS/issuer bypass was used.

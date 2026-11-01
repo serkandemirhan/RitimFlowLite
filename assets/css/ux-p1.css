@@ -245,3 +245,5 @@
 .api-shell .ux05-wrap{min-width:0;grid-template-columns:minmax(0,1fr)}
 .api-shell .api-assigned-job{display:grid;justify-items:start;min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere;text-align:left}
 .api-shell .api-assigned-job>*{min-width:0;max-width:100%;overflow-wrap:anywhere}
+
+.api-shell [hidden]{display:none!important}

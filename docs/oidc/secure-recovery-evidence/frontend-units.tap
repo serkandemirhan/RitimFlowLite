@@ -1,0 +1,88 @@
+TAP version 13
+# Subtest: owner explicitly transfers state and stable id without replay before plaintext removal
+ok 1 - owner explicitly transfers state and stable id without replay before plaintext removal
+  ---
+  duration_ms: 4.084117
+  type: 'test'
+  ...
+# Subtest: different actor cannot migrate or delete prior user records
+ok 2 - different actor cannot migrate or delete prior user records
+  ---
+  duration_ms: 0.695733
+  type: 'test'
+  ...
+# Subtest: failed server write keeps all original plaintext and does not replay
+ok 3 - failed server write keeps all original plaintext and does not replay
+  ---
+  duration_ms: 1.120333
+  type: 'test'
+  ...
+# Subtest: changed legacy bytes are never silently removed
+ok 4 - changed legacy bytes are never silently removed
+  ---
+  duration_ms: 0.732525
+  type: 'test'
+  ...
+# Subtest: registration and retry never persist business payload in browser storage
+ok 5 - registration and retry never persist business payload in browser storage
+  ---
+  duration_ms: 4.416161
+  type: 'test'
+  ...
+# Subtest: uncertain registration retains only opaque identity and reuses command identity
+ok 6 - uncertain registration retains only opaque identity and reuses command identity
+  ---
+  duration_ms: 0.815737
+  type: 'test'
+  ...
+# Subtest: uncertain workflow save retains command identity; simultaneous retries share a request
+ok 7 - uncertain workflow save retains command identity; simultaneous retries share a request
+  ---
+  duration_ms: 0.946371
+  type: 'test'
+  ...
+# Subtest: malformed metadata and unavailable storage fail closed without sending a command
+ok 8 - malformed metadata and unavailable storage fail closed without sending a command
+  ---
+  duration_ms: 0.49179
+  type: 'test'
+  ...
+# Subtest: a reopened tab discovers a committed but unacknowledged command on the server
+ok 9 - a reopened tab discovers a committed but unacknowledged command on the server
+  ---
+  duration_ms: 0.664228
+  type: 'test'
+  ...
+# Subtest: an acknowledgement committed before a lost response is reconciled without replay
+ok 10 - an acknowledgement committed before a lost response is reconciled without replay
+  ---
+  duration_ms: 0.654114
+  type: 'test'
+  ...
+# Subtest: lost response and reload resume the same route command without recreating order
+ok 11 - lost response and reload resume the same route command without recreating order
+  ---
+  duration_ms: 5.939926
+  type: 'test'
+  ...
+# Subtest: workflow data belongs to the verified actor scope
+ok 12 - workflow data belongs to the verified actor scope
+  ---
+  duration_ms: 0.314634
+  type: 'test'
+  ...
+# Subtest: confirmed rejection permits correction using a new command identity
+ok 13 - confirmed rejection permits correction using a new command identity
+  ---
+  duration_ms: 1.997931
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 468.751655

@@ -1,0 +1,20 @@
+TAP version 13
+# (node:67040) [FSTDEP023] FastifyDeprecation: disableRequestLogging option is deprecated. Use the logController option with disableRequestLogging or isLogDisabled override instead. The disableRequestLogging top-level option will be removed in `fastify@6`.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# \# second-start-alert 
+# \# response 409 /api/v1/sites/f7cfd701-7289-4cfd-8015-108e47de8b02/fcc4a96a-217a-490d-860d-015a5da16bd6/recovery/53da858e-917a-42d5-bf68-9c2762c516f5/retry
+# Subtest: two operations via premium UI and real Fastify/PostgreSQL
+ok 1 - two operations via premium UI and real Fastify/PostgreSQL
+  ---
+  duration_ms: 54620.873318
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 55537.224962
