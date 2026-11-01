@@ -1,0 +1,60 @@
+{
+  "date": "2026-11-01T18:37:23.342Z",
+  "browser": "Chrome via Playwright",
+  "results": [
+    {
+      "name": "P1 layout/navigation 1440",
+      "status": "PASS"
+    },
+    {
+      "name": "P1 layout/navigation 390",
+      "status": "PASS"
+    },
+    {
+      "name": "P1 layout/navigation 360",
+      "status": "PASS"
+    },
+    {
+      "name": "P1-01/16 quoted unassigned job and drawing preserve context",
+      "status": "PASS"
+    },
+    {
+      "name": "P1-02 explicit operator ownership and my jobs",
+      "status": "PASS"
+    },
+    {
+      "name": "P1-04 converted material receipt through UI",
+      "status": "PASS"
+    },
+    {
+      "name": "P1-08 return quarantine and final restock UI",
+      "status": "PASS"
+    },
+    {
+      "name": "P1-09 alert counts match scoped list",
+      "status": "PASS"
+    },
+    {
+      "name": "P1-11 contextual logistics and list search preserved",
+      "status": "PASS"
+    },
+    {
+      "name": "P1-13 revision upload retains previous version and requires acknowledgement",
+      "status": "PASS"
+    },
+    {
+      "name": "P1-07 legacy rework explicitly linked, executed and inspected in UI",
+      "status": "PASS"
+    }
+  ],
+  "telemetry": [
+    {
+      "test": "P1 layout/navigation 1440",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    }
+  ],
+  "applicationErrors": [],
+  "passed": 11,
+  "failed": 0
+}
