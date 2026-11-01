@@ -7,6 +7,7 @@ test('recovery catalog maps only supported commands to fixed endpoints and permi
  assert.equal(describe({kind:'plan',target:order,body:{}}).suffix,`/orders/${order}/work-orders`);
  assert.equal(describe({kind:'production',target:job,body:{orderId:order,workOrderId:job,action:'results',payload:{quantity:1}}}).capability,'production.write');
  assert.equal(describe({kind:'operation',target:reserve,body:{orderId:order,resourceId:reserve,command:'dispatch',payload:{quantity:1}}}).suffix,`/orders/${order}/output-reservations/${reserve}/dispatches`);
+ assert.deepEqual(describe({kind:'operation',target:order,body:{orderId:order,command:'reworkAllocate',payload:{decisionId:reserve,quantity:1}}}),{capability:'quality.write',suffix:`/orders/${order}/rework-allocations`,payload:{decisionId:reserve,quantity:1}});
 });
 test('catalog fails closed for arbitrary routes, mismatched resource and unknown operations',()=>{
  for(const x of [{kind:'http://evil',target:'',body:{}},{kind:'createOrder',target:order,body:{}},{kind:'production',target:randomUUID(),body:{orderId:order,workOrderId:job,action:'results',payload:{}}},{kind:'production',target:job,body:{orderId:order,workOrderId:job,action:'../../orders',payload:{}}},{kind:'operation',target:reserve,body:{orderId:order,resourceId:reserve,command:'__proto__',payload:{}}}])assert.throws(()=>describe(x));

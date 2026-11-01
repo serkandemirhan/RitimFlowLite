@@ -6,6 +6,7 @@ const {HttpError}=require('./auth');
 const reject=()=>{throw new HttpError(400,'INVALID_COMMAND','Unsupported recovery command')};
 const inventory=Object.freeze({material:{path:'materials'},location:{path:'locations'},receipt:{path:'receipts'},move:{path:'move'},scrap:{path:'scrap'},pick:{path:'pick'}});
 const operations=Object.freeze({
+ reworkAllocate:{capability:'quality.write',suffix:o=>`/orders/${o}/rework-allocations`},
  drawingAck:{capability:'production.write',suffix:(o,r)=>`/orders/${o}/work-orders/${r}/drawing/acknowledge`,resource:true},
  operator:{capability:'orders.write',suffix:(o,r)=>`/orders/${o}/work-orders/${r}/assignment/operator`,resource:true},
  machine:{capability:'orders.write',suffix:(o,r)=>`/orders/${o}/work-orders/${r}/assignment/machine`,resource:true},

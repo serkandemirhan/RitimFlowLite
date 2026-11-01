@@ -4,6 +4,8 @@ const crypto=require('node:crypto');
 const {data,payload,identifier,qty,str,cmd,scoped,audit,lockedOrder,number,fail}=require('./orders-planning');
 const {reconciled}=require('./production-execution');
 const {projectOutput}=require('./output-projection');
+const {inTransaction}=require('./db');
+const {authorizeScope}=require('./authorization');
 async function source(c,s,order,job){
  const j=await c.query(`SELECT w.id,o.sequence,o.kind FROM work_orders w JOIN operations o ON (o.tenant_id,o.site_id,o.order_id,o.id)=(w.tenant_id,w.site_id,w.order_id,w.operation_id) WHERE w.tenant_id=$1 AND w.site_id=$2 AND w.order_id=$3 AND w.id=$4`,[s.tenantId,s.siteId,order,job]);
  if(!j.rowCount)fail(404,'NOT_FOUND','Work order not found');
@@ -19,6 +21,33 @@ async function source(c,s,order,job){
  return {events:events.rows,rows};
 }
 function routes(api){const prefix='/sites/:tenantId/:siteId/orders/:orderId/work-orders/:workOrderId/quality';
+ // These are immutable classifications, not a physical rework allocation. Historical
+ // decisions without output provenance remain visible but cannot authorize a job.
+ api.get('/sites/:tenantId/:siteId/quality/rework-decisions',async req=>{
+  const s=data(req),q=req.query||{};
+  if(Object.keys(q).some(k=>!['limit','after'].includes(k)))fail(400,'INVALID_INPUT','Only limit and after are supported');
+  const limit=q.limit===undefined?50:Number(q.limit);
+  if(!Number.isInteger(limit)||limit<1||limit>100||String(limit)!==String(q.limit??50))fail(400,'INVALID_INPUT','Limit must be an integer between 1 and 100');
+  const after=q.after===undefined?null:identifier(q.after);
+  return inTransaction(req.server.pgPool,async c=>{
+   await authorizeScope(c,{...s,capability:'quality.write'});
+   const r=await c.query(`SELECT d.id,d.order_id,d.work_order_id,d.production_event_id,d.lot_id,d.output_lot_id,d.quantity_pieces,d.occurred_at,w.work_order_number,o.order_number,o.part_number,o.part_name FROM output_dispositions d JOIN work_orders w ON (w.tenant_id,w.site_id,w.order_id,w.id)=(d.tenant_id,d.site_id,d.order_id,d.work_order_id) JOIN orders o ON (o.tenant_id,o.site_id,o.id)=(d.tenant_id,d.site_id,d.order_id) WHERE d.tenant_id=$1 AND d.site_id=$2 AND d.outcome='rework' AND ($3::uuid IS NULL OR d.id>$3::uuid) ORDER BY d.id LIMIT $4`,[s.tenantId,s.siteId,after,limit+1]);
+   const more=r.rows.length>limit,rows=r.rows.slice(0,limit);
+   return {decisions:rows.map(x=>({id:x.id,orderId:x.order_id,orderNumber:x.order_number,workOrderId:x.work_order_id,workOrderNumber:x.work_order_number,partNumber:x.part_number,partName:x.part_name,productionEventId:x.production_event_id,inputLotId:x.lot_id,outputLotId:x.output_lot_id,quantity:number(x.quantity_pieces),decidedAt:x.occurred_at,provenanceStatus:x.output_lot_id?'linked':'historical_unreconciled',reworkExecutionSupported:false})),nextAfter:more?rows[rows.length-1].id:null};
+  });
+ });
+ api.post('/sites/:tenantId/:siteId/orders/:orderId/rework-allocations',async(req,reply)=>{
+  const s=data(req),b=payload(req),order=identifier(req.params.orderId),p={orderId:order,decisionId:identifier(b.decisionId),quantity:qty(b.quantity)};
+  const result=await cmd(req,'rework.allocate','quality.write',p,async c=>{
+   const o=await lockedOrder(c,s,order);if(o.status!=='open')fail(409,'ORDER_CLOSED','Order is not open');
+   const d=await c.query("SELECT id,output_lot_id,quantity_pieces FROM output_dispositions WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND id=$4 AND outcome='rework'",[s.tenantId,s.siteId,order,p.decisionId]);
+   if(!d.rowCount||!d.rows[0].output_lot_id)fail(409,'INVALID_PROVENANCE','Rework decision with trustworthy output provenance required');
+   const used=await c.query('SELECT COALESCE(SUM(quantity_pieces),0) n FROM rework_allocations WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND decision_id=$4',[s.tenantId,s.siteId,order,p.decisionId]);
+   if(p.quantity>number(d.rows[0].quantity_pieces)-number(used.rows[0].n))fail(409,'REWORK_QUANTITY_EXCEEDED','Rework decision quantity already allocated');
+   const id=crypto.randomUUID();await c.query('INSERT INTO rework_allocations(tenant_id,site_id,order_id,id,decision_id,quantity_pieces,actor_id,idempotency_key) VALUES($1,$2,$3,$4,$5,$6,$7,$8)',[s.tenantId,s.siteId,order,id,p.decisionId,p.quantity,s.identity.userId,req.headers['idempotency-key']]);
+   await audit(c,s,'rework.allocated','order',order,{...p,allocationId:id});return {status:201,body:{id,...p,outputLotId:d.rows[0].output_lot_id,physicalMovementCreated:false,executionSupported:false}};
+  });return reply.code(result.status).send(result.body);
+ });
  api.get(prefix,req=>scoped(req,async(c,s)=>{const order=identifier(req.params.orderId),job=identifier(req.params.workOrderId);await lockedOrder(c,s,order);const x=await source(c,s,order,job),outputs=[];for(const r of x.rows){const event=x.events.find(e=>e.id===r.eventId);let reserved=0;if(event.output_lot_id){const q=await c.query("SELECT COALESCE(SUM(CASE WHEN event_type='reserve' THEN quantity_pieces ELSE -quantity_pieces END),0) n FROM output_reservation_events WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND output_lot_id=$4",[s.tenantId,s.siteId,order,event.output_lot_id]);reserved=number(q.rows[0].n);const sh=await c.query("SELECT COALESCE(SUM(quantity_pieces),0) n FROM shipping_events WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND output_lot_id=$4 AND event_type='allocate'",[s.tenantId,s.siteId,order,event.output_lot_id]);reserved=number(reserved+number(sh.rows[0].n));if(reserved>r.approved)fail(409,'INTEGRITY_ERROR','Reservation exceeds quality approval')}outputs.push({eventId:r.eventId,lotId:r.lotId,outputLotId:event.output_lot_id,provenanceStatus:event.output_lot_id?'linked':'historical_unreconciled',eligibleForReservation:!!event.output_lot_id&&r.approved>reserved,kind:r.kind,produced:r.produced,approved:r.approved,rejected:r.rejected+r.scrap,rework:r.rework,unresolved:r.undisposed})}return {workOrderId:job,classificationOnly:true,downstreamReleaseSupported:false,outputs}}));
  api.post(prefix+'/decisions',async(req,reply)=>{const s=data(req),order=identifier(req.params.orderId),job=identifier(req.params.workOrderId),b=payload(req);if(!['approved','rejected','rework'].includes(b.outcome))fail(400,'INVALID_INPUT','Invalid disposition');const p={orderId:order,workOrderId:job,eventId:identifier(b.eventId),lotId:identifier(b.lotId),outcome:b.outcome,quantity:qty(b.quantity),evidence:str(b.evidence,'evidence'),...(b.outputLotId===undefined?{}:{outputLotId:identifier(b.outputLotId)})};const result=await cmd(req,'quality.disposition','quality.write',p,async c=>{const o=await lockedOrder(c,s,order);if(o.status!=='open')fail(409,'ORDER_CLOSED','Order is not open');const x=await source(c,s,order,job),row=x.rows.find(r=>r.eventId===p.eventId),event=x.events.find(e=>e.id===p.eventId);if(!row||!event||row.lotId!==p.lotId||(p.outputLotId!==undefined&&p.outputLotId!==event.output_lot_id))fail(409,'INVALID_PROVENANCE','Eligible output event and lot not found');if(p.quantity>row.undisposed)fail(409,'DISPOSITION_EXCEEDED','Disposition exceeds unresolved output');const id=crypto.randomUUID();await c.query('INSERT INTO output_dispositions(tenant_id,site_id,order_id,id,output_ledger_id,work_order_id,lot_id,production_event_id,output_kind,outcome,quantity_pieces,evidence,actor_id,output_lot_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)',[s.tenantId,s.siteId,order,id,event.ledger_id,job,p.lotId,p.eventId,event.kind,p.outcome,p.quantity,p.evidence,s.identity.userId,event.output_lot_id]);await audit(c,s,'quality.disposition','work_order',job,{...p,decisionId:id});return {status:201,body:{id,...p,classificationOnly:true,downstreamReleaseSupported:false}}});return reply.code(result.status).send(result.body)});
 }
