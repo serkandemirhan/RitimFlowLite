@@ -1,0 +1,102 @@
+TAP version 13
+# (node:78275) [FSTDEP023] FastifyDeprecation: disableRequestLogging option is deprecated. Use the logController option with disableRequestLogging or isLogDisabled override instead. The disableRequestLogging top-level option will be removed in `fastify@6`.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: B03C physical flow on PostgreSQL using restricted runtime
+    # Subtest: warehouse inventory is atomic, scoped, idempotent and concurrency safe
+    not ok 1 - warehouse inventory is atomic, scoped, idempotent and concurrency safe
+      ---
+      duration_ms: 682.3148
+      type: 'test'
+      location: '/Users/user/projects/ritimFlowLite/RitimFlowLite-backend-b01/backend/test/b03c-flow.test.js:16:11'
+      failureType: 'testCodeFailure'
+      error: 'column "event_type" does not exist'
+      code: '42703'
+      name: 'error'
+      stack: |-
+        /Users/user/projects/ritimFlowLite/RitimFlowLite-backend-b01/backend/node_modules/pg-pool/index.js:45:11
+        process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+        async TestContext.<anonymous> (/Users/user/projects/ritimFlowLite/RitimFlowLite-backend-b01/backend/test/b03c-flow.test.js:24:818)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/Users/user/projects/ritimFlowLite/RitimFlowLite-backend-b01/backend/test/b03c-flow.test.js:16:3)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+      ...
+    # Subtest: physical receipt derives only from existing material and active allocation
+    ok 2 - physical receipt derives only from existing material and active allocation
+      ---
+      duration_ms: 121.974564
+      type: 'test'
+      ...
+    # Subtest: dispatch subtracts source and remains in transit until explicit receipt; matches frontend
+    ok 3 - dispatch subtracts source and remains in transit until explicit receipt; matches frontend
+      ---
+      duration_ms: 212.272495
+      type: 'test'
+      ...
+    # Subtest: concurrent dispatch cannot overdraw or exceed destination capacity
+    ok 4 - concurrent dispatch cannot overdraw or exceed destination capacity
+      ---
+      duration_ms: 135.748749
+      type: 'test'
+      ...
+    # Subtest: overallocated historical reservation fails closed before physical receipt
+    ok 5 - overallocated historical reservation fails closed before physical receipt
+      ---
+      duration_ms: 53.145407
+      type: 'test'
+      ...
+    # Subtest: concurrent acceptance writes exactly one destination event
+    ok 6 - concurrent acceptance writes exactly one destination event
+      ---
+      duration_ms: 192.926905
+      type: 'test'
+      ...
+    # Subtest: cross-tenant and missing allocation denied without changes
+    ok 7 - cross-tenant and missing allocation denied without changes
+      ---
+      duration_ms: 43.212203
+      type: 'test'
+      ...
+    # Subtest: unsupported later operation and production history fail closed
+    ok 8 - unsupported later operation and production history fail closed
+      ---
+      duration_ms: 141.040577
+      type: 'test'
+      ...
+    # Subtest: intermediate external route remains unsupported
+    ok 9 - intermediate external route remains unsupported
+      ---
+      duration_ms: 32.404008
+      type: 'test'
+      ...
+    # Subtest: audit failure rolls back transfer, movement and idempotency
+    ok 10 - audit failure rolls back transfer, movement and idempotency
+      ---
+      duration_ms: 99.135965
+      type: 'test'
+      ...
+    # Subtest: physical ledger triggers reject updates and deletes
+    ok 11 - physical ledger triggers reject updates and deletes
+      ---
+      duration_ms: 15.56028
+      type: 'test'
+      ...
+    1..11
+not ok 1 - B03C physical flow on PostgreSQL using restricted runtime
+  ---
+  duration_ms: 3342.536974
+  type: 'test'
+  location: '/Users/user/projects/ritimFlowLite/RitimFlowLite-backend-b01/backend/test/b03c-flow.test.js:6:1'
+  failureType: 'subtestsFailed'
+  error: '1 subtest failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 12
+# suites 0
+# pass 10
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4080.306157

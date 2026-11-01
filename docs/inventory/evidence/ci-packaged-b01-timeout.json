@@ -1,0 +1,81 @@
+{
+  "date": "2026-11-01T12:31:02.309Z",
+  "browser": "Chrome via Playwright",
+  "results": [
+    {
+      "name": "B01-1440: persisted legacy data survives loading and read-only navigation",
+      "status": "FAIL",
+      "error": "page.goto: Timeout 7000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:55290/\", waiting until \"load\"\u001b[22m\n\n    at isolated (/Users/user/projects/ritimFlowLite/RitimFlowLite-integration-operator-quality/tests/p0-browser.cjs:67:13)\n    at async run (/Users/user/projects/ritimFlowLite/RitimFlowLite-integration-operator-quality/tests/p0-browser.cjs:19:5)\n    at async /Users/user/projects/ritimFlowLite/RitimFlowLite-integration-operator-quality/tests/p0-browser.cjs:157:5"
+    },
+    {
+      "name": "B02-1440: production→close→QA→partial shipment→return keeps every screen consistent",
+      "status": "PASS"
+    },
+    {
+      "name": "B01-390: persisted legacy data survives loading and read-only navigation",
+      "status": "PASS"
+    },
+    {
+      "name": "B02-390: production→close→QA→partial shipment→return keeps every screen consistent",
+      "status": "PASS"
+    },
+    {
+      "name": "B01-360: persisted legacy data survives loading and read-only navigation",
+      "status": "PASS"
+    },
+    {
+      "name": "B02-360: production→close→QA→partial shipment→return keeps every screen consistent",
+      "status": "PASS"
+    },
+    {
+      "name": "B03: unsupported routes and preexisting final approvals cannot bypass terminal operation",
+      "status": "PASS"
+    },
+    {
+      "name": "B04: old openShip routes to guarded form; old saveShipment uses canonical command",
+      "status": "PASS"
+    },
+    {
+      "name": "B05: partial supplier movements retain caps, documents and good→QA→shipping chain",
+      "status": "PASS"
+    },
+    {
+      "name": "B06: UX05 250/150/100 equation and closure/overproduction guards remain intact",
+      "status": "PASS"
+    },
+    {
+      "name": "B07: UX05 inspection, rework and handover preserve quantities",
+      "status": "PASS"
+    },
+    {
+      "name": "B08: independent sales page cannot ship through UI, openShipment or ship",
+      "status": "PASS"
+    },
+    {
+      "name": "B09: read-only old approvals/dispatches stay visible but cannot release new inventory",
+      "status": "PASS"
+    },
+    {
+      "name": "B10: new model/service assets load on every route without app errors",
+      "status": "PASS"
+    },
+    {
+      "name": "B11: partial material receipts/allocations preserve free balance and reject excess",
+      "status": "PASS"
+    },
+    {
+      "name": "B12: manager restriction and legacy direct commit both revalidate final QA",
+      "status": "PASS"
+    }
+  ],
+  "telemetry": [
+    {
+      "test": "B02-1440: production→close→QA→partial shipment→return keeps every screen consistent",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    }
+  ],
+  "applicationErrors": [],
+  "passed": 15,
+  "failed": 1
+}

@@ -1,0 +1,16 @@
+TAP version 13
+# \# second-start-alert
+# Subtest: real Chrome, Keycloak and Compose API two-operation flow
+ok 1 - real Chrome, Keycloak and Compose API two-operation flow
+  ---
+  duration_ms: 89581.469817
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 93076.736427

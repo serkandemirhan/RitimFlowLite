@@ -38,7 +38,7 @@ async function isolated(seed, width, fn, suffix = "") {
   );
   const p = await ctx.newPage();
   await trackPage(p);
-  p.setDefaultTimeout(7000);
+  p.setDefaultTimeout(15000);
   p.on("pageerror", (e) =>
     telemetry.push({ test: current, kind: "pageerror", message: e.message }),
   );
