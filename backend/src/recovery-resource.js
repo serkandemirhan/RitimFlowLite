@@ -11,6 +11,7 @@ async function authorizeRecoveryResource(client,scope,storedKind,command){
  const b=command.body,order=command.kind==='defineRoute'||command.kind==='plan'?command.target:b.orderId;
  const exists=await client.query('SELECT 1 FROM orders WHERE tenant_id=$1 AND site_id=$2 AND id=$3',[scope.tenantId,scope.siteId,identifier(order)]);if(!exists.rowCount)denied();
  if(command.kind==='operation'&&b.command==='reworkAllocate'){const q=await client.query("SELECT 1 FROM output_dispositions WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND id=$4 AND outcome='rework' AND output_lot_id IS NOT NULL",[scope.tenantId,scope.siteId,order,identifier(b.payload.decisionId)]);if(!q.rowCount)denied()}
+ if(command.kind==='operation'&&b.command==='reworkRelease'){const q=await client.query('SELECT 1 FROM rework_allocations WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND id=$4',[scope.tenantId,scope.siteId,order,identifier(b.resourceId)]);if(!q.rowCount)denied()}
  if(command.kind==='shipping'&&b.command!=='order'){
   const sh=await client.query('SELECT 1 FROM shipping_orders WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND id=$4',[scope.tenantId,scope.siteId,order,identifier(b.shippingOrderId)]);if(!sh.rowCount)denied();
   const p=b.payload;if(b.command==='allocate'){const q=await client.query('SELECT 1 FROM production_output_lots WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND id=$4',[scope.tenantId,scope.siteId,order,identifier(p.outputLotId)]);if(!q.rowCount)denied()}
