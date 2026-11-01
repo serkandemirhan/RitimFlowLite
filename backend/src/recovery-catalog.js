@@ -21,6 +21,7 @@ const operations=Object.freeze({
 });
 function describe({kind,target,body}){
  if(!body||typeof body!=='object'||Array.isArray(body)||typeof target!=='string')reject();
+ if(kind==='shipping'){const o=identifier(body.orderId);if(target!==o||!['order','allocate','dispatch','deliver'].includes(body.command)||!body.payload||typeof body.payload!=='object'||Array.isArray(body.payload))reject();const suffix=body.command==='order'?'/orders':`/orders/${identifier(body.shippingOrderId)}/${body.command}`;return {capability:'shipment.write',suffix:`/orders/${o}/shipping${suffix}`,payload:body.payload}}
  if(kind==='inventory'){if(target!==''||!Object.hasOwn(inventory,body.command)||!body.payload||typeof body.payload!=='object'||Array.isArray(body.payload))reject();return {capability:'stock.write',suffix:'/inventory/'+inventory[body.command].path,payload:body.payload}}
  if(kind==='createOrder'){if(target!=='')reject();return {capability:'orders.write',suffix:'/orders',payload:body}}
  if(kind==='defineRoute'||kind==='plan'){const id=identifier(target);return {capability:kind==='plan'?'planning.write':'orders.write',suffix:`/orders/${id}/${kind==='plan'?'work-orders':'route'}`,payload:body}}
@@ -34,6 +35,6 @@ function describe({kind,target,body}){
  }
  reject();
 }
-const allowedKinds=Object.freeze({inventory:'stock.write',createOrder:'orders.write',defineRoute:'orders.write',plan:'planning.write',production:'production.write',quality:'quality.write',...Object.fromEntries(Object.entries(operations).map(([name,value])=>['operation:'+name,value.capability]))});
+const allowedKinds=Object.freeze({shipping:'shipment.write',inventory:'stock.write',createOrder:'orders.write',defineRoute:'orders.write',plan:'planning.write',production:'production.write',quality:'quality.write',...Object.fromEntries(Object.entries(operations).map(([name,value])=>['operation:'+name,value.capability]))});
 function storageKind(command){const d=describe(command),name=command.kind==='operation'?'operation:'+command.body.command:command.kind;if(allowedKinds[name]!==d.capability)reject();return name}
 module.exports={describe,allowedKinds,storageKind};

@@ -10,6 +10,11 @@ async function authorizeRecoveryResource(client,scope,storedKind,command){
  if(command.kind==='inventory'){const p=command.body.payload;for(const [field,table] of [['materialId','inventory_materials'],['locationId','inventory_locations'],['lotId','inventory_lots'],['sourceLocationId','inventory_locations'],['destinationLocationId','inventory_locations'],['orderId','orders'],['workOrderId','work_orders']])if(p[field]){const q=await client.query(`SELECT 1 FROM ${table} WHERE tenant_id=$1 AND site_id=$2 AND id=$3`,[scope.tenantId,scope.siteId,identifier(p[field])]);if(!q.rowCount)denied()}if(p.orderId&&p.workOrderId){const q=await client.query('SELECT 1 FROM work_orders WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND id=$4',[scope.tenantId,scope.siteId,identifier(p.orderId),identifier(p.workOrderId)]);if(!q.rowCount)denied()}return descriptor}
  const b=command.body,order=command.kind==='defineRoute'||command.kind==='plan'?command.target:b.orderId;
  const exists=await client.query('SELECT 1 FROM orders WHERE tenant_id=$1 AND site_id=$2 AND id=$3',[scope.tenantId,scope.siteId,identifier(order)]);if(!exists.rowCount)denied();
+ if(command.kind==='shipping'&&b.command!=='order'){
+  const sh=await client.query('SELECT 1 FROM shipping_orders WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND id=$4',[scope.tenantId,scope.siteId,order,identifier(b.shippingOrderId)]);if(!sh.rowCount)denied();
+  const p=b.payload;if(b.command==='allocate'){const q=await client.query('SELECT 1 FROM production_output_lots WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND id=$4',[scope.tenantId,scope.siteId,order,identifier(p.outputLotId)]);if(!q.rowCount)denied()}
+  else {const ref=b.command==='dispatch'?p.allocationId:p.dispatchId,type=b.command==='dispatch'?'allocate':'dispatch';const q=await client.query('SELECT 1 FROM shipping_events WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND shipping_order_id=$4 AND id=$5 AND event_type=$6',[scope.tenantId,scope.siteId,order,b.shippingOrderId,identifier(ref),type]);if(!q.rowCount)denied()}
+ }
  let job=null;
  if(command.kind==='production'||command.kind==='quality')job=b.workOrderId;
  if(command.kind==='operation'&&['drawingAck','operator','machine','handover'].includes(b.command))job=b.resourceId;

@@ -1,0 +1,109 @@
+TAP version 13
+# (node:6873) [FSTDEP023] FastifyDeprecation: disableRequestLogging option is deprecated. Use the logController option with disableRequestLogging or isLogDisabled override instead. The disableRequestLogging top-level option will be removed in `fastify@6`.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: B04B-1A quality disposition using restricted runtime
+    # Subtest: shipping allocation dispatch delivery and concurrent limit
+    ok 1 - shipping allocation dispatch delivery and concurrent limit
+      ---
+      duration_ms: 5217.261671
+      type: 'test'
+      ...
+    # Subtest: partial decisions, retry, provenance and concurrent ceiling
+    ok 2 - partial decisions, retry, provenance and concurrent ceiling
+      ---
+      duration_ms: 2228.158613
+      type: 'test'
+      ...
+    # Subtest: good output requires a recorded decision and history is immutable
+    ok 3 - good output requires a recorded decision and history is immutable
+      ---
+      duration_ms: 673.432841
+      type: 'test'
+      ...
+    # Subtest: readiness checks quality grant and drawing restrictions remain fail closed
+    ok 4 - readiness checks quality grant and drawing restrictions remain fail closed
+      ---
+      duration_ms: 682.153719
+      type: 'test'
+      ...
+    # Subtest: output lot is event-specific, idempotent and quality retains input genealogy
+    ok 5 - output lot is event-specific, idempotent and quality retains input genealogy
+      ---
+      duration_ms: 722.117239
+      type: 'test'
+      ...
+    # Subtest: concurrent output events have distinct lots and audit failure rolls back lot
+    ok 6 - concurrent output events have distinct lots and audit failure rolls back lot
+      ---
+      duration_ms: 589.214729
+      type: 'test'
+      ...
+    # Subtest: historical event and decision stay readable without invented output lot
+    ok 7 - historical event and decision stay readable without invented output lot
+      ---
+      duration_ms: 440.037899
+      type: 'test'
+      ...
+    # Subtest: approved output reservation, partial release and downstream planning
+    ok 8 - approved output reservation, partial release and downstream planning
+      ---
+      duration_ms: 2022.409879
+      type: 'test'
+      ...
+    # Subtest: reservation concurrency, authorization and audit rollback
+    ok 9 - reservation concurrency, authorization and audit rollback
+      ---
+      duration_ms: 1050.857147
+      type: 'test'
+      ...
+    # Subtest: concurrent planning respects operation capacity after reservation release
+    ok 10 - concurrent planning respects operation capacity after reservation release
+      ---
+      duration_ms: 768.322253
+      type: 'test'
+      ...
+    # Subtest: cross-operation dispatch and partial receipt preserve provenance, concurrency and rollback
+    ok 11 - cross-operation dispatch and partial receipt preserve provenance, concurrency and rollback
+      ---
+      duration_ms: 6150.264819
+      type: 'test'
+      ...
+    # Subtest: frontend discovery and fictional material onboarding use restricted runtime and reconcile history
+    ok 12 - frontend discovery and fictional material onboarding use restricted runtime and reconcile history
+      ---
+      duration_ms: 1719.746303
+      type: 'test'
+      ...
+    # Subtest: audit failure rolls back quality and idempotency
+    ok 13 - audit failure rolls back quality and idempotency
+      ---
+      duration_ms: 953.156552
+      type: 'test'
+      ...
+    1..13
+ok 1 - B04B-1A quality disposition using restricted runtime
+  ---
+  duration_ms: 26979.936012
+  type: 'test'
+  ...
+# Subtest: shipping recovery is capability-bound and preserves only supported replay paths
+ok 2 - shipping recovery is capability-bound and preserves only supported replay paths
+  ---
+  duration_ms: 110.670334
+  type: 'test'
+  ...
+# Subtest: shipping recovery refuses records outside scoped order and shipment
+ok 3 - shipping recovery refuses records outside scoped order and shipment
+  ---
+  duration_ms: 0.562352
+  type: 'test'
+  ...
+1..3
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 28389.687927

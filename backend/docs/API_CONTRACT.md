@@ -113,3 +113,13 @@ All paths below are relative to `/api/v1/sites/{tenantId}/{siteId}/inventory`. R
 Identical key and command retries return the original receipt; a differing command with the same key is rejected. Unsupported units/flows, insufficient physical stock, capacity conflicts, invalid site ownership and authorization failures are rejected. Production and quality quantities continue to come from their own ledgers; no warehouse balance is inferred from historic production.
 
 Material listing is limited to 500 records; pagination and a complete large-catalog search remain production work.
+
+### Shipping API (isolated development)
+
+Under `/api/v1/sites/{tenant}/{site}/orders/{order}/shipping`, `GET /` returns shipping orders, approved final-operation lots, aggregate allocated/dispatched/delivered/in-transit quantities and append-only event history. `POST /orders` creates a shipping order. `POST /orders/{shippingOrder}/allocate` accepts `{outputLotId, quantity}`; `/dispatch` accepts `{allocationId, quantity}`; `/deliver` accepts `{dispatchId, quantity}`. Each command requires `shipment.write` and an idempotency key; each persists audit with the movement. The order row is locked for the entire transaction. Availability uses quality approval minus downstream reservations and shipping allocations. Only completed final internal operations on supported one/two-operation internal routes qualify. Delivery is an explicit command, never inferred. Customer returns and allocation release are not supported.
+
+Restricted PostgreSQL concurrency, audit rollback and fictional real-Keycloak source/package flows are covered by the shipping acceptance tests. These endpoints remain isolated-development only and are not approved for production activation.
+
+`totals.availableToShip` is the lesser of approved, unreserved, unallocated lot quantity and remaining customer-order capacity after legacy net shipments and shipping allocations. Closed/cancelled orders report zero available; their history remains readable. A shipping allocation is also deducted from the existing output-lot availability projection. Allocations currently cannot be released or corrected through this development API.
+Historical production without a trustworthy event-specific output lot is not made shippable or backfilled. Existing shipment/return history remains intact and is counted only for the order capacity limit; no customer-return command is exposed.
+Shipping-order status and totals are derived from immutable events; an order can be `draft`, `allocated`, `in_transit`, `partially_delivered`, `partially_dispatched`, or `delivered`. Per-order and aggregate responses separately expose `awaitingDispatch` and `inTransit` quantities.
