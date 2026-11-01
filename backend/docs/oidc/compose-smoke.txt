@@ -1,0 +1,5 @@
+Isolated fictional Compose project ritim-oidc-api-smoke; PostgreSQL 16.
+Migration and provision: exited 0; API and database: healthy.
+GET /health/ready: 200; GET /api/v1/session without authentication: 401.
+GET /auth/config: enabled=false, manualTokenAllowed=false.
+This smoke did not exercise Keycloak inside the API container. Existing volumes and databases were not removed.

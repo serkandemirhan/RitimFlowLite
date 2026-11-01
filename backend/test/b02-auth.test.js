@@ -46,3 +46,8 @@ test('permission matrix explicitly separates site roles and denies unknown roles
  assert(capabilities(['quality']).includes('quality.write'));assert(capabilities(['logistics']).includes('shipment.write'));
  assert.deepEqual(capabilities(['untrusted-superadmin']),[]);assert(Object.isFrozen(MATRIX));
 });
+test('Keycloak JWT access-token compatibility is opt-in and rejects ID-shaped tokens',async()=>{
+ const f=await fixture();const verifier=makeOidcVerifier({issuer,audience,jwksUrl:'https://identity.example.test/jwks',allowJwtBearerTyp:true,fetcher:async()=>new Response(JSON.stringify({keys:[f.jwkA]}),{headers:{'content-type':'application/json'}})});
+ assert.equal((await verifier.verify(await f.sign({typ:'JWT',extra:{typ:'Bearer'}}))).subject,'worker');
+ await assert.rejects(verifier.verify(await f.sign({typ:'JWT'})),{statusCode:401});
+});

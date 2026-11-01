@@ -1,0 +1,10 @@
+'use strict';
+// Writes only to a caller-selected private temporary directory; no production users.
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+const dir=process.env.OIDC_FIXTURE_DIR,password=process.env.OIDC_TEST_PASSWORD,origin=process.env.OIDC_APP_ORIGIN||'http://127.0.0.1:44729';
+if(!dir||!path.isAbsolute(dir)||!password||password.length<12)throw Error('Absolute OIDC_FIXTURE_DIR and >=12 character fictional OIDC_TEST_PASSWORD required');
+const u=new URL(origin);if(u.origin!==origin||!['127.0.0.1','localhost'].includes(u.hostname)||u.protocol!=='http:')throw Error('Fixture app origin must be loopback HTTP');
+fs.mkdirSync(dir,{recursive:true,mode:0o700});fs.chmodSync(dir,0o700);
+const users=['manager','operator-a','operator-b','quality','tenant-b'].map(username=>({id:crypto.randomUUID(),username,enabled:true,emailVerified:true,email:username+'@example.test',firstName:username,lastName:'Fixture',credentials:[{type:'password',value:password,temporary:false}]}));
+const realm={realm:'ritim-dev',enabled:true,sslRequired:'external',registrationAllowed:false,resetPasswordAllowed:false,accessTokenLifespan:300,ssoSessionIdleTimeout:600,ssoSessionMaxLifespan:1800,clients:[{clientId:'ritim-web',name:'Fictional demo',enabled:true,publicClient:true,protocol:'openid-connect',standardFlowEnabled:true,implicitFlowEnabled:false,directAccessGrantsEnabled:false,serviceAccountsEnabled:false,redirectUris:[origin+'/auth/callback'],webOrigins:[origin],attributes:{'pkce.code.challenge.method':'S256','post.logout.redirect.uris':origin+'/?mode=api'},protocolMappers:[{name:'ritim-api-audience',protocol:'openid-connect',protocolMapper:'oidc-audience-mapper',consentRequired:false,config:{'included.custom.audience':'ritim-api','access.token.claim':'true','id.token.claim':'false'}}]}],users};
+fs.writeFileSync(path.join(dir,'realm.json'),JSON.stringify(realm,null,2),{mode:0o600});fs.writeFileSync(path.join(dir,'users.json'),JSON.stringify(users.map(({id,username})=>({id,username})),null,2),{mode:0o600});console.log('Fictional realm prepared in private fixture directory; passwords are not printed.');

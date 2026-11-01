@@ -1,0 +1,797 @@
+
+> ritim-mes-backend@0.1.0 test
+> node --test test/*.test.js
+
+TAP version 13
+# Subtest: verified JWT identity ignores self-asserted roles and tenant claims
+ok 1 - verified JWT identity ignores self-asserted roles and tenant claims
+  ---
+  duration_ms: 2793.984841
+  type: 'test'
+  ...
+# Subtest: missing, malformed and oversized bearer tokens fail closed
+ok 2 - missing, malformed and oversized bearer tokens fail closed
+  ---
+  duration_ms: 2.915053
+  type: 'test'
+  ...
+# Subtest: expired, wrong issuer, wrong audience, future iat, wrong typ and invalid signature rejected
+ok 3 - expired, wrong issuer, wrong audience, future iat, wrong typ and invalid signature rejected
+  ---
+  duration_ms: 237.653674
+  type: 'test'
+  ...
+# Subtest: required expiry, issuance time, subject and key id are enforced
+ok 4 - required expiry, issuance time, subject and key id are enforced
+  ---
+  duration_ms: 1014.124639
+  type: 'test'
+  ...
+# Subtest: remote key rotation fetches new kid and rejects removed key after refresh
+ok 5 - remote key rotation fetches new kid and rejects removed key after refresh
+  ---
+  duration_ms: 152.477907
+  type: 'test'
+  ...
+# Subtest: insecure endpoints and unsafe algorithms are rejected
+ok 6 - insecure endpoints and unsafe algorithms are rejected
+  ---
+  duration_ms: 0.580441
+  type: 'test'
+  ...
+# Subtest: permission matrix explicitly separates site roles and denies unknown roles
+ok 7 - permission matrix explicitly separates site roles and denies unknown roles
+  ---
+  duration_ms: 0.416181
+  type: 'test'
+  ...
+# Subtest: Keycloak JWT access-token compatibility is opt-in and rejects ID-shaped tokens
+ok 8 - Keycloak JWT access-token compatibility is opt-in and rejects ID-shaped tokens
+  ---
+  duration_ms: 157.186209
+  type: 'test'
+  ...
+# (node:71594) [FSTDEP023] FastifyDeprecation: disableRequestLogging option is deprecated. Use the logController option with disableRequestLogging or isLogDisabled override instead. The disableRequestLogging top-level option will be removed in `fastify@6`.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: B02 PostgreSQL scoped authorization and authenticated API
+    # Subtest: verified identity, memberships and capabilities ignore frontend role and scope claims
+    ok 1 - verified identity, memberships and capabilities ignore frontend role and scope claims
+      ---
+      duration_ms: 121.603068
+      type: 'test'
+      ...
+    # Subtest: expired, wrong issuer and audience are denied by HTTP authentication
+    ok 2 - expired, wrong issuer and audience are denied by HTTP authentication
+      ---
+      duration_ms: 99.275794
+      type: 'test'
+      ...
+    # Subtest: cross-site and cross-tenant access fail closed, including mismatched ownership
+    ok 3 - cross-site and cross-tenant access fail closed, including mismatched ownership
+      ---
+      duration_ms: 144.692836
+      type: 'test'
+      ...
+    # Subtest: operator escalation is rejected inside transaction without a receipt
+    ok 4 - operator escalation is rejected inside transaction without a receipt
+      ---
+      duration_ms: 11.426924
+      type: 'test'
+      ...
+    # Subtest: tenant administrators are scoped to their own tenant and revocation is immediate
+    ok 5 - tenant administrators are scoped to their own tenant and revocation is immediate
+      ---
+      duration_ms: 59.754256
+      type: 'test'
+      ...
+    # Subtest: platform admin requires an actual active database grant
+    ok 6 - platform admin requires an actual active database grant
+      ---
+      duration_ms: 50.685591
+      type: 'test'
+      ...
+    # Subtest: idempotency receipts are isolated between tenants and retries
+    ok 7 - idempotency receipts are isolated between tenants and retries
+      ---
+      duration_ms: 142.455985
+      type: 'test'
+      ...
+    # Subtest: revocation waits for an authorized transaction, then blocks later writes
+    ok 8 - revocation waits for an authorized transaction, then blocks later writes
+      ---
+      duration_ms: 246.442602
+      type: 'test'
+      ...
+    # Subtest: revoked memberships and disabled user are not returned or authorized
+    ok 9 - revoked memberships and disabled user are not returned or authorized
+      ---
+      duration_ms: 38.700912
+      type: 'test'
+      ...
+    1..9
+ok 9 - B02 PostgreSQL scoped authorization and authenticated API
+  ---
+  duration_ms: 4150.605559
+  type: 'test'
+  ...
+# Subtest: existing database upgrade, failed migration and isolated backup/restore
+    # Subtest: historical 001/002 data upgrades to 014 without changing records
+    ok 1 - historical 001/002 data upgrades to 014 without changing records
+      ---
+      duration_ms: 2594.844594
+      type: 'test'
+      ...
+    # Subtest: failed migration rolls back its DDL and version record
+    ok 2 - failed migration rolls back its DDL and version record
+      ---
+      duration_ms: 137.960072
+      type: 'test'
+      ...
+# \# fictional backup sha256 1272a32c8e6319b52ed4144d7b16f5f887dd754ca80bf8d1e8fdf5b37e0846a3
+    # Subtest: backup restores into a separate fictional database with data and schema version intact
+    ok 3 - backup restores into a separate fictional database with data and schema version intact
+      ---
+      duration_ms: 5810.061777
+      type: 'test'
+      ...
+    1..3
+ok 10 - existing database upgrade, failed migration and isolated backup/restore
+  ---
+  duration_ms: 9801.69469
+  type: 'test'
+  ...
+# (node:71600) [FSTDEP023] FastifyDeprecation: disableRequestLogging option is deprecated. Use the logController option with disableRequestLogging or isLogDisabled override instead. The disableRequestLogging top-level option will be removed in `fastify@6`.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: B03A isolation on real PostgreSQL with actual restricted login
+    # Subtest: real runtime login lacks elevated rights and schema/membership modification
+    ok 1 - real runtime login lacks elevated rights and schema/membership modification
+      ---
+      duration_ms: 238.653684
+      type: 'test'
+      ...
+    # Subtest: all 31 business tables enforce RLS and runtime does not own them
+    ok 2 - all 31 business tables enforce RLS and runtime does not own them
+      ---
+      duration_ms: 10.732511
+      type: 'test'
+      ...
+    # Subtest: missing context fails closed and runtime cannot write domain rows
+    ok 3 - missing context fails closed and runtime cannot write domain rows
+      ---
+      duration_ms: 33.105365
+      type: 'test'
+      ...
+# (node:71600) [FSTDEP023] FastifyDeprecation: disableRequestLogging option is deprecated. Use the logController option with disableRequestLogging or isLogDisabled override instead. The disableRequestLogging top-level option will be removed in `fastify@6`.
+    # Subtest: authenticated API restricts sites, ignores forged headers and role escalation
+    ok 4 - authenticated API restricts sites, ignores forged headers and role escalation
+      ---
+      duration_ms: 326.77995
+      type: 'test'
+      ...
+    # Subtest: real HTTP listener serves health and verified session using restricted pool
+    ok 5 - real HTTP listener serves health and verified session using restricted pool
+      ---
+      duration_ms: 473.679443
+      type: 'test'
+      ...
+    # Subtest: readiness fails for missing runtime grants or migration version
+    ok 6 - readiness fails for missing runtime grants or migration version
+      ---
+      duration_ms: 138.584418
+      type: 'test'
+      ...
+    # Subtest: RLS filters accidental missing tenant filters in a scoped transaction
+    ok 7 - RLS filters accidental missing tenant filters in a scoped transaction
+      ---
+      duration_ms: 24.92693
+      type: 'test'
+      ...
+    # Subtest: RLS blocks cross-tenant idempotency writes in a scoped transaction
+    ok 8 - RLS blocks cross-tenant idempotency writes in a scoped transaction
+      ---
+      duration_ms: 30.138007
+      type: 'test'
+      ...
+    # Subtest: transaction rollback and pool reuse discard context
+    ok 9 - transaction rollback and pool reuse discard context
+      ---
+      duration_ms: 64.483312
+      type: 'test'
+      ...
+    # Subtest: idempotency receipts are isolated and failed authorization rolls back
+    ok 10 - idempotency receipts are isolated and failed authorization rolls back
+      ---
+      duration_ms: 111.421001
+      type: 'test'
+      ...
+    # Subtest: definer search path ignores malicious temporary tables; PUBLIC execute revoked
+    ok 11 - definer search path ignores malicious temporary tables; PUBLIC execute revoked
+      ---
+      duration_ms: 24.119555
+      type: 'test'
+      ...
+    # Subtest: concurrent revocation waits for active command and blocks subsequent command
+    ok 12 - concurrent revocation waits for active command and blocks subsequent command
+      ---
+      duration_ms: 231.907997
+      type: 'test'
+      ...
+    # Subtest: negative probe: arbitrary SQL as compromised runtime can forge mutable context
+    ok 13 - negative probe: arbitrary SQL as compromised runtime can forge mutable context
+      ---
+      duration_ms: 24.471242
+      type: 'test'
+      ...
+    1..13
+ok 11 - B03A isolation on real PostgreSQL with actual restricted login
+  ---
+  duration_ms: 4462.922902
+  type: 'test'
+  ...
+# (node:71620) [FSTDEP023] FastifyDeprecation: disableRequestLogging option is deprecated. Use the logController option with disableRequestLogging or isLogDisabled override instead. The disableRequestLogging top-level option will be removed in `fastify@6`.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:71620) [FSTDEP023] FastifyDeprecation: disableRequestLogging option is deprecated. Use the logController option with disableRequestLogging or isLogDisabled override instead. The disableRequestLogging top-level option will be removed in `fastify@6`.
+# Subtest: B03B isolated PostgreSQL order, route and planning API
+    # Subtest: endpoints are disabled by default and configuration fails closed
+    ok 1 - endpoints are disabled by default and configuration fails closed
+      ---
+      duration_ms: 81.718172
+      type: 'test'
+      ...
+    # Subtest: create order with no work order, retry is idempotent, authentication enforced
+    ok 2 - create order with no work order, retry is idempotent, authentication enforced
+      ---
+      duration_ms: 630.991173
+      type: 'test'
+      ...
+    # Subtest: ordered route defined once; retry retained; unauthorized user cannot escalate
+    ok 3 - ordered route defined once; retry retained; unauthorized user cannot escalate
+      ---
+      duration_ms: 134.09714
+      type: 'test'
+      ...
+    # Subtest: 10 ordered, two plans of 5, excess and duplicate commands
+    ok 4 - 10 ordered, two plans of 5, excess and duplicate commands
+      ---
+      duration_ms: 643.143612
+      type: 'test'
+      ...
+    # Subtest: unsupported later/external operation is explicit and cannot create work
+    ok 5 - unsupported later/external operation is explicit and cannot create work
+      ---
+      duration_ms: 153.63621
+      type: 'test'
+      ...
+    # Subtest: failed duplicate number rolls back route/work order and receipt
+    ok 6 - failed duplicate number rolls back route/work order and receipt
+      ---
+      duration_ms: 65.945707
+      type: 'test'
+      ...
+    # Subtest: failure after route inserts rolls back all operations and receipt
+    ok 7 - failure after route inserts rolls back all operations and receipt
+      ---
+      duration_ms: 155.729219
+      type: 'test'
+      ...
+    # Subtest: cross-tenant scope and role restrictions fail closed
+    ok 8 - cross-tenant scope and role restrictions fail closed
+      ---
+      duration_ms: 33.219418
+      type: 'test'
+      ...
+    # Subtest: concurrent planning serializes capacity and audit contains only success
+    ok 9 - concurrent planning serializes capacity and audit contains only success
+      ---
+      duration_ms: 266.385663
+      type: 'test'
+      ...
+    # Subtest: unreconciled compensation does not silently increase planning capacity
+    ok 10 - unreconciled compensation does not silently increase planning capacity
+      ---
+      duration_ms: 234.266279
+      type: 'test'
+      ...
+    # Subtest: work-order history does not change order net shipment progress
+    ok 11 - work-order history does not change order net shipment progress
+      ---
+      duration_ms: 100.288483
+      type: 'test'
+      ...
+    1..11
+ok 12 - B03B isolated PostgreSQL order, route and planning API
+  ---
+  duration_ms: 5489.675326
+  type: 'test'
+  ...
+# (node:71621) [FSTDEP023] FastifyDeprecation: disableRequestLogging option is deprecated. Use the logController option with disableRequestLogging or isLogDisabled override instead. The disableRequestLogging top-level option will be removed in `fastify@6`.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: B03C physical flow on PostgreSQL using restricted runtime
+    # Subtest: physical receipt derives only from existing material and active allocation
+    ok 1 - physical receipt derives only from existing material and active allocation
+      ---
+      duration_ms: 823.134826
+      type: 'test'
+      ...
+    # Subtest: dispatch subtracts source and remains in transit until explicit receipt; matches frontend
+    ok 2 - dispatch subtracts source and remains in transit until explicit receipt; matches frontend
+      ---
+      duration_ms: 407.757197
+      type: 'test'
+      ...
+    # Subtest: concurrent dispatch cannot overdraw or exceed destination capacity
+    ok 3 - concurrent dispatch cannot overdraw or exceed destination capacity
+      ---
+      duration_ms: 680.578287
+      type: 'test'
+      ...
+    # Subtest: overallocated historical reservation fails closed before physical receipt
+    ok 4 - overallocated historical reservation fails closed before physical receipt
+      ---
+      duration_ms: 157.638842
+      type: 'test'
+      ...
+    # Subtest: concurrent acceptance writes exactly one destination event
+    ok 5 - concurrent acceptance writes exactly one destination event
+      ---
+      duration_ms: 1079.321759
+      type: 'test'
+      ...
+    # Subtest: cross-tenant and missing allocation denied without changes
+    ok 6 - cross-tenant and missing allocation denied without changes
+      ---
+      duration_ms: 471.046722
+      type: 'test'
+      ...
+    # Subtest: unsupported later operation and production history fail closed
+    ok 7 - unsupported later operation and production history fail closed
+      ---
+      duration_ms: 1061.186539
+      type: 'test'
+      ...
+    # Subtest: intermediate external route remains unsupported
+    ok 8 - intermediate external route remains unsupported
+      ---
+      duration_ms: 131.952077
+      type: 'test'
+      ...
+    # Subtest: audit failure rolls back transfer, movement and idempotency
+    ok 9 - audit failure rolls back transfer, movement and idempotency
+      ---
+      duration_ms: 210.082276
+      type: 'test'
+      ...
+    # Subtest: physical ledger triggers reject updates and deletes
+    ok 10 - physical ledger triggers reject updates and deletes
+      ---
+      duration_ms: 30.01903
+      type: 'test'
+      ...
+    1..10
+ok 13 - B03C physical flow on PostgreSQL using restricted runtime
+  ---
+  duration_ms: 7520.111636
+  type: 'test'
+  ...
+# (node:71622) [FSTDEP023] FastifyDeprecation: disableRequestLogging option is deprecated. Use the logController option with disableRequestLogging or isLogDisabled override instead. The disableRequestLogging top-level option will be removed in `fastify@6`.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: B04A reconciled production using restricted runtime
+    # Subtest: operator self-only work-order discovery enforces membership and current handover
+    ok 1 - operator self-only work-order discovery enforces membership and current handover
+      ---
+      duration_ms: 4665.097439
+      type: 'test'
+      ...
+    # Subtest: published drawing acknowledgement binds active revision, actor, assignment and audit
+    ok 2 - published drawing acknowledgement binds active revision, actor, assignment and audit
+      ---
+      duration_ms: 1676.364707
+      type: 'test'
+      ...
+    # Subtest: resolved quality permits completion while unsupported rework stays blocked
+    ok 3 - resolved quality permits completion while unsupported rework stays blocked
+      ---
+      duration_ms: 2869.430339
+      type: 'test'
+      ...
+    # Subtest: manager assignment, machine change, handover and audit rollback
+    ok 4 - manager assignment, machine change, handover and audit rollback
+      ---
+      duration_ms: 993.736656
+      type: 'test'
+      ...
+    # Subtest: revoked operators are rejected and membership lock serializes revocation
+    ok 5 - revoked operators are rejected and membership lock serializes revocation
+      ---
+      duration_ms: 567.022538
+      type: 'test'
+      ...
+    # Subtest: machine, assignment, identity and physical receipt are required
+    ok 6 - machine, assignment, identity and physical receipt are required
+      ---
+      duration_ms: 236.046408
+      type: 'test'
+      ...
+    # Subtest: good, scrap and pending consume lots; pending is not approved
+    ok 7 - good, scrap and pending consume lots; pending is not approved
+      ---
+      duration_ms: 1162.73749
+      type: 'test'
+      ...
+    # Subtest: assigned operator cannot self-classify good without manager policy
+    ok 8 - assigned operator cannot self-classify good without manager policy
+      ---
+      duration_ms: 423.088661
+      type: 'test'
+      ...
+    # Subtest: concurrent results cannot consume the same stock and idempotency is durable
+    ok 9 - concurrent results cannot consume the same stock and idempotency is durable
+      ---
+      duration_ms: 491.255185
+      type: 'test'
+      ...
+    # Subtest: audit failure rolls back production event, ledger and receipt
+    ok 10 - audit failure rolls back production event, ledger and receipt
+      ---
+      duration_ms: 340.797066
+      type: 'test'
+      ...
+    # Subtest: completion requires all physical input consumed and no pending
+    ok 11 - completion requires all physical input consumed and no pending
+      ---
+      duration_ms: 1259.43447
+      type: 'test'
+      ...
+    # Subtest: legacy production and drawing revisions fail closed
+    ok 12 - legacy production and drawing revisions fail closed
+      ---
+      duration_ms: 363.797343
+      type: 'test'
+      ...
+    # Subtest: assignment revocation waits for the transaction and denies subsequent execution
+    ok 13 - assignment revocation waits for the transaction and denies subsequent execution
+      ---
+      duration_ms: 322.397218
+      type: 'test'
+      ...
+    # Subtest: cross-tenant scope and unassigned operator cannot record production
+    ok 14 - cross-tenant scope and unassigned operator cannot record production
+      ---
+      duration_ms: 357.325432
+      type: 'test'
+      ...
+    1..14
+ok 14 - B04A reconciled production using restricted runtime
+  ---
+  duration_ms: 18140.421848
+  type: 'test'
+  ...
+# Subtest: pending and good remain unavailable without explicit approval
+ok 15 - pending and good remain unavailable without explicit approval
+  ---
+  duration_ms: 1.360114
+  type: 'test'
+  ...
+# Subtest: partial disposition and reservation preserve provenance and input objects
+ok 16 - partial disposition and reservation preserve provenance and input objects
+  ---
+  duration_ms: 1.78951
+  type: 'test'
+  ...
+# Subtest: reject over-disposition, over-reservation, duplicate ids and invalid provenance
+ok 17 - reject over-disposition, over-reservation, duplicate ids and invalid provenance
+  ---
+  duration_ms: 1.014151
+  type: 'test'
+  ...
+# Subtest: reject unsafe, negative and non-integer quantities
+ok 18 - reject unsafe, negative and non-integer quantities
+  ---
+  duration_ms: 1.188863
+  type: 'test'
+  ...
+# Subtest: append-only reservation release restores available quantity without changing history
+ok 19 - append-only reservation release restores available quantity without changing history
+  ---
+  duration_ms: 2.798807
+  type: 'test'
+  ...
+# Subtest: ordered reserve, release and re-reserve preserves immutable inputs
+ok 20 - ordered reserve, release and re-reserve preserves immutable inputs
+  ---
+  duration_ms: 30.852577
+  type: 'test'
+  ...
+# Subtest: reject negative balance, invalid provenance, duplicates and unordered events
+ok 21 - reject negative balance, invalid provenance, duplicates and unordered events
+  ---
+  duration_ms: 4.212704
+  type: 'test'
+  ...
+# (node:71625) [FSTDEP023] FastifyDeprecation: disableRequestLogging option is deprecated. Use the logController option with disableRequestLogging or isLogDisabled override instead. The disableRequestLogging top-level option will be removed in `fastify@6`.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: B04B-1A quality disposition using restricted runtime
+    # Subtest: partial decisions, retry, provenance and concurrent ceiling
+    ok 1 - partial decisions, retry, provenance and concurrent ceiling
+      ---
+      duration_ms: 2675.080918
+      type: 'test'
+      ...
+    # Subtest: good output requires a recorded decision and history is immutable
+    ok 2 - good output requires a recorded decision and history is immutable
+      ---
+      duration_ms: 621.856622
+      type: 'test'
+      ...
+    # Subtest: readiness checks quality grant and drawing restrictions remain fail closed
+    ok 3 - readiness checks quality grant and drawing restrictions remain fail closed
+      ---
+      duration_ms: 421.410199
+      type: 'test'
+      ...
+    # Subtest: output lot is event-specific, idempotent and quality retains input genealogy
+    ok 4 - output lot is event-specific, idempotent and quality retains input genealogy
+      ---
+      duration_ms: 617.569249
+      type: 'test'
+      ...
+    # Subtest: concurrent output events have distinct lots and audit failure rolls back lot
+    ok 5 - concurrent output events have distinct lots and audit failure rolls back lot
+      ---
+      duration_ms: 480.149385
+      type: 'test'
+      ...
+    # Subtest: historical event and decision stay readable without invented output lot
+    ok 6 - historical event and decision stay readable without invented output lot
+      ---
+      duration_ms: 192.547867
+      type: 'test'
+      ...
+    # Subtest: approved output reservation, partial release and downstream planning
+    ok 7 - approved output reservation, partial release and downstream planning
+      ---
+      duration_ms: 1653.276672
+      type: 'test'
+      ...
+    # Subtest: reservation concurrency, authorization and audit rollback
+    ok 8 - reservation concurrency, authorization and audit rollback
+      ---
+      duration_ms: 1382.218483
+      type: 'test'
+      ...
+    # Subtest: concurrent planning respects operation capacity after reservation release
+    ok 9 - concurrent planning respects operation capacity after reservation release
+      ---
+      duration_ms: 1397.676946
+      type: 'test'
+      ...
+    # Subtest: cross-operation dispatch and partial receipt preserve provenance, concurrency and rollback
+    ok 10 - cross-operation dispatch and partial receipt preserve provenance, concurrency and rollback
+      ---
+      duration_ms: 9439.877253
+      type: 'test'
+      ...
+    # Subtest: frontend discovery and fictional material onboarding use restricted runtime and reconcile history
+    ok 11 - frontend discovery and fictional material onboarding use restricted runtime and reconcile history
+      ---
+      duration_ms: 1675.364432
+      type: 'test'
+      ...
+    # Subtest: audit failure rolls back quality and idempotency
+    ok 12 - audit failure rolls back quality and idempotency
+      ---
+      duration_ms: 289.347002
+      type: 'test'
+      ...
+    1..12
+ok 22 - B04B-1A quality disposition using restricted runtime
+  ---
+  duration_ms: 23263.146079
+  type: 'test'
+  ...
+# (node:71627) [FSTDEP023] FastifyDeprecation: disableRequestLogging option is deprecated. Use the logController option with disableRequestLogging or isLogDisabled override instead. The disableRequestLogging top-level option will be removed in `fastify@6`.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: environment configuration validates port, connection URL and TLS mode
+ok 23 - environment configuration validates port, connection URL and TLS mode
+  ---
+  duration_ms: 2.007313
+  type: 'test'
+  ...
+# (node:71627) [FSTDEP023] FastifyDeprecation: disableRequestLogging option is deprecated. Use the logController option with disableRequestLogging or isLogDisabled override instead. The disableRequestLogging top-level option will be removed in `fastify@6`.
+# Subtest: public health distinguishes process and database availability without exposing errors
+ok 24 - public health distinguishes process and database availability without exposing errors
+  ---
+  duration_ms: 473.116067
+  type: 'test'
+  ...
+# Subtest: session fails closed even with spoofed user and role headers
+# (node:71627) [FSTDEP023] FastifyDeprecation: disableRequestLogging option is deprecated. Use the logController option with disableRequestLogging or isLogDisabled override instead. The disableRequestLogging top-level option will be removed in `fastify@6`.
+ok 25 - session fails closed even with spoofed user and role headers
+  ---
+  duration_ms: 8.503486
+  type: 'test'
+  ...
+# Subtest: identity must be verified by the server
+ok 26 - identity must be verified by the server
+  ---
+  duration_ms: 0.933446
+  type: 'test'
+  ...
+# Subtest: no business mutations are exposed
+ok 27 - no business mutations are exposed
+  ---
+  duration_ms: 17.741135
+  type: 'test'
+  ...
+# Subtest: transaction commits once on one client and rolls back on failure
+ok 28 - transaction commits once on one client and rolls back on failure
+  ---
+  duration_ms: 1.091118
+  type: 'test'
+  ...
+# Subtest: command canonicalization is deterministic and unauthenticated commands never access storage
+ok 29 - command canonicalization is deterministic and unauthenticated commands never access storage
+  ---
+  duration_ms: 1.158931
+  type: 'test'
+  ...
+# (node:71628) [FSTDEP023] FastifyDeprecation: disableRequestLogging option is deprecated. Use the logController option with disableRequestLogging or isLogDisabled override instead. The disableRequestLogging top-level option will be removed in `fastify@6`.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: real PostgreSQL migrations, referential boundaries, rollback and append-only history
+ok 30 - real PostgreSQL migrations, referential boundaries, rollback and append-only history
+  ---
+  duration_ms: 2029.418381
+  type: 'test'
+  ...
+# Subtest: BFF rejects insecure issuer, non-loopback HTTP and inexact callback
+ok 31 - BFF rejects insecure issuer, non-loopback HTTP and inexact callback
+  ---
+  duration_ms: 2.973752
+  type: 'test'
+  ...
+# Subtest: unknown browser session never produces a bearer token
+ok 32 - unknown browser session never produces a bearer token
+  ---
+  duration_ms: 1.225714
+  type: 'test'
+  ...
+# Subtest: login uses PKCE S256 and rejects bad, missing or replayed state
+ok 33 - login uses PKCE S256 and rejects bad, missing or replayed state
+  ---
+  duration_ms: 997.734593
+  type: 'test'
+  ...
+# Subtest: recovery catalog maps only supported commands to fixed endpoints and permissions
+ok 34 - recovery catalog maps only supported commands to fixed endpoints and permissions
+  ---
+  duration_ms: 2.44481
+  type: 'test'
+  ...
+# Subtest: catalog fails closed for arbitrary routes, mismatched resource and unknown operations
+ok 35 - catalog fails closed for arbitrary routes, mismatched resource and unknown operations
+  ---
+  duration_ms: 0.948028
+  type: 'test'
+  ...
+# Subtest: recovery configuration is optional, rejects missing secrets and cannot enable production
+ok 36 - recovery configuration is optional, rejects missing secrets and cannot enable production
+  ---
+  duration_ms: 99.903201
+  type: 'test'
+  ...
+# Subtest: recovery encryption authenticates actor, tenant, site, command and version
+ok 37 - recovery encryption authenticates actor, tenant, site, command and version
+  ---
+  duration_ms: 18.481419
+  type: 'test'
+  ...
+# Subtest: recovery encryption rejects malformed keys, modified ciphertext and large payloads
+ok 38 - recovery encryption rejects malformed keys, modified ciphertext and large payloads
+  ---
+  duration_ms: 2.576217
+  type: 'test'
+  ...
+# Subtest: repeated encrypted payloads have distinct nonces
+ok 39 - repeated encrypted payloads have distinct nonces
+  ---
+  duration_ms: 2.100983
+  type: 'test'
+  ...
+# Subtest: backup key restores encrypted records; missing, corrupt or wrong version fails closed
+ok 40 - backup key restores encrypted records; missing, corrupt or wrong version fails closed
+  ---
+  duration_ms: 13.28108
+  type: 'test'
+  ...
+# (node:71633) [FSTDEP023] FastifyDeprecation: disableRequestLogging option is deprecated. Use the logController option with disableRequestLogging or isLogDisabled override instead. The disableRequestLogging top-level option will be removed in `fastify@6`.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: recovery API uses authenticated scope and replays the exact command through idempotency
+    # Subtest: durable registration requires verified session and hides content from another actor
+    ok 1 - durable registration requires verified session and hides content from another actor
+      ---
+      duration_ms: 621.47074
+      type: 'test'
+      ...
+# (node:71633) [FSTDEP023] FastifyDeprecation: disableRequestLogging option is deprecated. Use the logController option with disableRequestLogging or isLogDisabled override instead. The disableRequestLogging top-level option will be removed in `fastify@6`.
+    # Subtest: lost response reconciles exact command and concurrent retry does not duplicate
+    ok 2 - lost response reconciles exact command and concurrent retry does not duplicate
+      ---
+      duration_ms: 721.675656
+      type: 'test'
+      ...
+    # Subtest: a receipt for a different payload cannot falsely resolve recovery
+    ok 3 - a receipt for a different payload cannot falsely resolve recovery
+      ---
+      duration_ms: 159.32584
+      type: 'test'
+      ...
+    # Subtest: workflow revisions are encrypted, actor scoped and optimistic
+    ok 4 - workflow revisions are encrypted, actor scoped and optimistic
+      ---
+      duration_ms: 110.914769
+      type: 'test'
+      ...
+    # Subtest: confirmed rejection closes the key and prevents later accidental execution
+    ok 5 - confirmed rejection closes the key and prevents later accidental execution
+      ---
+      duration_ms: 124.75761
+      type: 'test'
+      ...
+    # Subtest: audit insertion failure rolls back recovery registration
+    ok 6 - audit insertion failure rolls back recovery registration
+      ---
+      duration_ms: 78.781439
+      type: 'test'
+      ...
+    # Subtest: revoked membership cannot recover and registration does not allow arbitrary paths
+    ok 7 - revoked membership cannot recover and registration does not allow arbitrary paths
+      ---
+      duration_ms: 43.171499
+      type: 'test'
+      ...
+    1..7
+ok 41 - recovery API uses authenticated scope and replays the exact command through idempotency
+  ---
+  duration_ms: 3873.914298
+  type: 'test'
+  ...
+# Subtest: encrypted recovery store uses restricted actor/site context and durable registration
+    # Subtest: registration is encrypted and retry is durable
+    ok 1 - registration is encrypted and retry is durable
+      ---
+      duration_ms: 625.949276
+      type: 'test'
+      ...
+    # Subtest: other actors and sites cannot retrieve or register with forged scope
+    ok 2 - other actors and sites cannot retrieve or register with forged scope
+      ---
+      duration_ms: 182.779976
+      type: 'test'
+      ...
+    # Subtest: current work assignment is required to reveal production recovery
+    ok 3 - current work assignment is required to reveal production recovery
+      ---
+      duration_ms: 895.586391
+      type: 'test'
+      ...
+    # Subtest: revocation blocks subsequent reads and writes; runtime cannot erase history
+    ok 4 - revocation blocks subsequent reads and writes; runtime cannot erase history
+      ---
+      duration_ms: 60.764133
+      type: 'test'
+      ...
+    1..4
+ok 42 - encrypted recovery store uses restricted actor/site context and durable registration
+  ---
+  duration_ms: 4434.017013
+  type: 'test'
+  ...
+1..42
+# tests 125
+# suites 0
+# pass 125
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 39290.768624

@@ -1,0 +1,7 @@
+Canonical issuer: https://127.0.0.1.nip.io:44749/realms/ritim-dev
+Docker Compose API container: trusted TLS, discovery 200, exact issuer match; JWKS 200, 2 keys; readiness 200; no-session API 401.
+Host Node with same temporary certificate: TLS discovery 200 and identical issuer.
+Real BFF API container: TLS-validating HTTP client completed authorization code + PKCE, manager signed-token validation, encrypted recovery, idempotent retry and logout; operator PKCE login and permission denial passed.
+New fictional Keycloak RSA signing provider appeared in JWKS, was confirmed active, and the existing API container validated another manager login after the refresh interval.
+Chrome without bypass returned ERR_CERT_AUTHORITY_INVALID. A temporary isolated keychain trust installation was rejected by macOS: SecTrustSettingsSetTrustSettings: The authorization was canceled by the user. The temporary keychain was deleted. No browser TLS validation bypass was used.
+A fictional encrypted pending command remained readable after docker restart of the API container and completed with its original identity.

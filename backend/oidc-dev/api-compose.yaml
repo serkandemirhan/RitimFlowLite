@@ -1,0 +1,36 @@
+# Isolated OIDC connectivity fixture. The caller supplies a separately provisioned fictional database.
+services:
+  api:
+    build:
+      context: ..
+    environment:
+      NODE_ENV: development
+      RITIM_ISOLATED_DEVELOPMENT: 'true'
+      HOST: 0.0.0.0
+      PORT: 3000
+      PGHOST: ${OIDC_TEST_PGHOST:?Set fictional database host}
+      PGPORT: ${OIDC_TEST_PGPORT:?Set fictional database port}
+      PGDATABASE: ${OIDC_TEST_PGDATABASE:?Set fictional database name}
+      PGUSER: ${OIDC_TEST_PGUSER:?Set restricted runtime role}
+      PGPASSWORD: ${OIDC_TEST_PGPASSWORD:-}
+      PGOPTIONS: -c search_path=${OIDC_TEST_SCHEMA:?Set fictional schema}
+      DB_SSL: disable
+      OIDC_ISSUER: ${OIDC_TEST_ISSUER:?Set canonical HTTPS issuer}
+      OIDC_AUDIENCE: ritim-api
+      OIDC_JWKS_URL: ${OIDC_TEST_ISSUER:?Set canonical HTTPS issuer}/protocol/openid-connect/certs
+      OIDC_BFF_CLIENT_ID: ritim-web
+      OIDC_BFF_APP_ORIGIN: http://127.0.0.1:44729
+      OIDC_BFF_REDIRECT_URI: http://127.0.0.1:44729/auth/callback
+      RECOVERY_ENCRYPTION_KEY: ${RECOVERY_ENCRYPTION_KEY:?Set private fixture key}
+      RECOVERY_KEY_VERSION: fixture-v1
+      NODE_EXTRA_CA_CERTS: /fixture/tls.crt
+    ports:
+      - '127.0.0.1:${OIDC_TEST_API_PORT:-44759}:3000'
+    volumes:
+      - ${OIDC_FIXTURE_DIR:?Set private fixture directory}/tls.crt:/fixture/tls.crt:ro
+    networks:
+      - identity
+networks:
+  identity:
+    external: true
+    name: ${OIDC_TEST_NETWORK:?Set isolated identity Compose network}
