@@ -7,6 +7,7 @@ const denied=()=>{throw new HttpError(403,'FORBIDDEN','Recovery resource unavail
 async function authorizeRecoveryResource(client,scope,storedKind,command){
  const descriptor=describe(command);if(storageKind(command)!==storedKind)denied();
  if(command.kind==='createOrder')return descriptor;
+ if(command.kind==='inventory'){const p=command.body.payload;for(const [field,table] of [['materialId','inventory_materials'],['locationId','inventory_locations'],['lotId','inventory_lots'],['sourceLocationId','inventory_locations'],['destinationLocationId','inventory_locations'],['orderId','orders'],['workOrderId','work_orders']])if(p[field]){const q=await client.query(`SELECT 1 FROM ${table} WHERE tenant_id=$1 AND site_id=$2 AND id=$3`,[scope.tenantId,scope.siteId,identifier(p[field])]);if(!q.rowCount)denied()}if(p.orderId&&p.workOrderId){const q=await client.query('SELECT 1 FROM work_orders WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND id=$4',[scope.tenantId,scope.siteId,identifier(p.orderId),identifier(p.workOrderId)]);if(!q.rowCount)denied()}return descriptor}
  const b=command.body,order=command.kind==='defineRoute'||command.kind==='plan'?command.target:b.orderId;
  const exists=await client.query('SELECT 1 FROM orders WHERE tenant_id=$1 AND site_id=$2 AND id=$3',[scope.tenantId,scope.siteId,identifier(order)]);if(!exists.rowCount)denied();
  let job=null;

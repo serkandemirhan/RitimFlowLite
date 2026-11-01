@@ -1,0 +1,23 @@
+# Inventory integration — development status
+
+The isolated-development API uses migration `019_inventory_foundation.sql`: tenant/site RLS-scoped material, plant/warehouse/region/container, warehouse lot, immutable movement and pick genealogy tables. Only integral piece quantities are supported. Existing order-scoped production lots remain independent; a pick creates an order-specific lot linked back to the warehouse movement through `inventory_picks`.
+
+Endpoints under `/api/v1/sites/{tenantId}/{siteId}/inventory`: GET/POST `materials`; GET `materials/{id}`; GET/POST `locations`; POST `receipts`, `move`, `scrap`, `pick`; GET `balances`, `movements`. All require verified session and site membership. Writes require `stock.write`, a durable idempotency key, transaction, stock serialization and audit. They are enabled only in isolated development. Browser writes register encrypted server-side recovery commands; the client stores only opaque command identifiers.
+
+A `pick` accepts `lotId`, `sourceLocationId`, `orderId`, `workOrderId`, `quantity`. In one database transaction it locks the order and warehouse lot, checks physical and planned capacity, creates an order-scoped production lot and B03C reservation/receipt/physical ledger records, records the warehouse debit and genealogy, and writes audit and idempotency receipt. Failure rolls everything back. The order-scoped material receipt has an internally generated `WH-PICK-…` reference: it is a compatibility record for the existing B03C ledger, not an additional external supplier delivery. Source supplier and original warehouse receipt remain in the warehouse genealogy.
+
+Limitations: no kg/metre/bar conversion, material update, purchase order, supplier registry, location occupancy management, or regulated production receiving. Initial allocation is limited to supported first internal operations before production begins. Real production deployments remain disabled. The implementation and user-facing workflow require full real Keycloak source and packaged acceptance before a development GO.
+
+## Executed PostgreSQL and Docker checks
+
+Against a disposable fictional PostgreSQL 16 schema with the restricted runtime role, the backend regression run completed 130/130, including the 018→019 historical-order upgrade, audit rollback, idempotent retry and competing picks. The warehouse scenario receives 100 pieces at A, moves 30 A→B, and atomically picks 20 from A: A=50, B=30, work-order physical receipt=20. The production ledger subsequently consumes those 20 exactly once. A deliberately separate race test allocates against the same remaining lot; its effects are separate from the illustrated balances.
+
+The isolated Compose API returned readiness 200 and anonymous inventory 401. Revoking `INSERT` on `inventory_movements` in the fictional schema made readiness return 503; the grant was restored. The API container retrieved Keycloak discovery and JWKS with valid TLS, both HTTP 200. Real Chrome/Keycloak source and packaged premium acceptance are recorded in the frontend `docs/inventory/evidence` directory.
+
+The movement listing currently returns at most 500 records ordered by transaction timestamp and UUID; it has no pagination or strict commit-order sequence. Do not use it as a complete large-volume audit export. Production readiness additionally requires a real receiving process, non-piece units, historical reconciliation, storage/secret operations, mobile acceptance and security review. The current warehouse commands remain explicitly disabled outside isolated development.
+
+Material listing is limited to 500 records; pagination and a complete large-catalog search remain production work.
+
+Migration `019` was previously uncommitted and was extended during this task. The controlled test fixtures used the final checksum. If any other database independently applied a different version of `019`, the migration runner will reject the checksum mismatch: preserve the database and investigate an explicit forward migration; do not rewrite migration history or silently apply this file.
+
+For any later controlled upgrade, take and verify a complete PostgreSQL backup first, stop writers and apply the reviewed migrations with the owner role; provisioning and readiness must follow before enabling the isolated API. A code-only downgrade must not resume writes against the newer data model: older writers do not know the warehouse debit/genealogy. Rehearse restoring the matching backup into a separate database and reconcile subsequent transactions before any rollback decision. No automatic deletion of warehouse tables or production records is provided.

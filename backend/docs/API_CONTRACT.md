@@ -98,3 +98,18 @@ These endpoints exist only in isolated development. A manager uses `POST /api/v1
 `GET .../work-orders/{job}/drawing` returns the current publication/revision, checksum and whether the verified requesting actor acknowledged this publication for that work order. `GET .../drawing/document` returns the current verified bytes as `contentBase64` after checking SHA-256. Opening a document has no acknowledgement side effect. An active assigned operator uses `POST .../drawing/acknowledge` with an idempotency key and the exact `{publicationId,revisionId}`; the server locks the order, checks current assignment and membership, rejects stale publication identities and writes an immutable audit-linked record. Publication and production commands lock the same order. A new publication invalidates prior acknowledgement without modifying it. Start, resume, results and complete require the assigned operator's current acknowledgement; pause remains available as a safe stop even if a revision changes while running. No-drawing orders retain existing behavior. Unpublished historical drawings fail closed.
 
 These claims apply to authenticated requests through the application; the existing documented compromised-runtime arbitrary SQL limitation remains. Document delivery, file scanning, tamper protection, secure document storage and live identity provider integration require separate production work.
+
+## Isolated-development warehouse inventory
+
+All paths below are relative to `/api/v1/sites/{tenantId}/{siteId}/inventory`. Reads require verified identity and site membership with `orders.read`; commands require `stock.write`, `Idempotency-Key`, and the existing transaction/audit boundary. Cookie-authenticated premium clients register commands with the encrypted recovery API before retrying. All quantities in this initial contract are positive integral **pieces**; other units fail closed. Endpoints are disabled outside isolated development.
+
+- `GET /materials`, `GET /materials/{materialId}`; `POST /materials` body `{code,description,baseUnit:"piece",lotTracking:true}`.
+- `GET /locations`; `POST /locations` body `{kind,code,parentId}`, with `plant → warehouse → region → container` and `parentId:null` for a plant.
+- `POST /receipts` body `{materialId,locationId,lotCode,supplierRef,documentRef,quantity}`. A unique lot and an inbound movement are recorded.
+- `GET /balances` projects piece balances for each warehouse lot/container; `GET /movements` includes recorded picks and the linked order, work order, production lot and reservation IDs.
+- `POST /move` body `{lotId,sourceLocationId,destinationLocationId,quantity}`; `POST /scrap` body `{lotId,sourceLocationId,quantity}`.
+- `POST /pick` body `{lotId,sourceLocationId,orderId,workOrderId,quantity}`. This debits the warehouse and atomically creates the linked order-scoped production lot, reservation and B03C physical receipt; it does not create production output. Only a supported first internal operation is eligible. The order-specific material receipt uses an internal `WH-PICK-…` reference, while the original supplier receipt remains separately traceable through the warehouse pick.
+
+Identical key and command retries return the original receipt; a differing command with the same key is rejected. Unsupported units/flows, insufficient physical stock, capacity conflicts, invalid site ownership and authorization failures are rejected. Production and quality quantities continue to come from their own ledgers; no warehouse balance is inferred from historic production.
+
+Material listing is limited to 500 records; pagination and a complete large-catalog search remain production work.

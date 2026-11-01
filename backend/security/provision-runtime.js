@@ -19,6 +19,7 @@ async function provisionRuntime(client,schema,role,{isolatedDevelopment=false}={
  await client.query(`GRANT SELECT,INSERT,UPDATE ON ${s}.idempotency_records TO ${u}`);
  await client.query(`GRANT SELECT,INSERT ON ${s}.pending_recovery_commands TO ${u}; GRANT UPDATE (status,updated_at) ON ${s}.pending_recovery_commands TO ${u}`);
  await client.query(`GRANT SELECT,INSERT ON ${s}.recovery_workflow_revisions TO ${u}`);
+ if(isolatedDevelopment)await client.query(`GRANT SELECT,INSERT ON ${s}.inventory_materials,${s}.inventory_locations,${s}.inventory_lots,${s}.inventory_movements,${s}.inventory_picks TO ${u}`);
  if(isolatedDevelopment)await client.query(`GRANT USAGE ON SEQUENCE ${s}.output_reservation_events_event_sequence_seq,${s}.drawing_publications_sequence_seq TO ${u}; GRANT INSERT ON ${s}.drawing_revisions TO ${u}; GRANT INSERT ON ${s}.orders TO ${u}; GRANT UPDATE (order_number) ON ${s}.orders TO ${u}; GRANT UPDATE (status) ON ${s}.work_orders TO ${u}; GRANT UPDATE (released_at) ON ${s}.work_assignments TO ${u}; GRANT INSERT ON ${s}.operations,${s}.work_orders,${s}.audit_events,${s}.flow_transfers,${s}.physical_ledger,${s}.production_events,${s}.production_ledger,${s}.output_dispositions,${s}.production_output_lots,${s}.output_reservation_events,${s}.work_assignments,${s}.lots,${s}.operation_dispatches,${s}.operation_receipts,${s}.material_receipts,${s}.reservations,${s}.demo_material_sources,${s}.drawing_publications,${s}.drawing_acknowledgements,${s}.drawing_documents TO ${u}`);
 }
 module.exports={provisionRuntime};
