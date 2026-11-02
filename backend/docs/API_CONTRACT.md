@@ -127,7 +127,7 @@ Shipping-order status and totals are derived from immutable events; an order can
 
 `GET /api/v1/sites/{tenantId}/{siteId}/quality/rework-decisions?limit=50&after={decisionId}` requires an active site membership with `quality.write`. Results are ordered by decision UUID and use `nextAfter` for pagination. Each item identifies its order, work order, original production event, input lot, output lot when available, classified quantity and provenance status. A missing output lot is reported as `historical_unreconciled`.
 
-This endpoint reports historical quality classifications only. It does not calculate unallocated rework quantities, create rework jobs, move physical stock or authorize execution; `reworkExecutionSupported` is always false. Do not treat its quantity as available inventory.
+The response includes the classified `quantity`, outstanding `allocated`, `available` to allocate, and allocation records with any bound work order, input lot and source output lot. These quantities are rework claims, not available normal inventory. Historical decisions without trusted output provenance remain read-only.
 
 `POST /api/v1/sites/{tenantId}/{siteId}/orders/{orderId}/rework-allocations` requires `quality.write`, an idempotency key and a body `{ "decisionId": "<uuid>", "quantity": 1 }`. It serializes on the order, requires a rework decision with verified output provenance and caps cumulative outstanding claims at that decision. It creates an immutable allocation and audit record in the command transaction; it does not create a work order or physical movement, and execution remains disabled. The encrypted recovery command uses kind `operation`, command `reworkAllocate`, target/orderId equal to the order and the same payload.
 
