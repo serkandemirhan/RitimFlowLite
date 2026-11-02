@@ -1,0 +1,194 @@
+
+> ritim-flow-lite-demo@1.0.0-rc.1 test:rc1
+> node scripts/run-browser.cjs --rc1
+
+PASS B01-1440: persisted legacy data survives loading and read-only navigation
+PASS B02-1440: production→close→QA→partial shipment→return keeps every screen consistent
+PASS B01-390: persisted legacy data survives loading and read-only navigation
+PASS B02-390: production→close→QA→partial shipment→return keeps every screen consistent
+PASS B01-360: persisted legacy data survives loading and read-only navigation
+PASS B02-360: production→close→QA→partial shipment→return keeps every screen consistent
+PASS B03: unsupported routes and preexisting final approvals cannot bypass terminal operation
+PASS B04: old openShip routes to guarded form; old saveShipment uses canonical command
+PASS B05: partial supplier movements retain caps, documents and good→QA→shipping chain
+PASS B06: UX05 250/150/100 equation and closure/overproduction guards remain intact
+PASS B07: UX05 inspection, rework and handover preserve quantities
+PASS B08: independent sales page cannot ship through UI, openShipment or ship
+PASS B09: read-only old approvals/dispatches stay visible but cannot release new inventory
+PASS B10: new model/service assets load on every route without app errors
+PASS B11: partial material receipts/allocations preserve free balance and reject excess
+PASS B12: manager restriction and legacy direct commit both revalidate final QA
+{"passed":16,"failed":0,"applicationErrors":0}
+PASS T01-1440: issue, reload, accept, duplicate guards and 25/50 conservation
+PASS T01-390: issue, reload, accept, duplicate guards and 25/50 conservation
+PASS T01-360: issue, reload, accept, duplicate guards and 25/50 conservation
+PASS T02: 75 physical transfer rejected, pending transfer reserves destination capacity from direct receipt
+PASS T03: accepted physical return restores source and leaves plan unchanged, reload retains reversal reason
+PASS T04: transferred input production, inspection, closure, QA and shipment preserve lineage and totals
+PASS T05: failed storage write leaves both persisted and in-memory transfer untouched
+PASS T06: old localStorage data survives read-only transfer UI without migration
+PASS T07: transfer page accepts unassigned target without opening another machine job
+{"passed":9,"failed":0,"applicationErrors":0}
+PASS P05-1440: split 100+50 across machines, reject excess, reload and preserve history
+PASS P05-390: split 100+50 across machines, reject excess, reload and preserve history
+PASS P05-360: split 100+50 across machines, reject excess, reload and preserve history
+PASS P05-next: approved source→reserve→send→accept→production→final QA→shipment
+PASS P05-reduce: explicit 50 plan release preserves physical 25 and frees unused material
+PASS P05-cancel: reserved downstream input released, full cancellation retains job history
+PASS P05-storage: quota failure never commits memory; read-only planning never migrates old state
+PASS P05-wizard: initial order creation passes shared plan validation and remains usable
+PASS P05-zero-plan: fully cancelled raw plan cannot receive a new allocation through legacy logistics
+{"passed":9,"failed":0,"applicationErrors":0}
+PASS P1 layout/navigation 1440
+PASS P1 layout/navigation 390
+PASS P1 layout/navigation 360
+PASS P1-01/16 quoted unassigned job and drawing preserve context
+PASS P1-02 explicit operator ownership and my jobs
+PASS P1-04 converted material receipt through UI
+PASS P1-08 return quarantine and final restock UI
+PASS P1-09 alert counts match scoped list
+PASS P1-11 contextual logistics and list search preserved
+PASS P1-13 revision upload retains previous version and requires acknowledgement
+PASS P1-07 legacy rework explicitly linked, executed and inspected in UI
+{"passed":11,"failed":0,"applicationErrors":0}
+PASS quota atomic legacy physical receive
+PASS quota atomic legacy production
+PASS quota atomic legacy inspection
+PASS quota atomic legacy rework
+PASS quota atomic legacy pause
+PASS quota atomic legacy close
+PASS quota atomic logistics material
+PASS quota atomic logistics allocation
+PASS quota atomic logistics dispatch
+PASS quota atomic logistics external return
+PASS quota atomic logistics final release
+PASS quota atomic logistics shipment
+PASS quota atomic logistics customer return
+PASS quota legacy saveShipment is atomic
+PASS quota compensation UI
+PASS quota new drawing revision retains old file
+PASS recovery preserves malformed
+PASS recovery preserves null
+PASS recovery preserves jobs null
+PASS recovery preserves future
+PASS recovery preserves unknown
+PASS legacy migration explicit separate copy and rollback address
+PASS fresh separate demo never overwrites damaged source
+PASS validated import explicit, invalid and future imports rejected
+PASS storage getter failure renders recovery without writable fallback
+PASS interrupted write blocks repeat until persisted state reload
+PASS quota atomic operator start
+PASS quota atomic operator resume
+PASS quota atomic operator handover
+PASS quota atomic operator takeover
+PASS quota first order creation commits neither order nor job
+PASS failed role selection restores displayed role
+PASS storage read failure during command leaves live state untouched
+PASS quota recovery copy never navigates or overwrites original
+{"passed":34,"failed":0,"applicationErrors":0}
+PASS pure audit 1440: 250/150/100, historical 60, physical 25 and planned 50
+PASS pure audit 390: 250/150/100, historical 60, physical 25 and planned 50
+PASS pure audit 360: 250/150/100, historical 60, physical 25 and planned 50
+PASS critical overplan and missing allocation surfaced; write blocked, raw unchanged
+PASS invalid new mutation rejected at shared commit before setItem; no success toast
+PASS invalid affected order blocked while another valid order can commit and reload
+PASS P0-07 recovery preserved: malformed
+PASS P0-07 recovery preserved: null fields
+PASS P0-07 recovery preserved: unsupported version
+PASS supported historical production is warning and audit never upgrades storage
+PASS machine reference validation blocks writes and preserves invalid stored data for read-only audit
+{"passed":11,"failed":0,"applicationErrors":0}
+PASS 20 approved: stale Tab A ships 15, Tab B cannot ship 15
+PASS simultaneous shipment attempts preserve one complete history and no overspend
+PASS two simultaneous operation reservations cannot reserve the same approved 20
+PASS same durable id is acknowledged once across pages and conflicts reject changed payload
+PASS two transfer acceptances produce one accepted lot and one acceptance event
+PASS concurrent final releases cannot approve 15+15 from 20
+PASS customer returns and restocking each spend their source only once
+PASS interrupted write acknowledgement then close/reopen retries durable receipt without replay
+PASS actual lock contention fails closed and closing lock owner permits safe retry
+PASS unsupported Web Locks never writes and keeps audit/export usable
+PASS quota during locked transaction preserves memory/history; same id retries once
+PASS storage event invalidates old revision without losing unsaved form inputs
+PASS submit captures operator quantity before async lock and preserves newer edits
+PASS double submission of the same UI production command has one physical effect
+PASS legacy saveShipment entry also revalidates latest disk under the shared lock
+PASS simultaneous supplier partial returns preserve dispatch reconciliation
+PASS stale planning reductions revalidate latest remaining plan
+PASS stale refresh preserves wizard draft and physical return confirmation
+PASS corrupt remote snapshot never overwrites data and keeps unsaved fields exportable
+PASS Web Locks getter access denial keeps read-only recovery usable
+{"passed":20,"failed":0,"applicationErrors":0}
+{
+  "target": "fb634cc6ebe856eafac9ff724978e68ec4eeb97db95a314878e12445f9622f8e",
+  "playwright": "1.64.1",
+  "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "suites": [
+    {
+      "suite": "p0",
+      "expected": 16,
+      "exit": 0,
+      "passed": 16,
+      "failed": 0,
+      "applicationErrors": 0,
+      "valid": true
+    },
+    {
+      "suite": "p0-transfer",
+      "expected": 9,
+      "exit": 0,
+      "passed": 9,
+      "failed": 0,
+      "applicationErrors": 0,
+      "valid": true
+    },
+    {
+      "suite": "p0-planning",
+      "expected": 9,
+      "exit": 0,
+      "passed": 9,
+      "failed": 0,
+      "applicationErrors": 0,
+      "valid": true
+    },
+    {
+      "suite": "p1",
+      "expected": 11,
+      "exit": 0,
+      "passed": 11,
+      "failed": 0,
+      "applicationErrors": 0,
+      "valid": true
+    },
+    {
+      "suite": "p0-persistence",
+      "expected": 34,
+      "exit": 0,
+      "passed": 34,
+      "failed": 0,
+      "applicationErrors": 0,
+      "valid": true
+    },
+    {
+      "suite": "p0-integrity",
+      "expected": 11,
+      "exit": 0,
+      "passed": 11,
+      "failed": 0,
+      "applicationErrors": 0,
+      "valid": true
+    },
+    {
+      "suite": "p0-concurrency",
+      "expected": 20,
+      "exit": 0,
+      "passed": 20,
+      "failed": 0,
+      "applicationErrors": 0,
+      "valid": true
+    }
+  ],
+  "passed": 110,
+  "failed": 0,
+  "applicationErrors": 0
+}
