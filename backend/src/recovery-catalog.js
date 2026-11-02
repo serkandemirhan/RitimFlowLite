@@ -6,6 +6,12 @@ const {HttpError}=require('./auth');
 const reject=()=>{throw new HttpError(400,'INVALID_COMMAND','Unsupported recovery command')};
 const inventory=Object.freeze({material:{path:'materials'},location:{path:'locations'},receipt:{path:'receipts'},move:{path:'move'},scrap:{path:'scrap'},pick:{path:'pick'}});
 const operations=Object.freeze({
+ rmaAuthorize:{capability:'shipment.write',suffix:o=>`/orders/${o}/rma`},
+ rmaReceipt:{capability:'stock.write',suffix:(o,r)=>`/orders/${o}/rma/${r}/receipts`,resource:true},
+ rmaInspect:{capability:'quality.write',suffix:(o,r)=>`/orders/${o}/rma/receipts/${r}/inspections`,resource:true},
+ rmaDisposition:{capability:'quality.write',suffix:(o,r)=>`/orders/${o}/rma/inspections/${r}/dispositions`,resource:true},
+ rmaRelease:{capability:'quality.write',suffix:(o,r)=>`/orders/${o}/rma/dispositions/${r}/releases`,resource:true},
+ rmaRework:{capability:'quality.write',suffix:(o,r)=>`/orders/${o}/rma/dispositions/${r}/rework`,resource:true},
  outsourcingJob:{capability:'planning.write',suffix:o=>`/orders/${o}/outsourcing/jobs`},
  outsourcingDispatch:{capability:'stock.write',suffix:(o,r)=>`/orders/${o}/outsourcing/jobs/${r}/dispatches`,resource:true},
  outsourcingReturn:{capability:'stock.write',suffix:(o,r)=>`/orders/${o}/outsourcing/dispatches/${r}/returns`,resource:true},

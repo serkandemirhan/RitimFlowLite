@@ -138,3 +138,7 @@ The response includes the classified `quantity`, outstanding `allocated`, `avail
 ### Fason geliştirme API'si
 
 İç → fason → iç rota, tedarikçi, sevk, kısmi dönüş, giriş kontrolü ve onaylı dönüşün sonraki işe fiziksel teslim sözleşmesi için [Gate 2 Fason uygulama notlarına](GATE2_OUTSOURCING_IMPLEMENTATION.md) bakın. Bu uçlar yalnız izole geliştirme modunda açıktır.
+
+### Müşteri iadesi geliştirme API'si
+
+Teslimat kaynaklı RMA, mantıksal karantina, kontrol, rework ve yönetici serbest bırakma sözleşmesi için [Gate 3 müşteri iadesi notlarına](GATE3_CUSTOMER_RETURNS.md) bakın. Bu uçlar yalnız izole geliştirme modunda açıktır.
