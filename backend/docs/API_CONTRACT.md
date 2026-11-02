@@ -134,3 +134,7 @@ The response includes the classified `quantity`, outstanding `allocated`, `avail
 `POST /api/v1/sites/{tenantId}/{siteId}/orders/{orderId}/rework-allocations/{allocationId}/releases` releases a positive quantity from an unbound claim. It uses the same order lock, authorization, idempotency and audit boundary. The encrypted recovery operation is `reworkRelease`, with `resourceId` set to the allocation. Once an input is bound, releasing any part of that allocation is rejected.
 
 `POST /api/v1/sites/{tenantId}/{siteId}/orders/{orderId}/rework-allocations/{allocationId}/work-order` accepts `{ "workOrderNumber": "..." }` with `quality.write` and an idempotency key. It creates a work order, rework input lot and immutable source-output binding in one transaction, for the entire outstanding allocation. The encrypted recovery operation is `reworkWorkOrder` with the allocation as `resourceId`. Existing operator assignment, drawing acknowledgement and production APIs apply. Rework output requires an explicit quality decision; further rework of that output is rejected. This development-only backend slice is not yet connected to the premium Rework UI.
+
+### Fason geliştirme API'si
+
+İç → fason → iç rota, tedarikçi, sevk, kısmi dönüş, giriş kontrolü ve onaylı dönüşün sonraki işe fiziksel teslim sözleşmesi için [Gate 2 Fason uygulama notlarına](GATE2_OUTSOURCING_IMPLEMENTATION.md) bakın. Bu uçlar yalnız izole geliştirme modunda açıktır.

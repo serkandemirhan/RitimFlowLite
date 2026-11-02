@@ -5,7 +5,7 @@ const {data,payload,identifier,qty,cmd,scoped,audit,lockedOrder,number,fail}=req
 const {lotView}=require('./output-reservations');
 async function availableLot(c,s,order,lotId){
  const route=await c.query('SELECT sequence,kind FROM operations WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 ORDER BY sequence',[s.tenantId,s.siteId,order]);
- if(route.rowCount<1||route.rowCount>2||route.rows.some((r,i)=>r.kind!=='internal'||r.sequence!==i))fail(409,'OPERATION_UNSUPPORTED','Only one or two consecutive internal operations are supported');
+ if((route.rowCount<1||route.rowCount>2||route.rows.some((r,i)=>r.kind!=='internal'||r.sequence!==i))&&!await require('./route-support').supportsSupplierFinal(c,s,order,2))fail(409,'OPERATION_UNSUPPORTED','Only one or two consecutive internal operations are supported');
  const lot=await lotView(c,s,order,lotId);
  const q=await c.query('SELECT w.status,o.sequence FROM work_orders w JOIN operations o ON (o.tenant_id,o.site_id,o.order_id,o.id)=(w.tenant_id,w.site_id,w.order_id,w.operation_id) WHERE w.tenant_id=$1 AND w.site_id=$2 AND w.order_id=$3 AND w.id=$4',[s.tenantId,s.siteId,order,lot.sourceWorkOrderId]);
  if(!q.rowCount||q.rows[0].sequence!==route.rows.length-1||q.rows[0].status!=='complete')fail(409,'FINAL_OPERATION_INCOMPLETE','Final operation must be completed');

@@ -9,6 +9,7 @@ test('recovery catalog maps only supported commands to fixed endpoints and permi
  assert.equal(describe({kind:'operation',target:reserve,body:{orderId:order,resourceId:reserve,command:'dispatch',payload:{quantity:1}}}).suffix,`/orders/${order}/output-reservations/${reserve}/dispatches`);
  assert.deepEqual(describe({kind:'operation',target:order,body:{orderId:order,command:'reworkAllocate',payload:{decisionId:reserve,quantity:1}}}),{capability:'quality.write',suffix:`/orders/${order}/rework-allocations`,payload:{decisionId:reserve,quantity:1}});
  assert.deepEqual(describe({kind:'operation',target:reserve,body:{orderId:order,resourceId:reserve,command:'reworkRelease',payload:{quantity:1}}}),{capability:'quality.write',suffix:`/orders/${order}/rework-allocations/${reserve}/releases`,payload:{quantity:1}});
+ assert.deepEqual(describe({kind:'operation',target:reserve,body:{orderId:order,resourceId:reserve,command:'outsourcingPlan',payload:{workOrderNumber:'F',plannedQuantity:1}}}),{capability:'planning.write',suffix:`/orders/${order}/outsourcing/returns/${reserve}/downstream-work-orders`,payload:{workOrderNumber:'F',plannedQuantity:1}});
  assert.deepEqual(describe({kind:'operation',target:reserve,body:{orderId:order,resourceId:reserve,command:'reworkWorkOrder',payload:{workOrderNumber:'RW'}}}),{capability:'quality.write',suffix:`/orders/${order}/rework-allocations/${reserve}/work-order`,payload:{workOrderNumber:'RW'}});
 });
 test('catalog fails closed for arbitrary routes, mismatched resource and unknown operations',()=>{
