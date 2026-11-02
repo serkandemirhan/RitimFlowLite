@@ -1,0 +1,8 @@
+inventory_movements|t|t
+output_dispositions|t|t
+outsourcing_dispatches|t|t
+outsourcing_returns|t|t
+production_output_lots|t|t
+rma_dispositions|t|t
+rma_receipts|t|t
+shipping_events|t|t
