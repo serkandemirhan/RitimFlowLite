@@ -1,0 +1,18 @@
+TAP version 13
+# \# PostgreSQL genealogy {"lot_code":"LOT-b9b276d0","source_input":"dbe2a4b3-9d93-4646-862f-fa004f3c3448","source_output":"bcd9b448-d0b8-4d82-aa02-9f730927ef40","source_quality":"approved","dispatch":"457a66b2-8319-48fa-82ba-cfddd4957432","supplier_return":"2a65075c-eaf4-461c-b7f8-d9ed424a4811","final_output":"d537cb67-7500-4ecf-8263-323bad9a4012","delivery":"deliver","rma":"77159c74-9ebb-44c0-9193-900a482bd0c2","returned_lot":"34f55683-fc4d-4725-89a9-d162f969cb74","return_outcome":"rework","rework_input":"02949fa1-e33a-4146-af82-d78053355379","rework_work_order":"7660397e-f0bd-49d5-a8ca-e6431a0288c6"}
+# \# Rework output genealogy {"input":"02949fa1-e33a-4146-af82-d78053355379","output":"a0297bf3-9ef7-4708-9db7-4c995222d92b","reinspection":[{"outcome":"approved","quantity_pieces":"2"}]}
+# Subtest: Ritim CNC factory journey across premium screens with real OIDC
+ok 1 - Ritim CNC factory journey across premium screens with real OIDC
+  ---
+  duration_ms: 157820.554023
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 161183.069316

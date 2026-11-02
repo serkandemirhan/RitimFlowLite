@@ -253,3 +253,5 @@
   .api-shell #api-drawing-dialog { box-sizing: border-box; padding: 12px; overflow-x: hidden; }
   .api-shell #api-drawing-dialog iframe { display: block; max-width: 100%; }
 }
+.api-inventory-tasks { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.api-inventory-tasks [aria-pressed="true"] { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }

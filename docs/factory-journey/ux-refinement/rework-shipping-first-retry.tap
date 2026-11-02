@@ -1,0 +1,38 @@
+TAP version 13
+# Subtest: premium rework via real OIDC and PostgreSQL
+not ok 1 - premium rework via real OIDC and PostgreSQL
+  ---
+  duration_ms: 110490.395705
+  type: 'test'
+  location: '/Users/user/projects/ritimFlowLite/RitimFlowLite-integration-operator-quality/tests/refinement-rework-oidc-browser.cjs:6:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/user/projects/ritimFlowLite/RitimFlowLite-integration-operator-quality/tests/refinement-rework-oidc-browser.cjs:10:4046)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: premium shipping via real OIDC and warehouse production
+ok 2 - premium shipping via real OIDC and warehouse production
+  ---
+  duration_ms: 72837.474004
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 184775.951731

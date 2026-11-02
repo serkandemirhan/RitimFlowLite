@@ -1,0 +1,25 @@
+TAP version 13
+# \# PostgreSQL genealogy {"lot_code":"LOT-29672f54","source_input":"64acffd4-417b-429f-934a-ece284650dbf","source_output":"c71104d5-1384-40c1-a356-1fb6aef045e9","source_quality":"approved","dispatch":"c08da331-9e4a-4eef-9eaf-9b653aae183b","supplier_return":"24cbbb1d-3839-40ac-b880-4e0dab2f5131","final_output":"484f7e0f-a34e-499a-a52a-600664b59dea","delivery":"deliver","rma":"29ad6075-4b66-4ad6-a157-56c6ca7daf80","returned_lot":"0aa7084d-17c2-4781-94e7-9c20eed17845","return_outcome":"rework","rework_input":"63bea635-4b59-4b98-b150-4a589e2522ec","rework_work_order":"dc607e9b-4591-46ca-84d3-dcd709561cb6"}
+# \# Rework output genealogy {"input":"63bea635-4b59-4b98-b150-4a589e2522ec","output":"a46f40ab-7b20-4733-9b9e-b45896586d3c","reinspection":[{"outcome":"approved","quantity_pieces":"2"}]}
+# Subtest: Ritim CNC factory journey across premium screens with real OIDC
+ok 1 - Ritim CNC factory journey across premium screens with real OIDC
+  ---
+  duration_ms: 189954.846257
+  type: 'test'
+  ...
+# Audited screenshots: 77 screens: 11-orders-list,12-order-detail,13-planning,14-workorders,15-workorder-detail,17-operator-list,18-quality-list,19-warehouse,20-outsourcing,21-shipping,22-returns
+# Subtest: real OIDC factory screen audit after server state loads
+ok 2 - real OIDC factory screen audit after server state loads
+  ---
+  duration_ms: 62305.357136
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 256092.010411

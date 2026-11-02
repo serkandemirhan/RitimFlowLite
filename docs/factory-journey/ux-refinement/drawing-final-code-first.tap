@@ -1,0 +1,32 @@
+TAP version 13
+# (node:65640) [FSTDEP023] FastifyDeprecation: disableRequestLogging option is deprecated. Use the logController option with disableRequestLogging or isLogDisabled override instead. The disableRequestLogging top-level option will be removed in `fastify@6`.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# \# preserved fictional role fixture schema factoryrole_a3984f26b9
+# Subtest: real Keycloak authorization code, scoped identity and session lifecycle
+not ok 1 - real Keycloak authorization code, scoped identity and session lifecycle
+  ---
+  duration_ms: 105303.553939
+  type: 'test'
+  location: '/Users/user/projects/ritimFlowLite/RitimFlowLite-integration-operator-quality/tests/factory-drawing-open-browser.cjs:7:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    locator.waitFor: Timeout 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('#api-quality-dialog') to be hidden[22m
+    [2m    4 × locator resolved to visible <dialog open="" aria-busy="true" id="api-quality-dialog" aria-labelledby="api-quality-title">…</dialog>[22m
+    [2m    57 × locator resolved to visible <dialog open="" aria-busy="false" id="api-quality-dialog" aria-labelledby="api-quality-title">…</dialog>[22m
+    
+  code: 'ERR_TEST_FAILURE'
+  name: 'TimeoutError'
+  stack: |-
+    TestContext.<anonymous> (/Users/user/projects/ritimFlowLite/RitimFlowLite-integration-operator-quality/tests/factory-drawing-open-browser.cjs:26:1550)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 106729.706387

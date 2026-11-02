@@ -38,9 +38,30 @@ test('drawing preview offers a fit-to-width hint and a download',()=>{
  const finish=source.indexOf('\n function ',begin+1);
  assert.ok(begin>=0&&finish>begin);
  const html=vm.runInNewContext(source.slice(begin,finish)+';drawingPanel()',{
-  drawingInfo:{required:true,revision:'A',acknowledged:false},drawingNotice:'',drawingDocument:'Zml4dHVyZQ==',h:String,capable:()=>true
+  drawingInfo:{required:true,revision:'A',publicationId:'pub',acknowledged:false},drawingNotice:'',drawingViewed:null,drawingDocument:'Zml4dHVyZQ==',h:String,jsArg:JSON.stringify,capable:()=>true
  });
  assert.match(html,/#view=FitH/);
  assert.match(html,/PDF indir veya cihazınızda aç/);
- assert.match(html,/Bu çizimi inceledim/);
+ assert.match(html,/disabled>Bu çizimi inceledim/);
+});
+test('drawing acknowledgement requires the current revision to have been opened',()=>{
+ const begin=source.indexOf(' function drawingPanel()'),end=source.indexOf('\n function ',begin+1);
+ const context={drawingInfo:{required:true,revision:'B',publicationId:'new',acknowledged:false},drawingNotice:'',drawingViewed:'old',drawingDocument:'JVBERi0=',h:String,jsArg:JSON.stringify,capable:()=>true};
+ const panel=vm.runInNewContext(source.slice(begin,end)+';drawingPanel',context);
+ assert.match(panel(),/disabled>Bu çizimi inceledim/);
+ context.drawingViewed='new';
+ assert.doesNotMatch(panel(),/disabled>Bu çizimi inceledim/);
+ context.drawingViewed=null;
+ assert.match(panel(),/disabled>Bu çizimi inceledim/);
+});
+test('stale PDF frame cannot unlock acknowledgement for a new revision',()=>{
+ const begin=source.indexOf('drawingLoaded(frame,publicationId){');
+ const end=source.indexOf('\n async ackDrawing()',begin);
+ assert.ok(begin>=0&&end>begin);
+ const frame={},stale={},button={disabled:true};
+ const context={drawingDocument:'JVBERi0=',drawingInfo:{publicationId:'new',acknowledged:false},drawingViewed:null,capable:()=>true,el:()=>({querySelector:()=>frame,closest:()=>({querySelector:()=>button})})};
+ const loaded=vm.runInNewContext('({'+source.slice(begin,end).replace(/,\s*$/,'')+'}).drawingLoaded',context);
+ loaded(stale,'old');assert.equal(button.disabled,true);assert.equal(context.drawingViewed,null);
+ loaded(frame,'old');assert.equal(button.disabled,true);assert.equal(context.drawingViewed,null);
+ loaded(frame,'new');assert.equal(button.disabled,false);assert.equal(context.drawingViewed,'new');
 });
