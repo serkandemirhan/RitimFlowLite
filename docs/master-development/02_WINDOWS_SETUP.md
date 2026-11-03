@@ -1,52 +1,51 @@
 # Windows setup — initial inspection
 
-Status: **BLOCKED**, not a completed installation. See [audit](01_CURRENT_STATE_AUDIT.md).
+Current status: native PostgreSQL validation **PASS**, persistent development installation **BLOCKED** until the user supplies credentials locally. Both implementation branches are merged. See [audit](01_CURRENT_STATE_AUDIT.md) and [results](14_TEST_RESULTS.md). Instructions below supersede the historical preliminary notes later in this file.
 
-## Windows runner after integration merge
-
-The [runner](../../scripts/windows/ritim.ps1) selects the private Node 22.20.0 installation when available, otherwise requires Node 22. It never prints environment values or enables development authorization shortcuts.
+## Verified Docker-free native regression
 
 ```powershell
-powershell -NoProfile -File scripts/windows/ritim.ps1 -Action Diagnostics
-powershell -NoProfile -File scripts/windows/ritim.ps1 -Action Install
-powershell -NoProfile -File scripts/windows/ritim.ps1 -Action TestDomain
-powershell -NoProfile -File scripts/windows/ritim.ps1 -Action TestUnit
-powershell -NoProfile -File scripts/windows/ritim.ps1 -Action TestBrowser
+powershell -NoProfile -File scripts/windows/ritim.ps1 -Action TestNativeDatabase
 ```
 
-After securely configuring the restricted database runtime in that terminal, use `-Action StartApi`. In another terminal use `-Action StartWeb`. Open `http://127.0.0.1:4178/?mode=api` for premium API UI; `/integration/` is the older integration entry point, and `/` without API mode is fictional browser demo. Stop each app using Ctrl+C in its own terminal.
+Requires installed PostgreSQL 18 binaries and Node 22. The command creates a new private temporary cluster, random bootstrap password, SCRAM-only authentication, random available loopback port and dedicated test DB. It runs all backend tests, runtime Fastify smoke and Windows operations rehearsal, then stops its own cluster. It never contacts/resets the installed Windows service. Stopped private test data is retained for troubleshooting. First native regression: 142/142 passed; operations rehearsal passed separately. Logs are under ignored `artifacts/native-postgres/` without passwords. Use RITIM_PG_BIN only to select compatible PostgreSQL binaries if installed elsewhere.
 
-`-Action Health` checks default API liveness/readiness and premium document response. HTTP 200 for a document is not business acceptance. `-Action TestDatabase` requires secure TEST_DATABASE_URL and RITIM_CONFIRM_DISPOSABLE_TEST_DATABASE=YES, and must only target an explicit disposable database. Existing tests create temporary passwordless roles: secure Windows/SCRAM adaptation is required, not weakened trust authentication.
+## Persistent development DB on the installed service
 
-Runtime mismatch is resolved for this runner. Migration, permissions, initialization and backup/restore scripts remain pending the separate backend merge and confirmed dedicated database. No database setup GO is implied.
-
-## Safe checks available now
-
-From repository root in PowerShell:
+Run this in your own PowerShell; enter the installed PostgreSQL provisioning password only in its local credential prompt:
 
 ```powershell
-node --version
-npm --version
-git --version
-Get-Service postgresql-x64-18
-& 'C:/Program Files/PostgreSQL/18/bin/psql.exe' --version
-& 'C:/Program Files/PostgreSQL/18/bin/pg_dump.exe' --version
-& 'C:/Program Files/PostgreSQL/18/bin/pg_restore.exe' --version
-node --test tests/p0-domain.test.cjs
+powershell -NoProfile -File scripts/windows/database.ps1 -Action Initialize -Database ritim_local_dev -ConfirmDatabase ritim_local_dev -EnableDevelopmentMutations
 ```
 
-Service was Running during inspection. Starting it if stopped requires a suitably privileged PowerShell: `Start-Service postgresql-x64-18`. Do not stop a shared database service to stop the application.
+Initialization refuses existing database/role/configuration names. It creates distinct non-superuser migration owner and restricted runtime login, applies existing migrations without editing them, provisions grants and verifies readiness. It loads no fictional business fixtures. The explicit development-mutations switch enables existing development-only business routes/grants; it is not production deployment or trusted user identity. Omit it for a read-only foundation. Existing Keycloak/OIDC settings are not replaced.
 
-## Required next setup
+Generated credentials are stored outside the repository under a project-specific local application-data directory as Windows DPAPI-encrypted SecureStrings. Folder ACL permits the current Windows user. Bootstrap credentials are not saved. Use the same Windows account to start the API. If initialization fails after provisioning begins, preserve this configuration and the DB; do not delete/reinitialize to hide partial state. Inspect and repair explicitly. DPAPI configuration is machine/account-bound; do not assume copying it backs up portable production secrets.
 
-1. Resolve the branch mismatch before installing packages: current HEAD has no npm manifest or Fastify server.
-2. Use Node 22.x and npm 10.x, matching the existing integration contract. Do not silently relax engine constraints to match Node 24.
-3. Inspect the recovered backend configuration and scripts before adding Windows equivalents.
-4. Have an authorized database administrator provision a dedicated development database, separate migration identity and restricted non-owner runtime identity. Confirm target database explicitly before fixtures. Supply secrets only via ignored local configuration or process environment; never put passwords in command arguments, reports or Git.
-5. Run existing migration runner using migration identity; provision existing grants; run readiness and real database security/integration tests using runtime identity. Do not use the PostgreSQL superuser for either application runtime or migration.
-6. Start existing API and premium frontend locally without Docker. Verify readiness, real user authorization and browser access. LAN binding requires explicit network/security configuration; default loopback alone does not provide workshop LAN access.
-7. Test backup and restore into a separate explicitly confirmed empty test database. Use compatible 18.x client tools after querying actual server version. Do not overwrite an existing database or use destructive restore flags by default.
+```powershell
+powershell -NoProfile -File scripts/windows/database.ps1 -Action Migrate -ConfirmDatabase ritim_local_dev
+powershell -NoProfile -File scripts/windows/database.ps1 -Action Provision -ConfirmDatabase ritim_local_dev
+powershell -NoProfile -File scripts/windows/database.ps1 -Action Ready -ConfirmDatabase ritim_local_dev
+powershell -NoProfile -File scripts/windows/ritim.ps1 -Action StartApi
+```
 
-Database initialization, permissions, startup, backup/restore and full regression scripts are pending inspection of the implementation branch. Providing executable substitutes before that would bypass its security design. No fixture, role, database or environment secret was created during this audit.
+Start web in another terminal with `-Action StartWeb`; open `http://127.0.0.1:4178/?mode=api`. Stop each with Ctrl+C. `-Action Health` checks default endpoints. StartApi loads only the saved restricted identity and rejects ambiguous simultaneous saved/process database configuration. Never use the bootstrap login for API or migrations. User login remains blocked until approved identity/provider configuration is supplied.
 
-Offline authentication is BLOCKED until an architecture is approved and outage login/authorization are tested. Static page availability is insufficient.
+## Backup / isolated restore
+
+```powershell
+powershell -NoProfile -File scripts/windows/database.ps1 -Action Backup -ConfirmDatabase ritim_local_dev
+powershell -NoProfile -File scripts/windows/database.ps1 -Action RestoreTest -ConfirmDatabase ritim_local_dev -BackupFile 'C:/absolute/path/from-backup-output.dump' -RestoreDatabase ritim_local_restore_test
+```
+
+Replace the example backup path with actual command output. Backup defaults to a private configuration-adjacent backup folder and never overwrites a file. Backup/restore prompts for an authorized operator because FORCE RLS prevents the restricted migration/runtime identities from reading all tenants. These credentials never become the application identity. Restore creates a separate absent test DB, restores data with the authorized operator, transfers only application-schema objects to the migration owner, reapplies restricted grants and verifies migration checksums/readiness. It never uses destructive restore flags or cluster-wide REASSIGN OWNED. Tested with native PostgreSQL 18.6: fictional order 42 and FORCE RLS preserved, source DB ownership unchanged. Production key management and restore recovery are separate acceptance work.
+
+## Troubleshooting
+
+- Diagnostics: `-Action Diagnostics` reports versions, service state and configuration presence only.
+- Connection refused: verify service/port; do not alter pg_hba.conf to trust.
+- Authentication failure: check local credentials, not a password pasted into chat. Do not switch runtime to postgres.
+- Migration checksum/unknown version: preserve DB/SQL and investigate a forward migration; never edit applied historical SQL.
+- Readiness 503: verify schema search path, migration versions and restricted grants; liveness alone is insufficient.
+- Login unavailable: configure the actual OIDC/BFF securely; database success does not imply offline login.
+- PDF test timeout: documented Windows Chromium failure remains; no PDF acceptance claimed.

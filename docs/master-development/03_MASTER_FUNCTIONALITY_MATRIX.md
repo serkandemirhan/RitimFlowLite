@@ -1,32 +1,34 @@
-# Initial functionality matrix
+# Master functionality matrix
 
-Historical baseline below describes 5315388. After merge ac360fb, premium UI and backend foundation 001-007 are present; 18 newer backend commits remain on origin/backend/b01-foundation pending approval. Current API/permission/table mapping must use the reconciled backend, rather than attribute missing endpoints to the old foundation. Expanded 292-test domain rerun proves demo invariants, not verified MES integration.
+## Current reconciled implementation: merge 2ffcdc1
 
-Baseline scope: actual HEAD 5315388. PARTIAL means browser-demo support, not secure production support. No business API, PostgreSQL dependency, verified identity or server permissions existed in that checkout. Historical integration implementations must be inventoried again after backend reconciliation.
+Both implementation branches are now incorporated. PostgreSQL 18.6 backend regression passed **142/142**, including restricted logins, authorization/RLS, stock, quality, rework, outsourcing, shipping, RMA, idempotency and backup/restore. API business routes remain explicitly development-only. Premium Windows authenticated-browser acceptance is NOT TESTED; overall rows remain PARTIAL unless marked otherwise.
 
-All business rows require local-server offline operation and an approved synchronization classification; neither is implemented in HEAD. Primary navigation below is proposed, not a new routing implementation.
+API shorthand: S = `/api/v1/sites/{tenantId}/{siteId}`, O = `S/orders/{orderId}`, W = `O/work-orders/{workOrderId}`. Backend modules below are in [backend/src](../../backend/src); pages are in [premium-api.js](../../integration/premium-api.js), with calls in [api-adapter.js](../../integration/api-adapter.js). Tests are in [backend/test](../../backend/test).
 
-| Function | Current source / page | Status | Tests / limitations | Proposed destination |
-|---|---|---|---|---|
-| Overview / Work Center | index.html, ux-shell.js / home | PARTIAL | Quantity tests only; browser not rerun | Bugün |
-| Customer orders | ux-orders-workorders.js / orders, orderDetail | PARTIAL | Client state; no authoritative numbering API | Siparişler |
-| Operation routes | index.html / order wizard | PARTIAL | Domain tests reject unsupported terminal routes | Siparişler / Rota |
-| Work orders | index.html / jobs, detail | PARTIAL | No authenticated assignment | Planlama |
-| Planning / machine scheduling | index.html / job creation | PARTIAL | Transactional persisted queue and priority NOT IMPLEMENTED | Planlama / Makine İş Sıraları |
-| Operator production | ux-operator.js / production | PARTIAL | Quantity and closure guards; role dropdown is insecure | Üretim |
-| Machine journal / downtime | index.html / history, operator sections | PARTIAL | No validated complete journal, capacity or spindle signals | Üretim / Makine Günlüğü |
-| Technical drawings | index.html / drawing modal, teknikResim.pdf | PARTIAL | Revision authorization not accepted | Related order/work order |
-| Quality | ux-operator.js, ux-logistics.js / quality actions | PARTIAL | Final-release domain guards pass; no server permission | Kalite |
-| Rework | ux-operator.js / production buckets | PARTIAL | No accepted physical rework task lifecycle | Kalite / Yeniden İşleme |
-| Materials / warehouse | ux-logistics.js / logistics | PARTIAL | Allocation arithmetic; no database stock ledger | Depo |
-| Physical transfers | quantity-model.js / route guards | NOT IMPLEMENTED | Unsupported chains fail closed | Depo / Transferler |
-| Outsourcing | shipment-service.js, ux-logistics.js / dispatch, returns | PARTIAL | Partial dispatch and return tests pass | Lojistik / Fason |
-| Shipping | shipment-service.js, ux-logistics.js / shipping | PARTIAL | Approval lineage and partial shipment tests pass | Lojistik / Sevkiyat |
-| Customer returns | ux-logistics.js / customerReturn | PARTIAL | Net demand/quarantine arithmetic; no accepted full disposition | Lojistik / İadeler |
-| Master data | index.html / embedded suggestions and demo data | PARTIAL | Central scoped CRUD/import not accepted | Yönetim / Ana Veriler |
-| Traceability | quantity-model.js, shipment-service.js / reconciliation | PARTIAL | Local approval references; no immutable lot genealogy | Raporlar ve İzlenebilirlik |
-| Reporting | ux-audit.js / audit, history | PARTIAL | Pure-read tests pass; no authoritative reporting API | Raporlar ve İzlenebilirlik |
-| Administration | index.html / user dropdown | NOT IMPLEMENTED | No secure tenant/site/membership administration | Sistem Ayarları |
-| Authentication / audit / recovery | localStorage demo | NOT IMPLEMENTED | No secure login, append-only server audit or encrypted recovery in HEAD | Kullanıcı / Sistem Ayarları |
+Every row needs local-server operation during internet outage: authentication remains BLOCKED. Proposed sync category is stated per row, but sync is NOT IMPLEMENTED. Mobile authenticated acceptance is NOT TESTED for every row. Read capability is generally orders.read plus resource restrictions; listed write capabilities are action-specific and never replace current assignment checks.
 
-Source paths in this table are under `assets/js` unless stated otherwise. Existing [screen map](../UX_SCREEN_MAP.md) and [audit](../UX_AUDIT_REPORT.md) describe earlier baselines; their screenshots and findings are historical evidence, not current Windows acceptance. The current 25-test domain rerun is recorded in [test results](14_TEST_RESULTS.md).
+| Function | Code / API | Premium page | Permission | Database | Existing tests | Proposed destination / sync |
+|---|---|---|---|---|---|---|
+| Overview / Work Center | orders-planning, operator-work-orders; GET S/orders, S/operator/work-orders | Summaries; PARTIAL | orders.read; My Jobs requires operator membership | orders, work_orders, assignments, ledgers | b03b-planning, b04a-production | Bugün; derived view |
+| Orders | orders-planning; GET/POST S/orders, GET O | Orders/detail/wizard; PARTIAL | orders.write | orders; migration 028 optional part number | b03b-planning; simple-order frontend | Siparişler; versioned order |
+| Routes | orders-planning, route-support; POST O/route | Wizard/detail; PARTIAL | orders.write | operations | b03b-planning, b04b1a-quality | Siparişler / Rota; versioned route |
+| Work orders | orders-planning, output-reservations; O/work-orders, O/downstream-work-orders | Work orders/detail; PARTIAL | planning.write | work_orders, output_reservation_events | b03b-planning, b04b1a-quality | Planlama; planning decisions |
+| Scheduling | assignment; W/assignment/machine; no priority API | Assignment exists; persisted queue NOT IMPLEMENTED | orders.write for assignment | machines, work_assignments; active machine uniqueness | b04b1a-quality | Planlama / Makine İş Sıraları; planning |
+| Operator | production-execution; W/production/{start,pause,resume,results,complete,balances} | Assigned jobs/active job; PARTIAL | production.write + ownership | production_events/ledger, physical inputs | b04a-production, b04b1a-quality | Üretim; immutable events |
+| Machine journal | Production/event reads; no structured shift/downtime journal API | Work-order history; PARTIAL | production.write / orders.read | production_events, audit, assignments | b04a-production | Üretim / Makine Günlüğü; manual events |
+| Drawings | drawing-acknowledgement; publication/document/ack contracts | Viewer/ack; PARTIAL, PDF failure open | Module-specific read/publication/ack checks | drawing revisions/documents/publications/acks | b04b1a-quality; historical browser suites | Owning order/job; metadata + file |
+| Quality | quality-disposition; GET W/quality, POST W/quality/decisions | Backlog/detail; PARTIAL | quality.write | output_dispositions, output lots | b04b1a-quality | Kalite; immutable decisions |
+| Rework | output-reservations, production-execution | Queue/input/execution; PARTIAL, supported cycle only | planning/production/quality.write by action | rework allocations/releases/inputs, output lots | b04b1a-quality | Kalite / Yeniden İşleme; linked events |
+| Warehouse | inventory-service; S/inventory/* | Receipt/move/pick/stock/history; PARTIAL | stock.write | inventory materials/locations/lots/movements/picks | inventory-balance, inventory-upgrade, b04b1a-quality | Depo; masters + events |
+| Transfers | physical-flow, cross-operation-flow; O/physical-transfers, reservation dispatch/receipts | Transfer/input actions; PARTIAL | orders.write same-op; stock.write downstream | flow_transfers, physical_ledger, operation dispatch/receipts | b03c-flow, b04b1a-quality | Depo / Transferler; immutable movements |
+| Outsourcing | outsourcing-service; O/outsourcing, S/outsourcing/suppliers | Queue/detail; PARTIAL, supported route only | planning/stock/quality.write by action | supplier/job/dispatch/return/inspection/release tables | b04b1a-quality | Lojistik / Fason; masters + events |
+| Shipping | shipping-service; O/shipping | Allocation/dispatch/delivery; PARTIAL | shipment.write | shipping_orders/events | b04b1a-quality, shipping-recovery | Lojistik / Sevkiyat; physical events |
+| Returns | rma-service; O/rma | Authorization/quarantine/disposition; PARTIAL | shipment/stock/quality/planning.write by action | rma authorizations/receipts/inspections/dispositions/rework/release | b04b1a-quality | Lojistik / İadeler; immutable events |
+| Master data | inventory-service, integration-contracts, outsourcing-service | Materials/locations/suppliers/selectors; PARTIAL | Catalog-specific | inventory materials/locations, suppliers, machines, memberships | b03b-planning, b04b1a-quality | Yönetim / Ana Veriler; versioned masters |
+| Traceability | lot-trace, scoped-search; S/search and genealogy | Search/linked records; PARTIAL | orders.read + resource filters | lot/pick/output/logistics/RMA genealogy | b03b-planning, b04b1a-quality | Raporlar ve İzlenebilirlik; derive from events |
+| Reporting | Authoritative history/projections | Operational summaries; PARTIAL; no OEE/capacity | orders.read + resource filters | authoritative event/projection data | projection, inventory-balance | Raporlar ve İzlenebilirlik; derived totals |
+| Administration | authorization/permissions; session/capabilities | Site selector; complete admin NOT IMPLEMENTED | members.manage/platform.manage defined, not complete CRUD | users, memberships, tenants/sites | b02-security, b03a-rls | Sistem Ayarları; approved auth metadata |
+| Auth/audit/recovery | identity, oidc-bff, command, recovery-*; /auth/*, S/recovery | BFF/encrypted recovery; PARTIAL, no live Windows provider | Verified identity + command authorization | idempotency, audit, encrypted pending/revision tables | b02-auth, oidc-bff, recovery-* | Kullanıcı / Sistem; exclude secrets/sessions/browser pending commands |
+
+Source/API tests use controlled issuer/verifier fixtures; they are not live Keycloak/Supabase browser or offline login acceptance. Historical live-provider factory evidence is preserved in [Gate 4 report](../../backend/docs/GATE4_RECONCILIATION_REPORT.md). Original demo inventory remains available in Git history.

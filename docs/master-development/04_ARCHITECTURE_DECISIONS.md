@@ -1,5 +1,19 @@
 # Architecture decision gate
 
+Repository restoration is complete: both existing implementation branches were merged with user approval. That approval does not select A-G. Native PostgreSQL tests and Windows operations passed without deciding offline identity or synchronization policy.
+
+## Onay bekleyen yön (Türkçe)
+
+- A: Yerel kimlik hizmeti ve doğrulanmış bulut/yerel kullanıcı eşlemesi öneriliyor. İlk çevrimdışı kullanıcı, parola değişimi, iptal ve çevrimdışı yetki süresi ayrıca kesinleştirilecek; sınırsız çevrimdışı yetki varsayılmıyor.
+- B: Fiziksel stok ve üretimde tesisin yetkili yazar olması; bulut taleplerinin tesisçe onaylanması, ana veri çakışmalarının sürümle görünür yönetilmesi öneriliyor. Aynı stoğu bağımsız iki yerde harcatmak önerilmiyor.
+- C: Her atölyede yerel Fastify/PostgreSQL, bulutta kalıcı Fastify hizmeti, Supabase DB/Auth ve Vercel arayüzü öneriliyor. Bulut API sağlayıcısı ve operasyon maliyeti seçilecek.
+- D: Bir tenant altında birden çok tesis, başlangıçta tesis başına tek yetkili kurulum; kontrollü kurulum kimliği/anahtar ataması öneriliyor.
+- E: Yetkili iş olayları, sürümlü ana veriler, çizim dosyaları/özetleri ve kaynak denetim ilişkileri öneriliyor. Şifreler, oturumlar, anahtarlar ve tarayıcı bekleyen komutları kopyalanmayacak.
+- F: İlk kapsamda internet kesilirken yerel ağ/sunucu çalışmaya devam eder. Yerel ağdan da kopuk telefon/laptop işlemleri ayrı kapsam olarak öneriliyor.
+- G: Önce kurgusal test/pilot, müşteri verisinde salt-okunur eşleme analizi, açık geçiş planı, doğrulanmış yedek ve kontrollü mutabakat öneriliyor. Mevcut müşteri verisi otomatik taşınmayacak/sıfırlanmayacak.
+
+Bu öneriler uygulanmış karar değildir. Aşağıdaki alternatif/güvenlik/bakım değerlendirmesiyle birlikte onay bekler. Tasarım yönünün onayı bile çevrimdışı süre, sağlayıcı, yetki ve geçiş ayrıntıları kesinleşmeden eşitleme yazma yetkisi vermez.
+
 Status: **PROPOSED — none of A–G approved**. Existing Keycloak/OIDC and encrypted recovery must remain intact. Do not enable dual-writer stock or production synchronization before approval and verified contracts. Branch reconciliation is a separate prerequisite; it does not approve these choices.
 
 | Decision | Alternatives and consequences | Recommendation requiring approval |

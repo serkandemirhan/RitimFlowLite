@@ -1,12 +1,13 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet('Diagnostics', 'Install', 'StartApi', 'StartWeb', 'TestDomain', 'TestUnit', 'TestDatabase', 'TestBrowser', 'Health')]
+    [ValidateSet('Diagnostics', 'Install', 'StartApi', 'StartWeb', 'TestDomain', 'TestUnit', 'TestDatabase', 'TestNativeDatabase', 'TestBrowser', 'Health')]
     [string]$Action
 )
 
 $ErrorActionPreference = 'Stop'
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+. (Join-Path $PSScriptRoot 'local-config.ps1')
 $portableNode = Join-Path $env:LOCALAPPDATA 'RitimFlowLite/tools/node-v22.20.0-win-x64'
 if (Test-Path -LiteralPath (Join-Path $portableNode 'node.exe')) {
     $env:PATH = $portableNode + ';' + $env:PATH
@@ -51,6 +52,13 @@ try {
             Invoke-Checked 'npm.cmd' @('--prefix', 'backend', 'ci', '--ignore-scripts', '--no-audit', '--no-fund')
         }
         'StartApi' {
+            $localConfig = Get-RitimDatabaseConfigPath $projectRoot
+            if (Test-Path -LiteralPath $localConfig) {
+                if ($env:DATABASE_URL -or $env:PGDATABASE) { throw 'Both saved and process database settings are present. Choose one explicitly to avoid the wrong target.' }
+                $config = Import-Clixml -LiteralPath $localConfig
+                if ($config.Version -ne 1 -or -not $config.Initialized) { throw 'Local database initialization is incomplete.' }
+                Set-RitimRuntimeEnvironment $config
+            }
             if (-not $env:DATABASE_URL -and -not $env:PGDATABASE) {
                 throw 'Configure a dedicated development database securely in this process before starting the API.'
             }
@@ -60,6 +68,7 @@ try {
         'StartWeb' { Invoke-Checked 'node' @('integration/dev-server.cjs') }
         'TestDomain' { Invoke-Checked 'node' @('scripts/run-domain.cjs') }
         'TestUnit' { Invoke-Checked 'npm.cmd' @('--prefix', 'backend', 'run', 'test:unit') }
+        'TestNativeDatabase' { Invoke-Checked 'node' @('scripts/windows/test-native-postgres.cjs') }
         'TestDatabase' {
             if (-not $env:TEST_DATABASE_URL -or $env:RITIM_CONFIRM_DISPOSABLE_TEST_DATABASE -ne 'YES') {
                 throw 'Set TEST_DATABASE_URL securely and RITIM_CONFIRM_DISPOSABLE_TEST_DATABASE=YES only after confirming a dedicated disposable database. Suites create/drop schemas and roles.'

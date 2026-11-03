@@ -1,11 +1,12 @@
 # Open limitations
 
-1. Integration merge completed at ac360fb. Eighteen additional backend commits remain on origin/backend/b01-foundation; approval for that second merge is pending. Premium frontend and old backend do not yet match.
-2. Private Node 22.20.0/npm 10.9.3 installed; Windows runner selects it without changing system runtime.
-3. PostgreSQL server compatibility, dedicated database, migration identity, restricted runtime, secrets, encoding and extensions are unverified.
-4. Existing integration tests and security reports need local reruns; demo tests are not MES acceptance.
-5. Architecture decisions A–G are pending. Offline identity, Supabase transition and bidirectional synchronization cannot proceed on inferred defaults.
-6. Machine scheduling, journal and master-data gaps must be re-evaluated against integration code before implementation.
-7. Windows diagnostics/start/test runner added. Migration/provisioning/backup/restore scripts, remaining design documents, before/after UI evidence and full factory acceptance remain outstanding. Do not fill them with completion claims or replace existing functionality.
-8. Only integration merge was authorized/performed. No push, deployment, database reset or fictional data import occurred.
-9. Windows Chromium embedded PDF receives HTTP 200 but does not finish the transfer in the reproduction. Source browser runner passed 34 scenarios before this hang and was interrupted. Bounded test reports failure instead of hanging; PDF acceptance remains open.
+## Current remaining gates after backend merge 2ffcdc1
+
+- Both branch discrepancies are resolved; no further merge approval is pending. M0 inventory and all sixteen master documents exist. Earlier findings are preserved in Git history.
+- Native PostgreSQL 18.6 regression 142/142 and Windows operational backup/restore rehearsal PASS. Persistent development DB on installed service still needs the user's local credential entry; interactive setup has not run there.
+- Live local user login, Supabase migration, cloud API hosting and offline authentication are not verified. A-G decisions remain unapproved.
+- No sync implementation or dual-writer stock/production replay is enabled.
+- Machine queue/priority, complete shift/setup/downtime journal and central customer/product catalogs remain missing. Current orderNumber is required from the caller; no authoritative server number allocator exists. Do not present the browser's timestamp suggestion as server numbering.
+- Source browser latest isolated results 109/110; Windows PDF completion fails. Full packaged regression and real premium authenticated Windows factory journey remain unverified.
+- Interactive PowerShell initialization was syntax/secret-roundtrip checked; Node operations were exercised against disposable native PostgreSQL, not the user's existing service. Partial initialization is preserved for repair.
+- Physical mobile, operational production key recovery/rotation, performance, monitoring, staging and customer pilot remain release blockers. No production GO or deployment.

@@ -1,6 +1,22 @@
 # Test results — 2026-11-03
 
-## After merge ac360fb on Node 22.20.0
+## Current native backend / Windows operations results
+
+Source baseline: merge **2ffcdc1**, incorporating both existing implementation branches, plus Windows SCRAM test provisioning and operational helpers. Node 22.20.0, npm 10.9.3; PostgreSQL server and clients **18.6**. No historical SQL changed.
+
+| Check | Result | Evidence / limit |
+|---|---|---|
+| Complete backend suite on SCRAM-only native cluster | **PASS 142/142**, zero fail/skip/cancel | artifacts/native-postgres/backend.tap; real role connections, RLS, concurrency, audit/idempotency, domain workflows and migration backup/restore |
+| Dedicated migration/runtime Fastify smoke | PASS: 28 applied, repeat 0, live/ready 200, identity-less session 401 | artifacts/native-postgres/runtime-smoke.json; actual loopback HTTP, not user login |
+| Native initialization/migrate/provision/backup/restore helpers | PASS | artifacts/native-postgres/windows-operations.json; quantity 42, checksums/FORCE RLS and existing database ownership preserved; repeated/destructive targets refused |
+| Expanded backend pure unit command | PASS 37/37 | artifacts/native-postgres/expanded-unit.tap; included in 142, not additional coverage count |
+| PowerShell script parse / DPAPI saved-secret round-trip | PASS | Export/import and decryption under current Windows account; no existing-service provisioning attempted |
+
+Clusters used random loopback ports, new private temporary directories and generated credentials; stopped afterward. Installed PostgreSQL service/database/authentication were unchanged. Persistent service setup and live Keycloak/Supabase browser login are not verified. Initial failed native harness attempts involved SID syntax and inherited pg_ctl pipe; corrected before successful test runs, without modifying DB security.
+
+Final Windows public entry point `powershell -NoProfile -File scripts/windows/ritim.ps1 -Action TestNativeDatabase` was also executed end to end: 142/142, runtime smoke and operations rehearsal all passed; its cluster stopped. This rerun validates final orchestration after adding operational helpers, not extra independent test coverage.
+
+## Earlier frontend merge results: ac360fb on Node 22.20.0
 
 | Check | Result | Limit / local evidence |
 |---|---|---|

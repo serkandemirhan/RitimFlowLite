@@ -1,6 +1,18 @@
 # Current state audit — 2026-11-03
 
-## Continuation after approved integration merge
+## Current continuation: both branches reconciled
+
+User approved the second merge while asking to continue the master task. Audited HEAD is `2ffcdc1ebc782ed5d217cbf802dc090465c0085e` (backend merge), with integration `02e75e9` and backend `9367eef` both ancestors. Tests include the Windows helper changes in this checkpoint's working tree. No push/deployment. Migration inventory is now **001-028**, not only 001-007. [Current matrix](03_MASTER_FUNCTIONALITY_MATRIX.md) supersedes the original demo inventory.
+
+Native Windows PostgreSQL **18.6**, SCRAM for all local/host logins: **142 backend tests passed, zero fail/skip/cancel**. Seven role-using suites now create random per-role credentials rather than depending on trust authentication; no bootstrap password is shared with runtime/migration roles. All historical migrations are unchanged. Restricted-role Fastify smoke applied 28 migrations, repeated with zero changes, returned liveness/readiness 200 and unauthenticated session 401. Backup/restore recovery tests passed.
+
+Additional Windows operations rehearsal passed: initialize a separate development DB with migration/runtime identities, migrate/provision/readiness, backup and restore into a new test DB; fictional order quantity 42, all 28 migration checksums, FORCE RLS and existing database ownership preserved. Destructive/repeated targets were refused. Clusters were stopped in finally; the installed PostgreSQL Windows service and its databases/authentication configuration were never modified. Private stopped test clusters are not the user's persistent workshop database.
+
+Windows operational scripts now include secure local initialization, migrations, provisioning, backup/restore, diagnostics, API/web startup and test actions. Passwords are supplied by a local credential prompt and generated role credentials stored with Windows DPAPI in a current-user-only folder outside Git. That interactive setup has not been executed against the user's existing service. Backend unit command now covers all current pure suites (**37/37**); integration command includes previously omitted quality/recovery/upgrade suites.
+
+M0 discovery and initial functionality mapping are complete for the reconciled code. M1 native validation PASS; persistent development service setup and live user identity remain BLOCKED awaiting local credentials/configuration. M2 premium authenticated browser acceptance remains incomplete. M3-M5 require explicit A-G architecture decisions. No overall product GO.
+
+## Historical continuation after first approved integration merge
 
 The user approved merging `origin/integration/operator-quality`. Audit checkpoint `eed41d8` and merge `ac360fb` are local commits. Conflicts in ten demo/UI/test files were resolved using expanded integration implementations; main's historical audit evidence was retained. The integration tip is now an ancestor of HEAD. No push occurred.
 

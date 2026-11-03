@@ -4,10 +4,10 @@ const {migrate}=require('../src/migrate'),{provisionRuntime}=require('../securit
 const db=process.env.TEST_DATABASE_URL;if(!db)throw Error('TEST_DATABASE_URL must point to disposable privileged PostgreSQL');
 test('B03A isolation on real PostgreSQL with actual restricted login',async t=>{
  const admin=new Pool({connectionString:db}),suffix=crypto.randomBytes(8).toString('hex'),schema='b03_'+suffix,owner='b03_owner_'+suffix,runtime='b03_app_'+suffix;
- let migrations,appPool,app;const roleUrl=role=>{const url=new URL(db);url.searchParams.delete('user');url.username=role;return url.toString()};const id=()=>crypto.randomUUID(),ta=id(),tb=id(),sa=id(),sa2=id(),sb=id(),u=id(),userA=id(),orderA=id(),orderB=id();
+ let migrations,appPool,app;const {roleUrl,createRole}=require('../test-support/roles.cjs').roleConnections(db);const id=()=>crypto.randomUUID(),ta=id(),tb=id(),sa=id(),sa2=id(),sb=id(),u=id(),userA=id(),orderA=id(),orderB=id();
  try{
-  await admin.query(`CREATE ROLE "${owner}" LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS`);
-  await admin.query(`CREATE ROLE "${runtime}" LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS`);
+  await createRole(admin,owner);
+  await createRole(admin,runtime);
   await admin.query(`CREATE SCHEMA "${schema}" AUTHORIZATION "${owner}"`);
   migrations=new Pool({connectionString:roleUrl(owner),options:`-c search_path=${schema}`});assert.deepEqual(await migrate(migrations),['001','002','003','004','005','006','007','008','009','010','011','012','013','014','015','016','017','018','019','020','021','022','023','024','025','026','027','028']);
   const c=await migrations.connect();try{await c.query('BEGIN');await provisionRuntime(c,schema,runtime);await c.query('COMMIT')}finally{c.release()}
