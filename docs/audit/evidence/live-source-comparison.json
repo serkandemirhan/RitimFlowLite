@@ -1,0 +1,86 @@
+[
+  {
+    "file": "index.html",
+    "status": 200,
+    "localSha256": "d7471ee5f3708299173f6d22a80e6ac4094ada6f3a99f649aa21a1b021a9095e",
+    "remoteSha256": "d7471ee5f3708299173f6d22a80e6ac4094ada6f3a99f649aa21a1b021a9095e",
+    "identical": true
+  },
+  {
+    "file": "teknikResim.pdf",
+    "status": 200,
+    "localSha256": "4e779585bdd81426e98a68a880ca719d92aa288eb5eb6c84519e96ee7d778974",
+    "remoteSha256": "4e779585bdd81426e98a68a880ca719d92aa288eb5eb6c84519e96ee7d778974",
+    "identical": true
+  },
+  {
+    "file": "assets/css/ux-operator.css",
+    "status": 200,
+    "localSha256": "3e2af507f7abb22e01633b7bd436335c6d7ea913fa63502c5707d39e13ef510a",
+    "remoteSha256": "3e2af507f7abb22e01633b7bd436335c6d7ea913fa63502c5707d39e13ef510a",
+    "identical": true
+  },
+  {
+    "file": "assets/css/ux-logistics.css",
+    "status": 200,
+    "localSha256": "ca5ad8b17549a716172a8cb70e12837ea393dc2b31d1e1d327e450ed71dc8e31",
+    "remoteSha256": "ca5ad8b17549a716172a8cb70e12837ea393dc2b31d1e1d327e450ed71dc8e31",
+    "identical": true
+  },
+  {
+    "file": "assets/css/ux-audit.css",
+    "status": 200,
+    "localSha256": "db341addb0e3f6588d25d9be4a401bcf5b1fa978895888bf2670b07ffec1b9ee",
+    "remoteSha256": "db341addb0e3f6588d25d9be4a401bcf5b1fa978895888bf2670b07ffec1b9ee",
+    "identical": true
+  },
+  {
+    "file": "assets/css/ux-orders-workorders.css",
+    "status": 200,
+    "localSha256": "7faa9a4a89b0a1c04c43d198b403bac29fff8bc7a93f16eecd80a13a2d66e51a",
+    "remoteSha256": "7faa9a4a89b0a1c04c43d198b403bac29fff8bc7a93f16eecd80a13a2d66e51a",
+    "identical": true
+  },
+  {
+    "file": "assets/css/ux-foundation.css",
+    "status": 200,
+    "localSha256": "d84cca3915bddbe3b64372722f3b73ce04296f64be6e19a33fb079c28e4e1d84",
+    "remoteSha256": "d84cca3915bddbe3b64372722f3b73ce04296f64be6e19a33fb079c28e4e1d84",
+    "identical": true
+  },
+  {
+    "file": "assets/js/ux-operator.js",
+    "status": 200,
+    "localSha256": "d9e2e54b57bd81546f589e2434cde96840177c14f3e43f9cc480bc24a3e25e5c",
+    "remoteSha256": "d9e2e54b57bd81546f589e2434cde96840177c14f3e43f9cc480bc24a3e25e5c",
+    "identical": true
+  },
+  {
+    "file": "assets/js/ux-shell.js",
+    "status": 200,
+    "localSha256": "3cf39b6e17af3af474f8a77167b9ae86f447c4ef17d6dcf872fabda1f4f64379",
+    "remoteSha256": "3cf39b6e17af3af474f8a77167b9ae86f447c4ef17d6dcf872fabda1f4f64379",
+    "identical": true
+  },
+  {
+    "file": "assets/js/ux-logistics.js",
+    "status": 200,
+    "localSha256": "507985fdc6d494668a3e6f84796e23288e96e4a722d0b6c12d47b29b28e6b2d8",
+    "remoteSha256": "507985fdc6d494668a3e6f84796e23288e96e4a722d0b6c12d47b29b28e6b2d8",
+    "identical": true
+  },
+  {
+    "file": "assets/js/ux-audit.js",
+    "status": 200,
+    "localSha256": "5fe8d218d894e6af1f906b7054a8d97ed64ba66983e468416c87a831b0df2763",
+    "remoteSha256": "5fe8d218d894e6af1f906b7054a8d97ed64ba66983e468416c87a831b0df2763",
+    "identical": true
+  },
+  {
+    "file": "assets/js/ux-orders-workorders.js",
+    "status": 200,
+    "localSha256": "2f25dfc17b7073964cbdeb74a80aadbb910cd627b156f31187748d3cc6e8f218",
+    "remoteSha256": "2f25dfc17b7073964cbdeb74a80aadbb910cd627b156f31187748d3cc6e8f218",
+    "identical": true
+  }
+]

@@ -1,0 +1,968 @@
+{
+  "executedAt": "2026-10-26T12:31:10.906Z",
+  "base": "http://127.0.0.1:8765/",
+  "browser": "155.0.8059.85",
+  "results": [
+    {
+      "id": "T01",
+      "name": "Fresh demo initial render and all routes at 1440/390/360",
+      "status": "FAIL",
+      "pass": false,
+      "detail": [
+        {
+          "width": 1440,
+          "route": "home",
+          "heading": "\u00dcretim Durumu",
+          "bodyWidth": 1440,
+          "overflow": false,
+          "smallTargets": 14
+        },
+        {
+          "width": 1440,
+          "route": "orders",
+          "heading": "Sipari\u015fler",
+          "bodyWidth": 1440,
+          "overflow": false,
+          "smallTargets": 3
+        },
+        {
+          "width": 1440,
+          "route": "jobs",
+          "heading": "\u0130\u015f Emirleri",
+          "bodyWidth": 1440,
+          "overflow": false,
+          "smallTargets": 4
+        },
+        {
+          "width": 1440,
+          "route": "production",
+          "heading": "Operat\u00f6r Paneli",
+          "bodyWidth": 1440,
+          "overflow": false,
+          "smallTargets": 1
+        },
+        {
+          "width": 1440,
+          "route": "shipping",
+          "heading": "Sevkiyat",
+          "bodyWidth": 1440,
+          "overflow": false,
+          "smallTargets": 3
+        },
+        {
+          "width": 1440,
+          "route": "history",
+          "heading": "Hareket Ge\u00e7mi\u015fi",
+          "bodyWidth": 1440,
+          "overflow": false,
+          "smallTargets": 0
+        },
+        {
+          "width": 1440,
+          "route": "logistics",
+          "heading": "Malzeme, Fason ve Sevkiyat",
+          "bodyWidth": 1440,
+          "overflow": false,
+          "smallTargets": 0
+        },
+        {
+          "width": 1440,
+          "route": "audit",
+          "heading": "Entegrasyon Kontrol\u00fc",
+          "bodyWidth": 1440,
+          "overflow": false,
+          "smallTargets": 6
+        },
+        {
+          "width": 1440,
+          "route": "orderDetail",
+          "heading": "Sipari\u015f Detay\u0131",
+          "bodyWidth": 1440,
+          "overflow": false,
+          "smallTargets": 3
+        },
+        {
+          "width": 1440,
+          "route": "detail",
+          "heading": "\u0130\u015f Emri Detay\u0131",
+          "bodyWidth": 1440,
+          "overflow": false,
+          "smallTargets": 2
+        },
+        {
+          "width": 390,
+          "route": "home",
+          "heading": "\u00dcretim Durumu",
+          "bodyWidth": 390,
+          "overflow": false,
+          "smallTargets": 10
+        },
+        {
+          "width": 390,
+          "route": "orders",
+          "heading": "Sipari\u015fler",
+          "bodyWidth": 390,
+          "overflow": false,
+          "smallTargets": 3
+        },
+        {
+          "width": 390,
+          "route": "jobs",
+          "heading": "\u0130\u015f Emirleri",
+          "bodyWidth": 390,
+          "overflow": false,
+          "smallTargets": 4
+        },
+        {
+          "width": 390,
+          "route": "production",
+          "heading": "Operat\u00f6r Paneli",
+          "bodyWidth": 390,
+          "overflow": false,
+          "smallTargets": 1
+        },
+        {
+          "width": 390,
+          "route": "shipping",
+          "heading": "Sevkiyat",
+          "bodyWidth": 390,
+          "overflow": false,
+          "smallTargets": 3
+        },
+        {
+          "width": 390,
+          "route": "history",
+          "heading": "Hareket Ge\u00e7mi\u015fi",
+          "bodyWidth": 390,
+          "overflow": false,
+          "smallTargets": 0
+        },
+        {
+          "width": 390,
+          "route": "logistics",
+          "heading": "Malzeme, Fason ve Sevkiyat",
+          "bodyWidth": 390,
+          "overflow": false,
+          "smallTargets": 0
+        },
+        {
+          "width": 390,
+          "route": "audit",
+          "heading": "Entegrasyon Kontrol\u00fc",
+          "bodyWidth": 763,
+          "overflow": true,
+          "smallTargets": 6
+        },
+        {
+          "width": 390,
+          "route": "orderDetail",
+          "heading": "Sipari\u015f Detay\u0131",
+          "bodyWidth": 390,
+          "overflow": false,
+          "smallTargets": 3
+        },
+        {
+          "width": 390,
+          "route": "detail",
+          "heading": "\u0130\u015f Emri Detay\u0131",
+          "bodyWidth": 390,
+          "overflow": false,
+          "smallTargets": 2
+        },
+        {
+          "width": 360,
+          "route": "home",
+          "heading": "\u00dcretim Durumu",
+          "bodyWidth": 360,
+          "overflow": false,
+          "smallTargets": 10
+        },
+        {
+          "width": 360,
+          "route": "orders",
+          "heading": "Sipari\u015fler",
+          "bodyWidth": 360,
+          "overflow": false,
+          "smallTargets": 3
+        },
+        {
+          "width": 360,
+          "route": "jobs",
+          "heading": "\u0130\u015f Emirleri",
+          "bodyWidth": 360,
+          "overflow": false,
+          "smallTargets": 4
+        },
+        {
+          "width": 360,
+          "route": "production",
+          "heading": "Operat\u00f6r Paneli",
+          "bodyWidth": 360,
+          "overflow": false,
+          "smallTargets": 1
+        },
+        {
+          "width": 360,
+          "route": "shipping",
+          "heading": "Sevkiyat",
+          "bodyWidth": 360,
+          "overflow": false,
+          "smallTargets": 3
+        },
+        {
+          "width": 360,
+          "route": "history",
+          "heading": "Hareket Ge\u00e7mi\u015fi",
+          "bodyWidth": 360,
+          "overflow": false,
+          "smallTargets": 0
+        },
+        {
+          "width": 360,
+          "route": "logistics",
+          "heading": "Malzeme, Fason ve Sevkiyat",
+          "bodyWidth": 360,
+          "overflow": false,
+          "smallTargets": 0
+        },
+        {
+          "width": 360,
+          "route": "audit",
+          "heading": "Entegrasyon Kontrol\u00fc",
+          "bodyWidth": 760,
+          "overflow": true,
+          "smallTargets": 6
+        },
+        {
+          "width": 360,
+          "route": "orderDetail",
+          "heading": "Sipari\u015f Detay\u0131",
+          "bodyWidth": 360,
+          "overflow": false,
+          "smallTargets": 3
+        },
+        {
+          "width": 360,
+          "route": "detail",
+          "heading": "\u0130\u015f Emri Detay\u0131",
+          "bodyWidth": 360,
+          "overflow": false,
+          "smallTargets": 2
+        }
+      ]
+    },
+    {
+      "id": "T02",
+      "name": "Dashboard active work KPI applies running filter",
+      "status": "FAIL",
+      "pass": false,
+      "actual": {
+        "filter": "all",
+        "displayed": 6,
+        "running": 1
+      }
+    },
+    {
+      "id": "T03",
+      "name": "Back from order detail retains search",
+      "status": "FAIL",
+      "pass": false,
+      "actual": ""
+    },
+    {
+      "id": "T04",
+      "name": "Wizard autocomplete threshold, route reorder, creation",
+      "status": "PASS",
+      "pass": true,
+      "actual": {
+        "before": 0,
+        "after": 5,
+        "o": {
+          "id": "SIP-AUDIT-NEW",
+          "customer": "Kurgusal Audit",
+          "part": "Audit Par\u00e7as\u0131",
+          "partNo": "",
+          "revision": "A",
+          "qty": 250,
+          "due": "",
+          "created": "2026-10-26",
+          "material": "",
+          "dimensions": "",
+          "route": [
+            "Tesviye",
+            "\u0130malat"
+          ],
+          "drawing": "teknikResim.pdf"
+        },
+        "j": {
+          "id": "WO-AUDIT-NEW",
+          "order": "SIP-AUDIT-NEW",
+          "machine": "",
+          "plannedQty": 150,
+          "state": "waiting",
+          "good": 0,
+          "scrap": 0,
+          "op": 0
+        }
+      }
+    },
+    {
+      "id": "T05",
+      "name": "Additional work order specifies operation and planned quantity",
+      "status": "FAIL",
+      "pass": false,
+      "actual": {
+        "inputs": [
+          "additionalJobId",
+          "additionalMachine"
+        ],
+        "j": {
+          "id": "WO-AUDIT-002",
+          "order": "SIP-AUDIT-001",
+          "machine": "",
+          "state": "waiting",
+          "good": 0,
+          "scrap": 0,
+          "op": 0
+        }
+      }
+    },
+    {
+      "id": "T06",
+      "name": "250/150/100 acceptance: 60 good + 3 scrap + 12 pending +25 unprocessed; 50 unstarted",
+      "status": "PASS",
+      "pass": true,
+      "actual": {
+        "ordered": 250,
+        "planned": 150,
+        "received": 100,
+        "good": 60,
+        "scrap": 3,
+        "pending": 12,
+        "setup": 0,
+        "rework": 0,
+        "unprocessed": 25,
+        "unstarted": 50,
+        "warnings": []
+      },
+      "evidence": "acceptance-250-150-100.png"
+    },
+    {
+      "id": "T07",
+      "name": "Prevent physical receipt before material allocation",
+      "status": "PASS",
+      "pass": true,
+      "message": "UX-06 \u00fczerinden bu i\u015f emrine tahsis edilen malzeme yetersiz"
+    },
+    {
+      "id": "T08",
+      "name": "Prevent allocation above material and negative material receipt",
+      "status": "PASS",
+      "pass": true,
+      "actual": {
+        "material": 100,
+        "allocated": 0
+      }
+    },
+    {
+      "id": "T09",
+      "name": "Prevent production beyond physically unprocessed quantity",
+      "status": "PASS",
+      "pass": true
+    },
+    {
+      "id": "T10",
+      "name": "Inspection/rework conserve quantity and reject operator approval",
+      "status": "PASS",
+      "pass": true,
+      "actual": {
+        "good": 16,
+        "scrap": 4,
+        "x": {
+          "received": 20,
+          "pending": 0,
+          "setup": 0,
+          "rework": 0,
+          "allocatable": 0,
+          "handover": null,
+          "receipts": [
+            {
+              "qty": 20,
+              "user": "Y\u00f6netici",
+              "time": "2026-10-26T12:29:42.516Z"
+            }
+          ],
+          "legacyBaseline": 0,
+          "legacyGood": 0
+        }
+      }
+    },
+    {
+      "id": "T11",
+      "name": "Work order closure rejects pending and unstarted quantity",
+      "status": "PASS",
+      "pass": true,
+      "message": "A\u00e7\u0131k kontrol/rework/i\u015flenmemi\u015f veya i\u015fe al\u0131nmam\u0131\u015f miktar var; i\u015f emri kapat\u0131lamaz"
+    },
+    {
+      "id": "T12",
+      "name": "Handover requires different user and explicit resume",
+      "status": "PASS",
+      "pass": true,
+      "actual": {
+        "handover": null,
+        "state": "paused"
+      }
+    },
+    {
+      "id": "T13",
+      "name": "Partial external dispatch/return/final release/shipment/customer return",
+      "status": "PASS",
+      "pass": true,
+      "actual": {
+        "dispatched": 60,
+        "returned": 30,
+        "open": 30,
+        "approved": 20,
+        "ready": 5,
+        "net": 10,
+        "quarantine": 5,
+        "mainSummary": {
+          "buckets": [
+            {
+              "name": "Bekliyor",
+              "qty": 250
+            }
+          ],
+          "shipped": 0,
+          "percent": 0
+        }
+      }
+    },
+    {
+      "id": "T14",
+      "name": "Main order progress uses net customer shipments",
+      "status": "FAIL",
+      "pass": false,
+      "actual": {
+        "summary": {
+          "buckets": [
+            {
+              "name": "Bekliyor",
+              "qty": 20
+            }
+          ],
+          "shipped": 0,
+          "percent": 0
+        },
+        "net": 20
+      },
+      "evidence": "shipped-order-zero-progress.png"
+    },
+    {
+      "id": "T15",
+      "name": "UX06 final release waits for intermediate internal operations",
+      "status": "FAIL",
+      "pass": false,
+      "actual": {
+        "approved": 10,
+        "op": 0
+      }
+    },
+    {
+      "id": "T16",
+      "name": "Outbound external movement removes source physical stock",
+      "status": "FAIL",
+      "pass": false,
+      "actual": {
+        "source": {
+          "received": 10,
+          "pending": 0,
+          "setup": 0,
+          "rework": 0,
+          "allocatable": 0,
+          "handover": null,
+          "receipts": [
+            {
+              "qty": 10,
+              "user": "Y\u00f6netici",
+              "time": "2026-10-26T12:30:07.246Z"
+            }
+          ],
+          "legacyBaseline": 0,
+          "legacyGood": 0
+        },
+        "sourceGood": 10,
+        "externalOpen": 10,
+        "warnings": []
+      }
+    },
+    {
+      "id": "T17",
+      "name": "Legacy shipment function cannot bypass final QA",
+      "status": "FAIL",
+      "pass": false,
+      "actual": {
+        "legacy": [
+          {
+            "job": "WO-AUDIT-001",
+            "qty": 10,
+            "user": "Y\u00f6netici",
+            "time": "2026-10-26T12:30:11.758Z"
+          }
+        ],
+        "state": "shipped",
+        "releases": 0
+      }
+    },
+    {
+      "id": "T18",
+      "name": "Allocation audit detects per-job overplan and dangling job reference",
+      "status": "FAIL",
+      "pass": false,
+      "actual": []
+    },
+    {
+      "id": "T19",
+      "name": "Audit is read-only",
+      "status": "FAIL",
+      "pass": false,
+      "actual": {
+        "changed": true,
+        "ux06": {
+          "SIP-AUDIT-001": {
+            "receipts": [],
+            "allocations": [],
+            "dispatches": [],
+            "returns": [],
+            "releases": [],
+            "shipments": [],
+            "customerReturns": [],
+            "entries": []
+          }
+        }
+      }
+    },
+    {
+      "id": "T20",
+      "name": "Unassigned work order opens its own operator context",
+      "status": "FAIL",
+      "pass": false,
+      "actual": "DEMO-IE-001 \u00b7 Demo Firma Alfa"
+    },
+    {
+      "id": "T21",
+      "name": "Mobile navigation exposes audit and transaction history",
+      "status": "FAIL",
+      "pass": false,
+      "actual": [
+        "Genel",
+        "Sipari\u015f",
+        "\u0130\u015fler",
+        "\u00dcretim",
+        "Sevkiyat"
+      ]
+    },
+    {
+      "id": "T22",
+      "name": "PDF load and wizard modal Escape",
+      "status": "PASS",
+      "pass": true,
+      "actual": {
+        "pdf": "teknikResim.pdf",
+        "status": 200
+      }
+    },
+    {
+      "id": "T23",
+      "name": "Drawing revision has immutable history",
+      "status": "FAIL",
+      "pass": false,
+      "actual": {
+        "revision": "A",
+        "keys": [
+          "id",
+          "customer",
+          "part",
+          "partNo",
+          "revision",
+          "qty",
+          "created",
+          "due",
+          "material",
+          "dimensions",
+          "route",
+          "drawing"
+        ],
+        "events": 0
+      }
+    },
+    {
+      "id": "T24",
+      "name": "Apostrophe-containing order ID remains navigable",
+      "status": "FAIL",
+      "pass": false,
+      "actual": "Sipari\u015f bulunamad\u0131."
+    },
+    {
+      "id": "T25",
+      "name": "Storage failure does not report successful material commit",
+      "status": "FAIL",
+      "pass": false,
+      "actual": {
+        "inMemory": 10,
+        "toast": "Depolama s\u0131n\u0131r\u0131 dolu, daha k\u00fc\u00e7\u00fck dosya se\u00e7in"
+      }
+    },
+    {
+      "id": "T26",
+      "name": "Wrong-shape persisted state has recovery screen",
+      "status": "FAIL",
+      "pass": false,
+      "actual": "RRitim FlowLITE \u00b7 PRODUCTION Ana Ekran Sipari\u015fler \u0130\u015f Emirleri \u00dcretim Sevkiyat Hareketler\u00dcretimin t\u00fcm ad\u0131mlar\u0131, tek ak\u0131\u015fta.3 CNC \u00b7 Sat\u0131\u015f demo s\u00fcr\u00fcm\u00fcDemo Verilerini S\u0131f\u0131rlaRITIM FLOW LITE / \u00d6RNEK VER\u0130LER\u00dcretim DurumuMazak \u00b7 Mitsubishi \u00b7 DMG MORIAt\u00f6lye Y\u00f6netimi\u203a\u00dcretim Durumu\u25cf CANLI DEMOOperat\u00f6r A,Operat\u00f6r B,Operat\u00f6r C,Y\u00f6neticiAGenelSipari\u015f\u0130\u015fler\u00dcretimSevkiyat"
+    },
+    {
+      "id": "T27",
+      "name": "Duplicate supplier waybill and unapproved shipment rejected",
+      "status": "PASS",
+      "pass": true,
+      "actual": {
+        "dispatches": 1,
+        "shipped": 0
+      }
+    },
+    {
+      "id": "T28",
+      "name": "Keyboard drawing activation",
+      "status": "FAIL",
+      "pass": false
+    },
+    {
+      "id": "T29",
+      "name": "Machine conflict guard preserves assignment and history",
+      "status": "PASS",
+      "pass": true,
+      "actual": {
+        "machine": "CNC-01",
+        "events": 3
+      }
+    },
+    {
+      "id": "T30",
+      "name": "Alternate sales page loads separately",
+      "status": "PASS",
+      "pass": true,
+      "actual": "Ritim Flow Lite | \u00dcretim Y\u00f6netimi",
+      "evidence": "alternate-sales-390.png"
+    },
+    {
+      "id": "T31",
+      "name": "Acceptance production controls at 390px and 360px",
+      "status": "PASS",
+      "pass": true,
+      "actual": [
+        {
+          "width": 390,
+          "good": 60,
+          "scrap": 3,
+          "pending": 12,
+          "received": 100,
+          "overflow": false
+        },
+        {
+          "width": 360,
+          "good": 60,
+          "scrap": 3,
+          "pending": 12,
+          "received": 100,
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "id": "T32",
+      "name": "Closing job drawing retains selected work order",
+      "status": "FAIL",
+      "pass": false,
+      "actual": "\u0130\u015f bulunamad\u0131."
+    }
+  ],
+  "layouts": [
+    {
+      "width": 1440,
+      "route": "home",
+      "heading": "\u00dcretim Durumu",
+      "bodyWidth": 1440,
+      "overflow": false,
+      "smallTargets": 14
+    },
+    {
+      "width": 1440,
+      "route": "orders",
+      "heading": "Sipari\u015fler",
+      "bodyWidth": 1440,
+      "overflow": false,
+      "smallTargets": 3
+    },
+    {
+      "width": 1440,
+      "route": "jobs",
+      "heading": "\u0130\u015f Emirleri",
+      "bodyWidth": 1440,
+      "overflow": false,
+      "smallTargets": 4
+    },
+    {
+      "width": 1440,
+      "route": "production",
+      "heading": "Operat\u00f6r Paneli",
+      "bodyWidth": 1440,
+      "overflow": false,
+      "smallTargets": 1
+    },
+    {
+      "width": 1440,
+      "route": "shipping",
+      "heading": "Sevkiyat",
+      "bodyWidth": 1440,
+      "overflow": false,
+      "smallTargets": 3
+    },
+    {
+      "width": 1440,
+      "route": "history",
+      "heading": "Hareket Ge\u00e7mi\u015fi",
+      "bodyWidth": 1440,
+      "overflow": false,
+      "smallTargets": 0
+    },
+    {
+      "width": 1440,
+      "route": "logistics",
+      "heading": "Malzeme, Fason ve Sevkiyat",
+      "bodyWidth": 1440,
+      "overflow": false,
+      "smallTargets": 0
+    },
+    {
+      "width": 1440,
+      "route": "audit",
+      "heading": "Entegrasyon Kontrol\u00fc",
+      "bodyWidth": 1440,
+      "overflow": false,
+      "smallTargets": 6
+    },
+    {
+      "width": 1440,
+      "route": "orderDetail",
+      "heading": "Sipari\u015f Detay\u0131",
+      "bodyWidth": 1440,
+      "overflow": false,
+      "smallTargets": 3
+    },
+    {
+      "width": 1440,
+      "route": "detail",
+      "heading": "\u0130\u015f Emri Detay\u0131",
+      "bodyWidth": 1440,
+      "overflow": false,
+      "smallTargets": 2
+    },
+    {
+      "width": 390,
+      "route": "home",
+      "heading": "\u00dcretim Durumu",
+      "bodyWidth": 390,
+      "overflow": false,
+      "smallTargets": 10
+    },
+    {
+      "width": 390,
+      "route": "orders",
+      "heading": "Sipari\u015fler",
+      "bodyWidth": 390,
+      "overflow": false,
+      "smallTargets": 3
+    },
+    {
+      "width": 390,
+      "route": "jobs",
+      "heading": "\u0130\u015f Emirleri",
+      "bodyWidth": 390,
+      "overflow": false,
+      "smallTargets": 4
+    },
+    {
+      "width": 390,
+      "route": "production",
+      "heading": "Operat\u00f6r Paneli",
+      "bodyWidth": 390,
+      "overflow": false,
+      "smallTargets": 1
+    },
+    {
+      "width": 390,
+      "route": "shipping",
+      "heading": "Sevkiyat",
+      "bodyWidth": 390,
+      "overflow": false,
+      "smallTargets": 3
+    },
+    {
+      "width": 390,
+      "route": "history",
+      "heading": "Hareket Ge\u00e7mi\u015fi",
+      "bodyWidth": 390,
+      "overflow": false,
+      "smallTargets": 0
+    },
+    {
+      "width": 390,
+      "route": "logistics",
+      "heading": "Malzeme, Fason ve Sevkiyat",
+      "bodyWidth": 390,
+      "overflow": false,
+      "smallTargets": 0
+    },
+    {
+      "width": 390,
+      "route": "audit",
+      "heading": "Entegrasyon Kontrol\u00fc",
+      "bodyWidth": 763,
+      "overflow": true,
+      "smallTargets": 6
+    },
+    {
+      "width": 390,
+      "route": "orderDetail",
+      "heading": "Sipari\u015f Detay\u0131",
+      "bodyWidth": 390,
+      "overflow": false,
+      "smallTargets": 3
+    },
+    {
+      "width": 390,
+      "route": "detail",
+      "heading": "\u0130\u015f Emri Detay\u0131",
+      "bodyWidth": 390,
+      "overflow": false,
+      "smallTargets": 2
+    },
+    {
+      "width": 360,
+      "route": "home",
+      "heading": "\u00dcretim Durumu",
+      "bodyWidth": 360,
+      "overflow": false,
+      "smallTargets": 10
+    },
+    {
+      "width": 360,
+      "route": "orders",
+      "heading": "Sipari\u015fler",
+      "bodyWidth": 360,
+      "overflow": false,
+      "smallTargets": 3
+    },
+    {
+      "width": 360,
+      "route": "jobs",
+      "heading": "\u0130\u015f Emirleri",
+      "bodyWidth": 360,
+      "overflow": false,
+      "smallTargets": 4
+    },
+    {
+      "width": 360,
+      "route": "production",
+      "heading": "Operat\u00f6r Paneli",
+      "bodyWidth": 360,
+      "overflow": false,
+      "smallTargets": 1
+    },
+    {
+      "width": 360,
+      "route": "shipping",
+      "heading": "Sevkiyat",
+      "bodyWidth": 360,
+      "overflow": false,
+      "smallTargets": 3
+    },
+    {
+      "width": 360,
+      "route": "history",
+      "heading": "Hareket Ge\u00e7mi\u015fi",
+      "bodyWidth": 360,
+      "overflow": false,
+      "smallTargets": 0
+    },
+    {
+      "width": 360,
+      "route": "logistics",
+      "heading": "Malzeme, Fason ve Sevkiyat",
+      "bodyWidth": 360,
+      "overflow": false,
+      "smallTargets": 0
+    },
+    {
+      "width": 360,
+      "route": "audit",
+      "heading": "Entegrasyon Kontrol\u00fc",
+      "bodyWidth": 760,
+      "overflow": true,
+      "smallTargets": 6
+    },
+    {
+      "width": 360,
+      "route": "orderDetail",
+      "heading": "Sipari\u015f Detay\u0131",
+      "bodyWidth": 360,
+      "overflow": false,
+      "smallTargets": 3
+    },
+    {
+      "width": 360,
+      "route": "detail",
+      "heading": "\u0130\u015f Emri Detay\u0131",
+      "bodyWidth": 360,
+      "overflow": false,
+      "smallTargets": 2
+    }
+  ],
+  "telemetry": [
+    {
+      "kind": "console",
+      "url": "http://127.0.0.1:8765/",
+      "message": "Failed to load resource: the server responded with a status of 404 (File not found)"
+    },
+    {
+      "kind": "requestfailed",
+      "url": "chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/index.html",
+      "message": "net::ERR_ABORTED"
+    },
+    {
+      "kind": "pageerror",
+      "url": "http://127.0.0.1:8765/",
+      "message": "Cannot read properties of null (reading 'filter')"
+    },
+    {
+      "kind": "requestfailed",
+      "url": "chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/index.html",
+      "message": "net::ERR_ABORTED"
+    }
+  ],
+  "focusedRerun": {
+    "executedAt": "2026-10-26T12:30:15.207Z",
+    "testIDs": [
+      "T24"
+    ],
+    "reason": "Correct locator after discovering apostrophe is rendered as undefined, rather than matching the original ID. Corrected test reaches missing-order screen."
+  },
+  "focusedTelemetry": [
+    {
+      "kind": "console",
+      "url": "http://127.0.0.1:8765/",
+      "message": "Failed to load resource: the server responded with a status of 404 (File not found)"
+    }
+  ]
+}

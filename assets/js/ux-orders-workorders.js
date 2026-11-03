@@ -16,7 +16,7 @@ function enrichDetails(){
    if(orderId&&!!window.ritimUXBridge?.order&&!!window.ritimUXBridge?.shipmentSummary){
       const o=window.ritimUXBridge.order(orderId);if(!o)return;const summary=window.ritimUXBridge.shipmentSummary(o);
       const section=document.createElement('section');section.className='card pad ux-stage-overview';
-      section.innerHTML='<div class="ux-stage-header"><h3>Operasyon & Sevkiyat Durumu</h3><span class="tiny">Sipariş düzeyi</span></div><p class="ux-stage-caption">Her parça aynı anda yalnızca bir aşamada gösterilir. Bu ekranın aşama dağılımı demo verisidir.</p><div class="ux-stage-pills">'+summary.buckets.map(b=>'<div class="ux-stage-pill '+(b.name==='Sevk Edildi'?'shipped':'')+'"><span>'+safe(b.name)+'</span><b>'+Number(b.qty)+' <small>adet</small></b></div>').join('')+'</div>';
+      section.innerHTML='<div class="ux-stage-header"><h3>Operasyon & Sevkiyat Durumu</h3><span class="tiny">Sipariş düzeyi</span></div><p class="ux-stage-caption">Net müşteri sevkiyatı ortak hareket modelinden hesaplanır. Eski örnek dağılımlar aktif stok değildir.</p><div class="ux-stage-pills">'+summary.buckets.map(b=>'<div class="ux-stage-pill '+(b.name==='Sevk Edildi'?'shipped':'')+'"><span>'+safe(b.name)+'</span><b>'+Number(b.qty)+' <small>adet</small></b></div>').join('')+'</div>';
       stage.parentElement.insertBefore(section,stage);
    }
  }else if(title.includes('İş Emri Detayı')){

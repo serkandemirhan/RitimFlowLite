@@ -1,0 +1,22 @@
+{
+  "executedAt": "2026-10-26T12:30:15.207Z",
+  "base": "http://127.0.0.1:8765/",
+  "browser": "155.0.8059.85",
+  "results": [
+    {
+      "id": "T24",
+      "name": "Apostrophe-containing order ID remains navigable",
+      "status": "FAIL",
+      "pass": false,
+      "actual": "Sipariş bulunamadı."
+    }
+  ],
+  "layouts": [],
+  "telemetry": [
+    {
+      "kind": "console",
+      "url": "http://127.0.0.1:8765/",
+      "message": "Failed to load resource: the server responded with a status of 404 (File not found)"
+    }
+  ]
+}

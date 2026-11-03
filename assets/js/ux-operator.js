@@ -4,7 +4,7 @@
 const html=(v)=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const field=id=>document.getElementById(id);
 function amount(id){let e=field(id);if(!e||!e.value.trim()||!Number.isInteger(Number(e.value)))return NaN;return Number(e.value)}
-function plan(j){return Math.max(0,Number(j.plannedQty)||Number(jo(j).qty)||0)}
+function plan(j){return RitimQuantities.jobBalance(j,jo(j)).planned}
 function ledger(j){
  if(!j.ux05){
   const historic=(Number(j.good)||0)+(Number(j.scrap)||0);
@@ -12,8 +12,8 @@ function ledger(j){
  }
  return j.ux05;
 }
-function used(j){let x=ledger(j);return (Number(j.good)||0)+(Number(j.scrap)||0)+x.pending+x.setup+x.rework}
-function unprocessed(j){return Math.max(0,ledger(j).received-used(j))}
+function used(j){ledger(j);return RitimQuantities.jobBalance(j,jo(j)).used}
+function unprocessed(j){ledger(j);return RitimQuantities.jobBalance(j,jo(j)).unprocessed}
 function eligibleStart(j){return ledger(j).received>used(j)}
 function record(j,type,n,detail){
  eventLog(j,type,n);
