@@ -1,0 +1,2028 @@
+
+> ritim-flow-lite-demo@1.0.0-rc.1 test:ci
+> npm run test:domain && npm run test:recovery && npm run test:packaging && npm run build:rc1 && npm run verify:rc1 && npm run test:smoke && npm run test:browser && npm run test:rc1 && npm run test:isolation && npm run test:isolation:rc1
+
+
+> ritim-flow-lite-demo@1.0.0-rc.1 test:domain
+> node scripts/run-domain.cjs
+
+TAP version 13
+# Subtest: stale session ships against latest snapshot; 20 cannot be spent twice as 15+15
+ok 1 - stale session ships against latest snapshot; 20 cannot be spent twice as 15+15
+  ---
+  duration_ms: 107.560105
+  type: 'test'
+  ...
+# Subtest: stale safe command retains the earlier history and increments revision
+ok 2 - stale safe command retains the earlier history and increments revision
+  ---
+  duration_ms: 13.65291
+  type: 'test'
+  ...
+# Subtest: durable idempotency receipt prevents replay after reopening session
+ok 3 - durable idempotency receipt prevents replay after reopening session
+  ---
+  duration_ms: 16.925103
+  type: 'test'
+  ...
+# Subtest: same key with different payload is rejected
+ok 4 - same key with different payload is rejected
+  ---
+  duration_ms: 30.27894
+  type: 'test'
+  ...
+# Subtest: missing command id cannot mutate
+ok 5 - missing command id cannot mutate
+  ---
+  duration_ms: 0.479744
+  type: 'test'
+  ...
+# Subtest: unavailable Web Locks fails closed including copies
+ok 6 - unavailable Web Locks fails closed including copies
+  ---
+  duration_ms: 5.819368
+  type: 'test'
+  ...
+# Subtest: contended exclusive lock fails closed and same id retries safely
+ok 7 - contended exclusive lock fails closed and same id retries safely
+  ---
+  duration_ms: 6.883802
+  type: 'test'
+  ...
+# Subtest: wrong lock mode cannot enter writer
+ok 8 - wrong lock mode cannot enter writer
+  ---
+  duration_ms: 1.202919
+  type: 'test'
+  ...
+# Subtest: lock access rejection fails closed
+ok 9 - lock access rejection fails closed
+  ---
+  duration_ms: 4.643167
+  type: 'test'
+  ...
+# Subtest: quota failure preserves memory, raw history and revision; retry same id succeeds once
+ok 10 - quota failure preserves memory, raw history and revision; retry same id succeeds once
+  ---
+  duration_ms: 14.116281
+  type: 'test'
+  ...
+# Subtest: interrupted acknowledgement leaves complete receipt and blocks until reload
+ok 11 - interrupted acknowledgement leaves complete receipt and blocks until reload
+  ---
+  duration_ms: 50.058038
+  type: 'test'
+  ...
+# Subtest: malformed latest data is preserved and opens recovery
+ok 12 - malformed latest data is preserved and opens recovery
+  ---
+  duration_ms: 111.061478
+  type: 'test'
+  ...
+# Subtest: deleted snapshot is never replaced by initial demo during transaction
+ok 13 - deleted snapshot is never replaced by initial demo during transaction
+  ---
+  duration_ms: 2.770904
+  type: 'test'
+  ...
+# Subtest: latest schema/integrity is checked before accepting invalid affected writes
+ok 14 - latest schema/integrity is checked before accepting invalid affected writes
+  ---
+  duration_ms: 7.511293
+  type: 'test'
+  ...
+# Subtest: command cannot forge protocol metadata
+ok 15 - command cannot forge protocol metadata
+  ---
+  duration_ms: 4.388227
+  type: 'test'
+  ...
+# Subtest: async draft mutator is rejected before persistence
+ok 16 - async draft mutator is rejected before persistence
+  ---
+  duration_ms: 1.29194
+  type: 'test'
+  ...
+# Subtest: caller cannot mutate returned result into internal committed memory
+ok 17 - caller cannot mutate returned result into internal committed memory
+  ---
+  duration_ms: 1.890032
+  type: 'test'
+  ...
+# Subtest: actor is captured from submitting tab rather than latest global role
+ok 18 - actor is captured from submitting tab rather than latest global role
+  ---
+  duration_ms: 4.902236
+  type: 'test'
+  ...
+# Subtest: reservation revalidation prevents two plans consuming the same approved output
+ok 19 - reservation revalidation prevents two plans consuming the same approved output
+  ---
+  duration_ms: 9.071954
+  type: 'test'
+  ...
+# Subtest: concurrent final quality releases cannot approve the same quantity twice
+ok 20 - concurrent final quality releases cannot approve the same quantity twice
+  ---
+  duration_ms: 2.656278
+  type: 'test'
+  ...
+# Subtest: customer return and restock source budgets are revalidated
+ok 21 - customer return and restock source budgets are revalidated
+  ---
+  duration_ms: 12.338123
+  type: 'test'
+  ...
+# Subtest: snapshot protocol validation rejects corrupt/unsupported revisions and duplicate keys
+ok 22 - snapshot protocol validation rejects corrupt/unsupported revisions and duplicate keys
+  ---
+  duration_ms: 3.858567
+  type: 'test'
+  ...
+# Subtest: pure integrity preserves protocol and original records byte-equivalent
+ok 23 - pure integrity preserves protocol and original records byte-equivalent
+  ---
+  duration_ms: 11.321871
+  type: 'test'
+  ...
+# Subtest: latest read denial preserves the last readable raw snapshot for export
+ok 24 - latest read denial preserves the last readable raw snapshot for export
+  ---
+  duration_ms: 1.007495
+  type: 'test'
+  ...
+# Subtest: snapshot revision rollback is rejected without overwriting the older stored record
+ok 25 - snapshot revision rollback is rejected without overwriting the older stored record
+  ---
+  duration_ms: 7.010829
+  type: 'test'
+  ...
+# Subtest: canonical payload order has the same durable fingerprint
+ok 26 - canonical payload order has the same durable fingerprint
+  ---
+  duration_ms: 1.793388
+  type: 'test'
+  ...
+# Subtest: explicit copies share the exclusive lock and refuse any existing target
+ok 27 - explicit copies share the exclusive lock and refuse any existing target
+  ---
+  duration_ms: 0.639687
+  type: 'test'
+  ...
+# Subtest: unserializable result is rejected before the write instead of losing acknowledgement after commit
+ok 28 - unserializable result is rejected before the write instead of losing acknowledgement after commit
+  ---
+  duration_ms: 1.794739
+  type: 'test'
+  ...
+# Subtest: P0-01: reads are pure and never create/migrate ledgers
+ok 29 - P0-01: reads are pure and never create/migrate ledgers
+  ---
+  duration_ms: 4.454206
+  type: 'test'
+  ...
+# Subtest: P0-01: UX05 acceptance equation keeps 25 physical and 50 unstarted distinct
+ok 30 - P0-01: UX05 acceptance equation keeps 25 physical and 50 unstarted distinct
+  ---
+  duration_ms: 2.189642
+  type: 'test'
+  ...
+# Subtest: P0-01: 20/20 shipped →100%, return5 →75% and reopened, quarantine is not ready
+ok 31 - P0-01: 20/20 shipped →100%, return5 →75% and reopened, quarantine is not ready
+  ---
+  duration_ms: 4.555628
+  type: 'test'
+  ...
+# Subtest: P0-01: external dispatch and supplier return never count as customer shipment
+ok 32 - P0-01: external dispatch and supplier return never count as customer shipment
+  ---
+  duration_ms: 0.936641
+  type: 'test'
+  ...
+# Subtest: P0-01: legacy shipments and good remain explicit history, never promoted or written
+ok 33 - P0-01: legacy shipments and good remain explicit history, never promoted or written
+  ---
+  duration_ms: 0.355061
+  type: 'test'
+  ...
+# Subtest: P0-01: almost-complete quantities do not round to completed status
+ok 34 - P0-01: almost-complete quantities do not round to completed status
+  ---
+  duration_ms: 0.370775
+  type: 'test'
+  ...
+# Subtest: P0-02: no release or shipment before job completion or final QA
+ok 35 - P0-02: no release or shipment before job completion or final QA
+  ---
+  duration_ms: 0.553125
+  type: 'test'
+  ...
+# Subtest: P0-02: fail closed without transfer lineage: İmalat → Tesviye
+ok 36 - P0-02: fail closed without transfer lineage: İmalat → Tesviye
+  ---
+  duration_ms: 0.601467
+  type: 'test'
+  ...
+# Subtest: P0-02: fail closed without transfer lineage: İmalat → Tesviye → Kaplama
+ok 37 - P0-02: fail closed without transfer lineage: İmalat → Tesviye → Kaplama
+  ---
+  duration_ms: 0.586208
+  type: 'test'
+  ...
+# Subtest: P0-02: fail closed without transfer lineage: İmalat → Kaplama → Montaj
+ok 38 - P0-02: fail closed without transfer lineage: İmalat → Kaplama → Montaj
+  ---
+  duration_ms: 1.313936
+  type: 'test'
+  ...
+# Subtest: P0-02: fail closed without transfer lineage: İmalat → Kaplama → Fason
+ok 39 - P0-02: fail closed without transfer lineage: İmalat → Kaplama → Fason
+  ---
+  duration_ms: 0.410357
+  type: 'test'
+  ...
+# Subtest: P0-02: partial external returns prove terminal quantities only; no over-release
+ok 40 - P0-02: partial external returns prove terminal quantities only; no over-release
+  ---
+  duration_ms: 1.184933
+  type: 'test'
+  ...
+# Subtest: P0-02: legacy dispatch and release records are held without conversion
+ok 41 - P0-02: legacy dispatch and release records are held without conversion
+  ---
+  duration_ms: 0.511539
+  type: 'test'
+  ...
+# Subtest: P0-02: route edits invalidate old final approval at commit time
+ok 42 - P0-02: route edits invalidate old final approval at commit time
+  ---
+  duration_ms: 0.254327
+  type: 'test'
+  ...
+# Subtest: P0-02: completion is revalidated, not cached in approval
+ok 43 - P0-02: completion is revalidated, not cached in approval
+  ---
+  duration_ms: 0.244315
+  type: 'test'
+  ...
+# Subtest: P0-02: only selected manager can approve; rejected action has no writes
+ok 44 - P0-02: only selected manager can approve; rejected action has no writes
+  ---
+  duration_ms: 0.170472
+  type: 'test'
+  ...
+# Subtest: P0-02: pending/rework/unprocessed/unstarted/insufficient allocation block final release
+ok 45 - P0-02: pending/rework/unprocessed/unstarted/insufficient allocation block final release
+  ---
+  duration_ms: 0.487207
+  type: 'test'
+  ...
+# Subtest: P0-03: invalid quantities, missing/duplicate waybill, over-shipment all reject
+ok 46 - P0-03: invalid quantities, missing/duplicate waybill, over-shipment all reject
+  ---
+  duration_ms: 1.213795
+  type: 'test'
+  ...
+# Subtest: P0-03: forged/old untagged release cannot unlock shipment
+ok 47 - P0-03: forged/old untagged release cannot unlock shipment
+  ---
+  duration_ms: 0.277866
+  type: 'test'
+  ...
+# Subtest: P0-03: final approval and shipment retain existing history byte-for-byte
+ok 48 - P0-03: final approval and shipment retain existing history byte-for-byte
+  ---
+  duration_ms: 0.284089
+  type: 'test'
+  ...
+# Subtest: partial dispatch preserves allocated/good bound and document uniqueness
+ok 49 - partial dispatch preserves allocated/good bound and document uniqueness
+  ---
+  duration_ms: 1.114732
+  type: 'test'
+  ...
+# Subtest: unsupported or malformed operation types cannot enable final release
+ok 50 - unsupported or malformed operation types cannot enable final release
+  ---
+  duration_ms: 0.15786
+  type: 'test'
+  ...
+# Subtest: UX06 partial dispatch remains available during upstream production; only terminal good return can release
+ok 51 - UX06 partial dispatch remains available during upstream production; only terminal good return can release
+  ---
+  duration_ms: 0.510179
+  type: 'test'
+  ...
+# Subtest: P0-02: replacement job cannot inherit another job final quality approval
+ok 52 - P0-02: replacement job cannot inherit another job final quality approval
+  ---
+  duration_ms: 0.197803
+  type: 'test'
+  ...
+# Subtest: P0-03: each partial shipment retains links to the exact final approvals consumed
+ok 53 - P0-03: each partial shipment retains links to the exact final approvals consumed
+  ---
+  duration_ms: 0.375524
+  type: 'test'
+  ...
+# Subtest: P0-02: removing external operation cannot release stock already dispatched externally
+ok 54 - P0-02: removing external operation cannot release stock already dispatched externally
+  ---
+  duration_ms: 0.56783
+  type: 'test'
+  ...
+# Subtest: 250/150/100 and 60 good + 3 scrap + 12 pending + 25 unprocessed; 50 unstarted
+ok 55 - 250/150/100 and 60 good + 3 scrap + 12 pending + 25 unprocessed; 50 unstarted
+  ---
+  duration_ms: 28.223476
+  type: 'test'
+  ...
+# Subtest: fresh, completed and every read is pure without creating ledgers
+ok 56 - fresh, completed and every read is pure without creating ledgers
+  ---
+  duration_ms: 104.168319
+  type: 'test'
+  ...
+# Subtest: overplan physical receive
+ok 57 - overplan physical receive
+  ---
+  duration_ms: 17.513534
+  type: 'test'
+  ...
+# Subtest: 150 planned / 200 allocated
+ok 58 - 150 planned / 200 allocated
+  ---
+  duration_ms: 1.169584
+  type: 'test'
+  ...
+# Subtest: missing work order allocation
+ok 59 - missing work order allocation
+  ---
+  duration_ms: 1.639898
+  type: 'test'
+  ...
+# Subtest: work order invalid operation
+ok 60 - work order invalid operation
+  ---
+  duration_ms: 2.195148
+  type: 'test'
+  ...
+# Subtest: missing order
+ok 61 - missing order
+  ---
+  duration_ms: 0.4918
+  type: 'test'
+  ...
+# Subtest: duplicate work order
+ok 62 - duplicate work order
+  ---
+  duration_ms: 1.267778
+  type: 'test'
+  ...
+# Subtest: duplicate order
+ok 63 - duplicate order
+  ---
+  duration_ms: 6.752667
+  type: 'test'
+  ...
+# Subtest: orphan ledger
+ok 64 - orphan ledger
+  ---
+  duration_ms: 3.612822
+  type: 'test'
+  ...
+# Subtest: negative production
+ok 65 - negative production
+  ---
+  duration_ms: 0.43744
+  type: 'test'
+  ...
+# Subtest: NaN inventory
+ok 66 - NaN inventory
+  ---
+  duration_ms: 0.331837
+  type: 'test'
+  ...
+# Subtest: unsafe integer
+ok 67 - unsafe integer
+  ---
+  duration_ms: 0.313039
+  type: 'test'
+  ...
+# Subtest: fractional pieces
+ok 68 - fractional pieces
+  ---
+  duration_ms: 0.31537
+  type: 'test'
+  ...
+# Subtest: production exceeds received
+ok 69 - production exceeds received
+  ---
+  duration_ms: 3.172398
+  type: 'test'
+  ...
+# Subtest: negative material balance
+ok 70 - negative material balance
+  ---
+  duration_ms: 0.795043
+  type: 'test'
+  ...
+# Subtest: invalid material conversion
+ok 71 - invalid material conversion
+  ---
+  duration_ms: 0.850077
+  type: 'test'
+  ...
+# Subtest: invalid material unit
+ok 72 - invalid material unit
+  ---
+  duration_ms: 1.435301
+  type: 'test'
+  ...
+# Subtest: negative allocation after release
+ok 73 - negative allocation after release
+  ---
+  duration_ms: 0.911664
+  type: 'test'
+  ...
+# Subtest: unknown operator
+ok 74 - unknown operator
+  ---
+  duration_ms: 0.506422
+  type: 'test'
+  ...
+# Subtest: duplicate transfer command
+ok 75 - duplicate transfer command
+  ---
+  duration_ms: 5.238376
+  type: 'test'
+  ...
+# Subtest: duplicate acceptance
+ok 76 - duplicate acceptance
+  ---
+  duration_ms: 3.257509
+  type: 'test'
+  ...
+# Subtest: missing movement source
+ok 77 - missing movement source
+  ---
+  duration_ms: 3.527736
+  type: 'test'
+  ...
+# Subtest: orphan transfer lot
+ok 78 - orphan transfer lot
+  ---
+  duration_ms: 5.841449
+  type: 'test'
+  ...
+# Subtest: orphan consumption without transfers
+ok 79 - orphan consumption without transfers
+  ---
+  duration_ms: 1.111825
+  type: 'test'
+  ...
+# Subtest: lot overdraw
+ok 80 - lot overdraw
+  ---
+  duration_ms: 0.698068
+  type: 'test'
+  ...
+# Subtest: duplicate shipment command
+ok 81 - duplicate shipment command
+  ---
+  duration_ms: 2.161227
+  type: 'test'
+  ...
+# Subtest: shipment exceeds approved
+ok 82 - shipment exceeds approved
+  ---
+  duration_ms: 1.2404
+  type: 'test'
+  ...
+# Subtest: missing final approval
+ok 83 - missing final approval
+  ---
+  duration_ms: 8.079507
+  type: 'test'
+  ...
+# Subtest: final release before completion
+ok 84 - final release before completion
+  ---
+  duration_ms: 2.037412
+  type: 'test'
+  ...
+# Subtest: inspection exceeds production
+ok 85 - inspection exceeds production
+  ---
+  duration_ms: 1.495684
+  type: 'test'
+  ...
+# Subtest: invalid supplier reconciliation
+ok 86 - invalid supplier reconciliation
+  ---
+  duration_ms: 1.764432
+  type: 'test'
+  ...
+# Subtest: supplier return orphan
+ok 87 - supplier return orphan
+  ---
+  duration_ms: 1.339648
+  type: 'test'
+  ...
+# Subtest: customer return orphan
+ok 88 - customer return orphan
+  ---
+  duration_ms: 3.194176
+  type: 'test'
+  ...
+# Subtest: quarantine over disposition
+ok 89 - quarantine over disposition
+  ---
+  duration_ms: 1.459334
+  type: 'test'
+  ...
+# Subtest: rework provenance missing
+ok 90 - rework provenance missing
+  ---
+  duration_ms: 0.942231
+  type: 'test'
+  ...
+# Subtest: fake legacy exemption
+ok 91 - fake legacy exemption
+  ---
+  duration_ms: 1.376976
+  type: 'test'
+  ...
+# Subtest: rework quantity mismatch
+ok 92 - rework quantity mismatch
+  ---
+  duration_ms: 3.13707
+  type: 'test'
+  ...
+# Subtest: compensation exceeds loss
+ok 93 - compensation exceeds loss
+  ---
+  duration_ms: 1.414719
+  type: 'test'
+  ...
+# Subtest: compensation missing source
+ok 94 - compensation missing source
+  ---
+  duration_ms: 1.447735
+  type: 'test'
+  ...
+# Subtest: drawing acknowledgement missing revision
+ok 95 - drawing acknowledgement missing revision
+  ---
+  duration_ms: 0.656951
+  type: 'test'
+  ...
+# Subtest: null fields
+ok 96 - null fields
+  ---
+  duration_ms: 0.194989
+  type: 'test'
+  ...
+# Subtest: root null
+ok 97 - root null
+  ---
+  duration_ms: 0.103153
+  type: 'test'
+  ...
+# Subtest: unknown schema
+ok 98 - unknown schema
+  ---
+  duration_ms: 0.203739
+  type: 'test'
+  ...
+# Subtest: required disposition field missing
+ok 99 - required disposition field missing
+  ---
+  duration_ms: 0.241896
+  type: 'test'
+  ...
+# Subtest: transfer preserves historical production but moves exactly 25 physical remainder
+ok 100 - transfer preserves historical production but moves exactly 25 physical remainder
+  ---
+  duration_ms: 3.818979
+  type: 'test'
+  ...
+# Subtest: supported legacy totals and explicit legacy rework are warnings, not invented lots
+ok 101 - supported legacy totals and explicit legacy rework are warnings, not invented lots
+  ---
+  duration_ms: 1.811171
+  type: 'test'
+  ...
+# Subtest: supplier partial dispatch/return + scrap/rework/loss conserve quantity
+ok 102 - supplier partial dispatch/return + scrap/rework/loss conserve quantity
+  ---
+  duration_ms: 7.387244
+  type: 'test'
+  ...
+# Subtest: customer return quarantine, restock, reship and rework conserve exactly
+ok 103 - customer return quarantine, restock, reship and rework conserve exactly
+  ---
+  duration_ms: 14.52419
+  type: 'test'
+  ...
+# Subtest: quality rework inspection execution and results retain valid origin
+ok 104 - quality rework inspection execution and results retain valid origin
+  ---
+  duration_ms: 3.126867
+  type: 'test'
+  ...
+# Subtest: drawing versions and acknowledgement are valid; tampering detected
+ok 105 - drawing versions and acknowledgement are valid; tampering detected
+  ---
+  duration_ms: 1.114032
+  type: 'test'
+  ...
+# Subtest: compensation raises production plan and receipt limit without changing demand
+ok 106 - compensation raises production plan and receipt limit without changing demand
+  ---
+  duration_ms: 1.322625
+  type: 'test'
+  ...
+# Subtest: adjacent operation reservation/send/accept and production valid
+ok 107 - adjacent operation reservation/send/accept and production valid
+  ---
+  duration_ms: 6.111526
+  type: 'test'
+  ...
+# Subtest: invalid affected record remains read-only at persistence boundary
+ok 108 - invalid affected record remains read-only at persistence boundary
+  ---
+  duration_ms: 2.672726
+  type: 'test'
+  ...
+# Subtest: new invalid transaction is rejected before storage without partial state
+ok 109 - new invalid transaction is rejected before storage without partial state
+  ---
+  duration_ms: 134.795962
+  type: 'test'
+  ...
+# Subtest: unrelated valid order and role selection remain usable beside invalid data
+ok 110 - unrelated valid order and role selection remain usable beside invalid data
+  ---
+  duration_ms: 2.773688
+  type: 'test'
+  ...
+# Subtest: schema-invalid persisted data retains P0-07 recovery and raw export
+ok 111 - schema-invalid persisted data retains P0-07 recovery and raw export
+  ---
+  duration_ms: 0.368233
+  type: 'test'
+  ...
+# Subtest: audit cannot invoke storage and is deterministic on deeply frozen snapshots
+ok 112 - audit cannot invoke storage and is deterministic on deeply frozen snapshots
+  ---
+  duration_ms: 2.473503
+  type: 'test'
+  ...
+# Subtest: duplicate inspection records cannot approve production twice
+ok 113 - duplicate inspection records cannot approve production twice
+  ---
+  duration_ms: 1.123254
+  type: 'test'
+  ...
+# Subtest: supplier rework needs matching return and scrap records
+ok 114 - supplier rework needs matching return and scrap records
+  ---
+  duration_ms: 0.721414
+  type: 'test'
+  ...
+# Subtest: supplier disposition preserves exact dispatch source proof
+ok 115 - supplier disposition preserves exact dispatch source proof
+  ---
+  duration_ms: 0.633598
+  type: 'test'
+  ...
+# Subtest: return rework must preserve case and disposition provenance
+ok 116 - return rework must preserve case and disposition provenance
+  ---
+  duration_ms: 0.702139
+  type: 'test'
+  ...
+# Subtest: reversed customer return cannot retain a stock disposition
+ok 117 - reversed customer return cannot retain a stock disposition
+  ---
+  duration_ms: 0.662621
+  type: 'test'
+  ...
+# Subtest: shipment cannot predate linked final approval
+ok 118 - shipment cannot predate linked final approval
+  ---
+  duration_ms: 0.977627
+  type: 'test'
+  ...
+# Subtest: material duplicate document is detected
+ok 119 - material duplicate document is detected
+  ---
+  duration_ms: 0.402988
+  type: 'test'
+  ...
+# Subtest: unsafe aggregate arithmetic is reported without normalizing counters
+ok 120 - unsafe aggregate arithmetic is reported without normalizing counters
+  ---
+  duration_ms: 1.326878
+  type: 'test'
+  ...
+# Subtest: new timestamped receipt history must match actual direct receipts
+ok 121 - new timestamped receipt history must match actual direct receipts
+  ---
+  duration_ms: 1.047159
+  type: 'test'
+  ...
+# Subtest: transferred good history does not become on-hand good at source
+ok 122 - transferred good history does not become on-hand good at source
+  ---
+  duration_ms: 1.647434
+  type: 'test'
+  ...
+# Subtest: out-of-order transfer history is invalid even with a single acceptance
+ok 123 - out-of-order transfer history is invalid even with a single acceptance
+  ---
+  duration_ms: 1.724529
+  type: 'test'
+  ...
+# Subtest: operation reservation initial amount and released amount reconcile
+ok 124 - operation reservation initial amount and released amount reconcile
+  ---
+  duration_ms: 1.868112
+  type: 'test'
+  ...
+# Subtest: operation cancellation preserves initial reservation and release history
+ok 125 - operation cancellation preserves initial reservation and release history
+  ---
+  duration_ms: 1.033205
+  type: 'test'
+  ...
+# Subtest: orphan existing event cannot be changed through unscoped mutation bypass
+ok 126 - orphan existing event cannot be changed through unscoped mutation bypass
+  ---
+  duration_ms: 2.166543
+  type: 'test'
+  ...
+# Subtest: unsafe legacy route remains read-only without treating absent provenance as corruption
+ok 127 - unsafe legacy route remains read-only without treating absent provenance as corruption
+  ---
+  duration_ms: 3.538432
+  type: 'test'
+  ...
+# Subtest: duplicate allocations are not deduplicated: sum still enforces plan
+ok 128 - duplicate allocations are not deduplicated: sum still enforces plan
+  ---
+  duration_ms: 0.418339
+  type: 'test'
+  ...
+# Subtest: historical exception cannot hide an actual missing job reference
+ok 129 - historical exception cannot hide an actual missing job reference
+  ---
+  duration_ms: 0.443233
+  type: 'test'
+  ...
+# Subtest: changed affected invalid order cannot be silently repaired via generic commit
+ok 130 - changed affected invalid order cannot be silently repaired via generic commit
+  ---
+  duration_ms: 2.073829
+  type: 'test'
+  ...
+# Subtest: cross-order allocation and movement references are rejected
+ok 131 - cross-order allocation and movement references are rejected
+  ---
+  duration_ms: 1.71854
+  type: 'test'
+  ...
+# Subtest: cross-order machine conflicts identify both affected orders
+ok 132 - cross-order machine conflicts identify both affected orders
+  ---
+  duration_ms: 2.77006
+  type: 'test'
+  ...
+# Subtest: historical downstream totals without lot provenance are supported warnings
+ok 133 - historical downstream totals without lot provenance are supported warnings
+  ---
+  duration_ms: 0.996865
+  type: 'test'
+  ...
+# Subtest: historical baseline cannot be forged by a new transaction
+ok 134 - historical baseline cannot be forged by a new transaction
+  ---
+  duration_ms: 4.783876
+  type: 'test'
+  ...
+# Subtest: legacy shipment archive cannot be appended by a new transaction
+ok 135 - legacy shipment archive cannot be appended by a new transaction
+  ---
+  duration_ms: 2.607557
+  type: 'test'
+  ...
+# Subtest: mixed historical receipt detail remains a warning while new receipts are bounded
+ok 136 - mixed historical receipt detail remains a warning while new receipts are bounded
+  ---
+  duration_ms: 0.772006
+  type: 'test'
+  ...
+# Subtest: assigned machine must exist in the current local demo catalog
+ok 137 - assigned machine must exist in the current local demo catalog
+  ---
+  duration_ms: 0.425008
+  type: 'test'
+  ...
+# Subtest: machine catalog validation permits supported assignments and rejects an unknown machine before persistence
+ok 138 - machine catalog validation permits supported assignments and rejects an unknown machine before persistence
+  ---
+  duration_ms: 1.258212
+  type: 'test'
+  ...
+# Subtest: schema rejects null without writing
+ok 139 - schema rejects null without writing
+  ---
+  duration_ms: 3.803308
+  type: 'test'
+  ...
+# Subtest: schema rejects jobs null without writing
+ok 140 - schema rejects jobs null without writing
+  ---
+  duration_ms: 0.664066
+  type: 'test'
+  ...
+# Subtest: schema rejects orders null without writing
+ok 141 - schema rejects orders null without writing
+  ---
+  duration_ms: 0.205888
+  type: 'test'
+  ...
+# Subtest: schema rejects unknown root without writing
+ok 142 - schema rejects unknown root without writing
+  ---
+  duration_ms: 0.212772
+  type: 'test'
+  ...
+# Subtest: schema rejects future without writing
+ok 143 - schema rejects future without writing
+  ---
+  duration_ms: 0.504632
+  type: 'test'
+  ...
+# Subtest: schema rejects missing schema without writing
+ok 144 - schema rejects missing schema without writing
+  ---
+  duration_ms: 0.196421
+  type: 'test'
+  ...
+# Subtest: schema rejects nested null without writing
+ok 145 - schema rejects nested null without writing
+  ---
+  duration_ms: 0.36215
+  type: 'test'
+  ...
+# Subtest: schema rejects invalid nested row without writing
+ok 146 - schema rejects invalid nested row without writing
+  ---
+  duration_ms: 0.474924
+  type: 'test'
+  ...
+# Subtest: malformed JSON is retained exactly and never replaced with defaults
+ok 147 - malformed JSON is retained exactly and never replaced with defaults
+  ---
+  duration_ms: 0.652935
+  type: 'test'
+  ...
+# Subtest: storage getter access failure has no fallback writable demo
+ok 148 - storage getter access failure has no fallback writable demo
+  ---
+  duration_ms: 1.309511
+  type: 'test'
+  ...
+# Subtest: legacy conversion is explicit separate validated copy and reversible by original key
+ok 149 - legacy conversion is explicit separate validated copy and reversible by original key
+  ---
+  duration_ms: 4.542129
+  type: 'test'
+  ...
+# Subtest: import never overwrites even an existing empty string
+ok 150 - import never overwrites even an existing empty string
+  ---
+  duration_ms: 0.430389
+  type: 'test'
+  ...
+# Subtest: failed/interrupted quota commits no partial memory and reload reconciles
+ok 151 - failed/interrupted quota commits no partial memory and reload reconciles
+  ---
+  duration_ms: 1.072162
+  type: 'test'
+  ...
+# Subtest: failed/interrupted write commits no partial memory and reload reconciles
+ok 152 - failed/interrupted write commits no partial memory and reload reconciles
+  ---
+  duration_ms: 0.577182
+  type: 'test'
+  ...
+# Subtest: failed/interrupted read commits no partial memory and reload reconciles
+ok 153 - failed/interrupted read commits no partial memory and reload reconciles
+  ---
+  duration_ms: 0.293868
+  type: 'test'
+  ...
+# Subtest: failed/interrupted silent commits no partial memory and reload reconciles
+ok 154 - failed/interrupted silent commits no partial memory and reload reconciles
+  ---
+  duration_ms: 0.957388
+  type: 'test'
+  ...
+# Subtest: failed/interrupted after commits no partial memory and reload reconciles
+ok 155 - failed/interrupted after commits no partial memory and reload reconciles
+  ---
+  duration_ms: 1.657306
+  type: 'test'
+  ...
+# Subtest: draft validation rejects coercion and exceptions without writes
+ok 156 - draft validation rejects coercion and exceptions without writes
+  ---
+  duration_ms: 29.253803
+  type: 'test'
+  ...
+# Subtest: readback failure blocks retries; durable history recovers once
+ok 157 - readback failure blocks retries; durable history recovers once
+  ---
+  duration_ms: 30.183454
+  type: 'test'
+  ...
+# Subtest: blank storage is missing, but empty string is malformed
+ok 158 - blank storage is missing, but empty string is malformed
+  ---
+  duration_ms: 0.345139
+  type: 'test'
+  ...
+# Subtest: critical material quota preserves state/history, then retry persists
+ok 159 - critical material quota preserves state/history, then retry persists
+  ---
+  duration_ms: 3.121151
+  type: 'test'
+  ...
+# Subtest: critical material write preserves state/history, then retry persists
+ok 160 - critical material write preserves state/history, then retry persists
+  ---
+  duration_ms: 0.863789
+  type: 'test'
+  ...
+# Subtest: critical plan quota preserves state/history, then retry persists
+ok 161 - critical plan quota preserves state/history, then retry persists
+  ---
+  duration_ms: 1.18774
+  type: 'test'
+  ...
+# Subtest: critical plan write preserves state/history, then retry persists
+ok 162 - critical plan write preserves state/history, then retry persists
+  ---
+  duration_ms: 0.74957
+  type: 'test'
+  ...
+# Subtest: critical dispatch quota preserves state/history, then retry persists
+ok 163 - critical dispatch quota preserves state/history, then retry persists
+  ---
+  duration_ms: 5.872081
+  type: 'test'
+  ...
+# Subtest: critical dispatch write preserves state/history, then retry persists
+ok 164 - critical dispatch write preserves state/history, then retry persists
+  ---
+  duration_ms: 20.047908
+  type: 'test'
+  ...
+# Subtest: critical final QA quota preserves state/history, then retry persists
+ok 165 - critical final QA quota preserves state/history, then retry persists
+  ---
+  duration_ms: 1.68504
+  type: 'test'
+  ...
+# Subtest: critical final QA write preserves state/history, then retry persists
+ok 166 - critical final QA write preserves state/history, then retry persists
+  ---
+  duration_ms: 0.733113
+  type: 'test'
+  ...
+# Subtest: critical drawing quota preserves state/history, then retry persists
+ok 167 - critical drawing quota preserves state/history, then retry persists
+  ---
+  duration_ms: 0.672419
+  type: 'test'
+  ...
+# Subtest: critical drawing write preserves state/history, then retry persists
+ok 168 - critical drawing write preserves state/history, then retry persists
+  ---
+  duration_ms: 0.430878
+  type: 'test'
+  ...
+# Subtest: critical assignment quota preserves state/history, then retry persists
+ok 169 - critical assignment quota preserves state/history, then retry persists
+  ---
+  duration_ms: 0.561825
+  type: 'test'
+  ...
+# Subtest: critical assignment write preserves state/history, then retry persists
+ok 170 - critical assignment write preserves state/history, then retry persists
+  ---
+  duration_ms: 0.351678
+  type: 'test'
+  ...
+# Subtest: critical shipment quota preserves state/history, then retry persists
+ok 171 - critical shipment quota preserves state/history, then retry persists
+  ---
+  duration_ms: 0.820179
+  type: 'test'
+  ...
+# Subtest: critical shipment write preserves state/history, then retry persists
+ok 172 - critical shipment write preserves state/history, then retry persists
+  ---
+  duration_ms: 0.751326
+  type: 'test'
+  ...
+# Subtest: critical customer return quota preserves state/history, then retry persists
+ok 173 - critical customer return quota preserves state/history, then retry persists
+  ---
+  duration_ms: 1.40846
+  type: 'test'
+  ...
+# Subtest: critical customer return write preserves state/history, then retry persists
+ok 174 - critical customer return write preserves state/history, then retry persists
+  ---
+  duration_ms: 0.901814
+  type: 'test'
+  ...
+# Subtest: critical return disposition quota preserves state/history, then retry persists
+ok 175 - critical return disposition quota preserves state/history, then retry persists
+  ---
+  duration_ms: 1.194108
+  type: 'test'
+  ...
+# Subtest: critical return disposition write preserves state/history, then retry persists
+ok 176 - critical return disposition write preserves state/history, then retry persists
+  ---
+  duration_ms: 1.032257
+  type: 'test'
+  ...
+# Subtest: critical external return quota preserves state/history, then retry persists
+ok 177 - critical external return quota preserves state/history, then retry persists
+  ---
+  duration_ms: 80.462422
+  type: 'test'
+  ...
+# Subtest: critical external return write preserves state/history, then retry persists
+ok 178 - critical external return write preserves state/history, then retry persists
+  ---
+  duration_ms: 0.896204
+  type: 'test'
+  ...
+# Subtest: critical inspection quota preserves state/history, then retry persists
+ok 179 - critical inspection quota preserves state/history, then retry persists
+  ---
+  duration_ms: 2.870294
+  type: 'test'
+  ...
+# Subtest: critical inspection write preserves state/history, then retry persists
+ok 180 - critical inspection write preserves state/history, then retry persists
+  ---
+  duration_ms: 0.819536
+  type: 'test'
+  ...
+# Subtest: critical rework quota preserves state/history, then retry persists
+ok 181 - critical rework quota preserves state/history, then retry persists
+  ---
+  duration_ms: 1.323301
+  type: 'test'
+  ...
+# Subtest: critical rework write preserves state/history, then retry persists
+ok 182 - critical rework write preserves state/history, then retry persists
+  ---
+  duration_ms: 1.330181
+  type: 'test'
+  ...
+# Subtest: critical compensation quota preserves state/history, then retry persists
+ok 183 - critical compensation quota preserves state/history, then retry persists
+  ---
+  duration_ms: 5.536778
+  type: 'test'
+  ...
+# Subtest: critical compensation write preserves state/history, then retry persists
+ok 184 - critical compensation write preserves state/history, then retry persists
+  ---
+  duration_ms: 1.326468
+  type: 'test'
+  ...
+# Subtest: critical transfer quota preserves state/history, then retry persists
+ok 185 - critical transfer quota preserves state/history, then retry persists
+  ---
+  duration_ms: 1.524716
+  type: 'test'
+  ...
+# Subtest: critical transfer write preserves state/history, then retry persists
+ok 186 - critical transfer write preserves state/history, then retry persists
+  ---
+  duration_ms: 0.982496
+  type: 'test'
+  ...
+# Subtest: critical policy quota preserves state/history, then retry persists
+ok 187 - critical policy quota preserves state/history, then retry persists
+  ---
+  duration_ms: 8.959703
+  type: 'test'
+  ...
+# Subtest: critical policy write preserves state/history, then retry persists
+ok 188 - critical policy write preserves state/history, then retry persists
+  ---
+  duration_ms: 0.544237
+  type: 'test'
+  ...
+# Subtest: critical rework assignment quota preserves state/history, then retry persists
+ok 189 - critical rework assignment quota preserves state/history, then retry persists
+  ---
+  duration_ms: 1.833112
+  type: 'test'
+  ...
+# Subtest: critical rework assignment write preserves state/history, then retry persists
+ok 190 - critical rework assignment write preserves state/history, then retry persists
+  ---
+  duration_ms: 0.912904
+  type: 'test'
+  ...
+# Subtest: critical rework execution quota preserves state/history, then retry persists
+ok 191 - critical rework execution quota preserves state/history, then retry persists
+  ---
+  duration_ms: 1.085678
+  type: 'test'
+  ...
+# Subtest: critical rework execution write preserves state/history, then retry persists
+ok 192 - critical rework execution write preserves state/history, then retry persists
+  ---
+  duration_ms: 1.731554
+  type: 'test'
+  ...
+# Subtest: critical legacy rework explicit link quota preserves state/history, then retry persists
+ok 193 - critical legacy rework explicit link quota preserves state/history, then retry persists
+  ---
+  duration_ms: 5.820396
+  type: 'test'
+  ...
+# Subtest: critical legacy rework explicit link write preserves state/history, then retry persists
+ok 194 - critical legacy rework explicit link write preserves state/history, then retry persists
+  ---
+  duration_ms: 1.016277
+  type: 'test'
+  ...
+# Subtest: critical material authorization quota preserves state/history, then retry persists
+ok 195 - critical material authorization quota preserves state/history, then retry persists
+  ---
+  duration_ms: 0.794513
+  type: 'test'
+  ...
+# Subtest: critical material authorization write preserves state/history, then retry persists
+ok 196 - critical material authorization write preserves state/history, then retry persists
+  ---
+  duration_ms: 0.528075
+  type: 'test'
+  ...
+# Subtest: critical return reversal quota preserves state/history, then retry persists
+ok 197 - critical return reversal quota preserves state/history, then retry persists
+  ---
+  duration_ms: 1.117763
+  type: 'test'
+  ...
+# Subtest: critical return reversal write preserves state/history, then retry persists
+ok 198 - critical return reversal write preserves state/history, then retry persists
+  ---
+  duration_ms: 12.16646
+  type: 'test'
+  ...
+# Subtest: critical return rework result quota preserves state/history, then retry persists
+ok 199 - critical return rework result quota preserves state/history, then retry persists
+  ---
+  duration_ms: 1.955758
+  type: 'test'
+  ...
+# Subtest: critical return rework result write preserves state/history, then retry persists
+ok 200 - critical return rework result write preserves state/history, then retry persists
+  ---
+  duration_ms: 3.766986
+  type: 'test'
+  ...
+# Subtest: critical supplier rework result quota preserves state/history, then retry persists
+ok 201 - critical supplier rework result quota preserves state/history, then retry persists
+  ---
+  duration_ms: 1.376043
+  type: 'test'
+  ...
+# Subtest: critical supplier rework result write preserves state/history, then retry persists
+ok 202 - critical supplier rework result write preserves state/history, then retry persists
+  ---
+  duration_ms: 1.004851
+  type: 'test'
+  ...
+# Subtest: critical drawing acknowledgement quota preserves state/history, then retry persists
+ok 203 - critical drawing acknowledgement quota preserves state/history, then retry persists
+  ---
+  duration_ms: 1.244112
+  type: 'test'
+  ...
+# Subtest: critical drawing acknowledgement write preserves state/history, then retry persists
+ok 204 - critical drawing acknowledgement write preserves state/history, then retry persists
+  ---
+  duration_ms: 0.816579
+  type: 'test'
+  ...
+# Subtest: critical take ownership quota preserves state/history, then retry persists
+ok 205 - critical take ownership quota preserves state/history, then retry persists
+  ---
+  duration_ms: 0.558986
+  type: 'test'
+  ...
+# Subtest: critical take ownership write preserves state/history, then retry persists
+ok 206 - critical take ownership write preserves state/history, then retry persists
+  ---
+  duration_ms: 0.485137
+  type: 'test'
+  ...
+# Subtest: critical machine release quota preserves state/history, then retry persists
+ok 207 - critical machine release quota preserves state/history, then retry persists
+  ---
+  duration_ms: 1.259115
+  type: 'test'
+  ...
+# Subtest: critical machine release write preserves state/history, then retry persists
+ok 208 - critical machine release write preserves state/history, then retry persists
+  ---
+  duration_ms: 3.90765
+  type: 'test'
+  ...
+# Subtest: critical plan reduction quota preserves state/history, then retry persists
+ok 209 - critical plan reduction quota preserves state/history, then retry persists
+  ---
+  duration_ms: 1.069854
+  type: 'test'
+  ...
+# Subtest: critical plan reduction write preserves state/history, then retry persists
+ok 210 - critical plan reduction write preserves state/history, then retry persists
+  ---
+  duration_ms: 0.847965
+  type: 'test'
+  ...
+# Subtest: critical operation send quota preserves state/history, then retry persists
+ok 211 - critical operation send quota preserves state/history, then retry persists
+  ---
+  duration_ms: 6.46779
+  type: 'test'
+  ...
+# Subtest: critical operation send write preserves state/history, then retry persists
+ok 212 - critical operation send write preserves state/history, then retry persists
+  ---
+  duration_ms: 4.793829
+  type: 'test'
+  ...
+# Subtest: critical operation accept quota preserves state/history, then retry persists
+ok 213 - critical operation accept quota preserves state/history, then retry persists
+  ---
+  duration_ms: 1.354111
+  type: 'test'
+  ...
+# Subtest: critical operation accept write preserves state/history, then retry persists
+ok 214 - critical operation accept write preserves state/history, then retry persists
+  ---
+  duration_ms: 1.038087
+  type: 'test'
+  ...
+# Subtest: critical transfer accept quota preserves state/history, then retry persists
+ok 215 - critical transfer accept quota preserves state/history, then retry persists
+  ---
+  duration_ms: 1.160907
+  type: 'test'
+  ...
+# Subtest: critical transfer accept write preserves state/history, then retry persists
+ok 216 - critical transfer accept write preserves state/history, then retry persists
+  ---
+  duration_ms: 0.830958
+  type: 'test'
+  ...
+# Subtest: critical transfer reverse quota preserves state/history, then retry persists
+ok 217 - critical transfer reverse quota preserves state/history, then retry persists
+  ---
+  duration_ms: 1.076225
+  type: 'test'
+  ...
+# Subtest: critical transfer reverse write preserves state/history, then retry persists
+ok 218 - critical transfer reverse write preserves state/history, then retry persists
+  ---
+  duration_ms: 1.055542
+  type: 'test'
+  ...
+# Subtest: copy failure quota never changes source
+ok 219 - copy failure quota never changes source
+  ---
+  duration_ms: 0.296038
+  type: 'test'
+  ...
+# Subtest: copy failure write never changes source
+ok 220 - copy failure write never changes source
+  ---
+  duration_ms: 0.200795
+  type: 'test'
+  ...
+# Subtest: copy failure after never changes source
+ok 221 - copy failure after never changes source
+  ---
+  duration_ms: 0.207029
+  type: 'test'
+  ...
+# Subtest: copy failure silent never changes source
+ok 222 - copy failure silent never changes source
+  ---
+  duration_ms: 0.164353
+  type: 'test'
+  ...
+# Subtest: externally changed malformed storage blocks commit without overwrite
+ok 223 - externally changed malformed storage blocks commit without overwrite
+  ---
+  duration_ms: 0.242826
+  type: 'test'
+  ...
+# Subtest: reserved dictionary identifiers enter recovery, without prototype mutation
+ok 224 - reserved dictionary identifiers enter recovery, without prototype mutation
+  ---
+  duration_ms: 0.152114
+  type: 'test'
+  ...
+# Subtest: P0-05: split 150 into 100+50 across machines and reject additional 1
+ok 225 - P0-05: split 150 into 100+50 across machines and reject additional 1
+  ---
+  duration_ms: 7.226801
+  type: 'test'
+  ...
+# Subtest: P0-05: existing unknown job plan conservatively occupies order quantity without migration
+ok 226 - P0-05: existing unknown job plan conservatively occupies order quantity without migration
+  ---
+  duration_ms: 1.911274
+  type: 'test'
+  ...
+# Subtest: P0-05: invalid plan 0 is atomic
+ok 227 - P0-05: invalid plan 0 is atomic
+  ---
+  duration_ms: 0.277262
+  type: 'test'
+  ...
+# Subtest: P0-05: invalid plan -1 is atomic
+ok 228 - P0-05: invalid plan -1 is atomic
+  ---
+  duration_ms: 0.683739
+  type: 'test'
+  ...
+# Subtest: P0-05: invalid plan 1.5 is atomic
+ok 229 - P0-05: invalid plan 1.5 is atomic
+  ---
+  duration_ms: 0.498873
+  type: 'test'
+  ...
+# Subtest: P0-05: invalid plan NaN is atomic
+ok 230 - P0-05: invalid plan NaN is atomic
+  ---
+  duration_ms: 0.248132
+  type: 'test'
+  ...
+# Subtest: P0-05: invalid plan Infinity is atomic
+ok 231 - P0-05: invalid plan Infinity is atomic
+  ---
+  duration_ms: 1.596626
+  type: 'test'
+  ...
+# Subtest: P0-05: invalid plan 151 is atomic
+ok 232 - P0-05: invalid plan 151 is atomic
+  ---
+  duration_ms: 0.212469
+  type: 'test'
+  ...
+# Subtest: P0-05: duplicate id, missing job id, role and occupied/unknown machines reject
+ok 233 - P0-05: duplicate id, missing job id, role and occupied/unknown machines reject
+  ---
+  duration_ms: 0.933992
+  type: 'test'
+  ...
+# Subtest: P0-05: physical 25 remains while unstarted 50 is explicitly released from plan and raw allocation
+ok 234 - P0-05: physical 25 remains while unstarted 50 is explicitly released from plan and raw allocation
+  ---
+  duration_ms: 2.164632
+  type: 'test'
+  ...
+# Subtest: P0-05: 100+50 downstream reserves eligible good, neither raw receipt nor physical availability is created
+ok 235 - P0-05: 100+50 downstream reserves eligible good, neither raw receipt nor physical availability is created
+  ---
+  duration_ms: 6.485842
+  type: 'test'
+  ...
+# Subtest: P0-05: only completed approved good creates downstream plans; pending, scrap, setup and rework excluded
+ok 236 - P0-05: only completed approved good creates downstream plans; pending, scrap, setup and rework excluded
+  ---
+  duration_ms: 0.675772
+  type: 'test'
+  ...
+# Subtest: P0-05: cancelled reservations release source once and retain history
+ok 237 - P0-05: cancelled reservations release source once and retain history
+  ---
+  duration_ms: 1.392379
+  type: 'test'
+  ...
+# Subtest: P0-05: send/accept retry and reduction of in-transit/received inputs reject
+ok 238 - P0-05: send/accept retry and reduction of in-transit/received inputs reject
+  ---
+  duration_ms: 0.864356
+  type: 'test'
+  ...
+# Subtest: P0-05: third operation cannot skip the second, full three-step lineage unlocks only final job
+ok 239 - P0-05: third operation cannot skip the second, full three-step lineage unlocks only final job
+  ---
+  duration_ms: 1.989449
+  type: 'test'
+  ...
+# Subtest: P0-05: multi-internal route with terminal supplier cannot dispatch op0 output
+ok 240 - P0-05: multi-internal route with terminal supplier cannot dispatch op0 output
+  ---
+  duration_ms: 1.115833
+  type: 'test'
+  ...
+# Subtest: P0-05: route edit, source reopening or output reduction invalidate input proof at commit
+ok 241 - P0-05: route edit, source reopening or output reduction invalidate input proof at commit
+  ---
+  duration_ms: 1.022031
+  type: 'test'
+  ...
+# Subtest: P0-05: internal-external-internal remains closed; external jobs cannot be falsely planned as internal
+ok 242 - P0-05: internal-external-internal remains closed; external jobs cannot be falsely planned as internal
+  ---
+  duration_ms: 0.270383
+  type: 'test'
+  ...
+# Subtest: P0-05: wrong order, wrong good lot, oversized target reservations and duplicate proofs fail closed
+ok 243 - P0-05: wrong order, wrong good lot, oversized target reservations and duplicate proofs fail closed
+  ---
+  duration_ms: 1.582682
+  type: 'test'
+  ...
+# Subtest: P0-05: same-operation physical movement cannot consume capacity already reserved for operation inputs
+ok 244 - P0-05: same-operation physical movement cannot consume capacity already reserved for operation inputs
+  ---
+  duration_ms: 0.948032
+  type: 'test'
+  ...
+# Subtest: P0-05: malformed existing plan cannot turn capacity into an unbounded plan
+ok 245 - P0-05: malformed existing plan cannot turn capacity into an unbounded plan
+  ---
+  duration_ms: 0.263406
+  type: 'test'
+  ...
+# Subtest: P0-05: one downstream plan draws from two upstream job lots without duplicate spending
+ok 246 - P0-05: one downstream plan draws from two upstream job lots without duplicate spending
+  ---
+  duration_ms: 2.41704
+  type: 'test'
+  ...
+# Subtest: P0-05: route rewrite cannot re-reserve good already sent to an external operation
+ok 247 - P0-05: route rewrite cannot re-reserve good already sent to an external operation
+  ---
+  duration_ms: 0.277709
+  type: 'test'
+  ...
+# Subtest: P0-04: 25 physical units leave source immediately, remain in transit until acceptance; 50 unstarted stay planned
+ok 248 - P0-04: 25 physical units leave source immediately, remain in transit until acceptance; 50 unstarted stay planned
+  ---
+  duration_ms: 10.338864
+  type: 'test'
+  ...
+# Subtest: P0-04: read-only projection never creates lots or converts old records
+ok 249 - P0-04: read-only projection never creates lots or converts old records
+  ---
+  duration_ms: 0.520483
+  type: 'test'
+  ...
+# Subtest: P0-04: reject nonphysical/invalid quantity 0
+ok 250 - P0-04: reject nonphysical/invalid quantity 0
+  ---
+  duration_ms: 0.307319
+  type: 'test'
+  ...
+# Subtest: P0-04: reject nonphysical/invalid quantity -1
+ok 251 - P0-04: reject nonphysical/invalid quantity -1
+  ---
+  duration_ms: 0.206164
+  type: 'test'
+  ...
+# Subtest: P0-04: reject nonphysical/invalid quantity 1.5
+ok 252 - P0-04: reject nonphysical/invalid quantity 1.5
+  ---
+  duration_ms: 0.186678
+  type: 'test'
+  ...
+# Subtest: P0-04: reject nonphysical/invalid quantity NaN
+ok 253 - P0-04: reject nonphysical/invalid quantity NaN
+  ---
+  duration_ms: 0.161738
+  type: 'test'
+  ...
+# Subtest: P0-04: reject nonphysical/invalid quantity Infinity
+ok 254 - P0-04: reject nonphysical/invalid quantity Infinity
+  ---
+  duration_ms: 0.282811
+  type: 'test'
+  ...
+# Subtest: P0-04: reject nonphysical/invalid quantity 26
+ok 255 - P0-04: reject nonphysical/invalid quantity 26
+  ---
+  duration_ms: 0.160698
+  type: 'test'
+  ...
+# Subtest: P0-04: reject nonphysical/invalid quantity 50
+ok 256 - P0-04: reject nonphysical/invalid quantity 50
+  ---
+  duration_ms: 0.484004
+  type: 'test'
+  ...
+# Subtest: P0-04: reject nonphysical/invalid quantity 75
+ok 257 - P0-04: reject nonphysical/invalid quantity 75
+  ---
+  duration_ms: 0.533961
+  type: 'test'
+  ...
+# Subtest: P0-04: duplicate issue and acceptance/reload retries cannot create stock
+ok 258 - P0-04: duplicate issue and acceptance/reload retries cannot create stock
+  ---
+  duration_ms: 0.957528
+  type: 'test'
+  ...
+# Subtest: P0-04: pending destination capacity includes other in-transit lots
+ok 259 - P0-04: pending destination capacity includes other in-transit lots
+  ---
+  duration_ms: 0.459013
+  type: 'test'
+  ...
+# Subtest: P0-04: reverse transit requires physical return confirmation and reason, retains history
+ok 260 - P0-04: reverse transit requires physical return confirmation and reason, retains history
+  ---
+  duration_ms: 0.646325
+  type: 'test'
+  ...
+# Subtest: P0-04: accepted unused lot can be physically returned; original 25/50 balances restored
+ok 261 - P0-04: accepted unused lot can be physically returned; original 25/50 balances restored
+  ---
+  duration_ms: 0.326344
+  type: 'test'
+  ...
+# Subtest: P0-04: accepted consumed or forwarded lot cannot be reversed
+ok 262 - P0-04: accepted consumed or forwarded lot cannot be reversed
+  ---
+  duration_ms: 2.199311
+  type: 'test'
+  ...
+# Subtest: P0-04: transfer input produces verified goods without duplicate raw allocation, QA still required
+ok 263 - P0-04: transfer input produces verified goods without duplicate raw allocation, QA still required
+  ---
+  duration_ms: 1.939815
+  type: 'test'
+  ...
+# Subtest: P0-04: invalid destination, permission or handover has no partial writes
+ok 264 - P0-04: invalid destination, permission or handover has no partial writes
+  ---
+  duration_ms: 0.153776
+  type: 'test'
+  ...
+# Subtest: P0-04: invalid destination, permission or handover has no partial writes
+ok 265 - P0-04: invalid destination, permission or handover has no partial writes
+  ---
+  duration_ms: 0.106662
+  type: 'test'
+  ...
+# Subtest: P0-04: invalid destination, permission or handover has no partial writes
+ok 266 - P0-04: invalid destination, permission or handover has no partial writes
+  ---
+  duration_ms: 0.10178
+  type: 'test'
+  ...
+# Subtest: P0-04: invalid destination, permission or handover has no partial writes
+ok 267 - P0-04: invalid destination, permission or handover has no partial writes
+  ---
+  duration_ms: 0.116738
+  type: 'test'
+  ...
+# Subtest: P0-04: invalid destination, permission or handover has no partial writes
+ok 268 - P0-04: invalid destination, permission or handover has no partial writes
+  ---
+  duration_ms: 0.091621
+  type: 'test'
+  ...
+# Subtest: P0-04: invalid destination, permission or handover has no partial writes
+ok 269 - P0-04: invalid destination, permission or handover has no partial writes
+  ---
+  duration_ms: 0.134638
+  type: 'test'
+  ...
+# Subtest: P0-04: missing lot/reason, same job, unsupported operation and legacy good are not transferable
+ok 270 - P0-04: missing lot/reason, same job, unsupported operation and legacy good are not transferable
+  ---
+  duration_ms: 0.274994
+  type: 'test'
+  ...
+# Subtest: P0-04: accept revalidates route, target capacity and state after issue
+ok 271 - P0-04: accept revalidates route, target capacity and state after issue
+  ---
+  duration_ms: 0.594301
+  type: 'test'
+  ...
+# Subtest: P0-04: corrupted movement blocks transfer and customer shipping
+ok 272 - P0-04: corrupted movement blocks transfer and customer shipping
+  ---
+  duration_ms: 0.586894
+  type: 'test'
+  ...
+# Subtest: P0-04: consumed transfer lot cannot be resurrected by later direct receipts
+ok 273 - P0-04: consumed transfer lot cannot be resurrected by later direct receipts
+  ---
+  duration_ms: 0.784503
+  type: 'test'
+  ...
+# Subtest: P0-04: cumulative good remains history when verified good leaves the location
+ok 274 - P0-04: cumulative good remains history when verified good leaves the location
+  ---
+  duration_ms: 0.882639
+  type: 'test'
+  ...
+# Subtest: P0-04: malformed new ledger fields fail closed without rewriting storage
+ok 275 - P0-04: malformed new ledger fields fail closed without rewriting storage
+  ---
+  duration_ms: 1.225027
+  type: 'test'
+  ...
+# Subtest: P0-04: pending acceptance reserves target plan independently of source availability
+ok 276 - P0-04: pending acceptance reserves target plan independently of source availability
+  ---
+  duration_ms: 0.366008
+  type: 'test'
+  ...
+# Subtest: P0-04: physical return cannot silently reopen a closed or handed-over source
+ok 277 - P0-04: physical return cannot silently reopen a closed or handed-over source
+  ---
+  duration_ms: 0.845103
+  type: 'test'
+  ...
+# Subtest: P1-02: assignment, self-take and ownership prevent machine impersonation
+ok 278 - P1-02: assignment, self-take and ownership prevent machine impersonation
+  ---
+  duration_ms: 3.503195
+  type: 'test'
+  ...
+# Subtest: P1-03: machine release preserves physical 25 and plan 50, occupied target and running reassignment reject
+ok 279 - P1-03: machine release preserves physical 25 and plan 50, occupied target and running reassignment reject
+  ---
+  duration_ms: 1.670256
+  type: 'test'
+  ...
+# Subtest: P1-06: operation-specific self-inspection grant can be revoked
+ok 280 - P1-06: operation-specific self-inspection grant can be revoked
+  ---
+  duration_ms: 0.364867
+  type: 'test'
+  ...
+# Subtest: P1-07: rework links inspection→execution→result and cannot be counted twice
+ok 281 - P1-07: rework links inspection→execution→result and cannot be counted twice
+  ---
+  duration_ms: 2.044591
+  type: 'test'
+  ...
+# Subtest: P1-13: drawing revisions retain old bytes, unique names and operator acknowledgements
+ok 282 - P1-13: drawing revisions retain old bytes, unique names and operator acknowledgements
+  ---
+  duration_ms: 1.334978
+  type: 'test'
+  ...
+# Subtest: P1-04: supplier/unit receipts convert to pieces and reject duplicate documents/fractional output
+ok 283 - P1-04: supplier/unit receipts convert to pieces and reject duplicate documents/fractional output
+  ---
+  duration_ms: 6.500163
+  type: 'test'
+  ...
+# Subtest: P1-05: supplier good+scrap+rework+loss reconciles exactly, only approved good releases
+ok 284 - P1-05: supplier good+scrap+rework+loss reconciles exactly, only approved good releases
+  ---
+  duration_ms: 2.531469
+  type: 'test'
+  ...
+# Subtest: P1-08: returned five reopen demand, restock final QA permits exactly five replacement shipments
+ok 285 - P1-08: returned five reopen demand, restock final QA permits exactly five replacement shipments
+  ---
+  duration_ms: 3.041573
+  type: 'test'
+  ...
+# Subtest: P1-08: return rework retains provenance and only good result restores ready stock
+ok 286 - P1-08: return rework retains provenance and only good result restores ready stock
+  ---
+  duration_ms: 3.26494
+  type: 'test'
+  ...
+# Subtest: P1-08: unused return can be reversed once with immutable quantity and reason
+ok 287 - P1-08: unused return can be reversed once with immutable quantity and reason
+  ---
+  duration_ms: 1.179646
+  type: 'test'
+  ...
+# Subtest: P1-15: 10 ordered with two scrap permits two replacement inputs/jobs without changing demand
+ok 288 - P1-15: 10 ordered with two scrap permits two replacement inputs/jobs without changing demand
+  ---
+  duration_ms: 1.295596
+  type: 'test'
+  ...
+# Subtest: P1-07: legacy rework is linked only explicitly, assigned and selected independently
+ok 289 - P1-07: legacy rework is linked only explicitly, assigned and selected independently
+  ---
+  duration_ms: 0.548201
+  type: 'test'
+  ...
+# Subtest: P1-03: urgent job uses released machine without moving prior material
+ok 290 - P1-03: urgent job uses released machine without moving prior material
+  ---
+  duration_ms: 0.412952
+  type: 'test'
+  ...
+# Subtest: P1 stock commands reject unauthorized dispositions without writes
+ok 291 - P1 stock commands reject unauthorized dispositions without writes
+  ---
+  duration_ms: 0.983387
+  type: 'test'
+  ...
+# Subtest: P1-15: replacement production reaches exactly ten net shipments
+ok 292 - P1-15: replacement production reaches exactly ten net shipments
+  ---
+  duration_ms: 1.433171
+  type: 'test'
+  ...
+1..292
+# tests 292
+# suites 0
+# pass 292
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1200.788943
+
+> ritim-flow-lite-demo@1.0.0-rc.1 test:recovery
+> node --test tests/server-pending-commands.test.cjs tests/server-wizard-workflow.test.cjs tests/legacy-recovery.test.cjs
+
+TAP version 13
+# Subtest: cleanup removes all legacy records without parsing or touching other keys
+ok 1 - cleanup removes all legacy records without parsing or touching other keys
+  ---
+  duration_ms: 1.238807
+  type: 'test'
+  ...
+# Subtest: storage failure stops access
+ok 2 - storage failure stops access
+  ---
+  duration_ms: 0.78317
+  type: 'test'
+  ...
+# Subtest: failed removal is detected
+ok 3 - failed removal is detected
+  ---
+  duration_ms: 1.082429
+  type: 'test'
+  ...
+# Subtest: registration and retry never persist business payload in browser storage
+ok 4 - registration and retry never persist business payload in browser storage
+  ---
+  duration_ms: 8.700757
+  type: 'test'
+  ...
+# Subtest: uncertain registration retains only opaque identity and reuses command identity
+ok 5 - uncertain registration retains only opaque identity and reuses command identity
+  ---
+  duration_ms: 0.819644
+  type: 'test'
+  ...
+# Subtest: uncertain workflow save retains command identity; simultaneous retries share a request
+ok 6 - uncertain workflow save retains command identity; simultaneous retries share a request
+  ---
+  duration_ms: 0.997299
+  type: 'test'
+  ...
+# Subtest: malformed metadata and unavailable storage fail closed without sending a command
+ok 7 - malformed metadata and unavailable storage fail closed without sending a command
+  ---
+  duration_ms: 0.818535
+  type: 'test'
+  ...
+# Subtest: a reopened tab discovers a committed but unacknowledged command on the server
+ok 8 - a reopened tab discovers a committed but unacknowledged command on the server
+  ---
+  duration_ms: 0.73441
+  type: 'test'
+  ...
+# Subtest: an acknowledgement committed before a lost response is reconciled without replay
+ok 9 - an acknowledgement committed before a lost response is reconciled without replay
+  ---
+  duration_ms: 0.802604
+  type: 'test'
+  ...
+# Subtest: lost response and reload resume the same route command without recreating order
+ok 10 - lost response and reload resume the same route command without recreating order
+  ---
+  duration_ms: 6.291398
+  type: 'test'
+  ...
+# Subtest: workflow data belongs to the verified actor scope
+ok 11 - workflow data belongs to the verified actor scope
+  ---
+  duration_ms: 0.28298
+  type: 'test'
+  ...
+# Subtest: confirmed rejection permits correction using a new command identity
+ok 12 - confirmed rejection permits correction using a new command identity
+  ---
+  duration_ms: 1.173439
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 290.498665
+
+> ritim-flow-lite-demo@1.0.0-rc.1 test:packaging
+> node --test tests/rc1-packaging.test.cjs tests/rc1-domain-gate.test.cjs tests/rc1-upgrade-rollback.test.cjs
+
+TAP version 13
+# Subtest: domain gate fails if a required suite is absent
+ok 1 - domain gate fails if a required suite is absent
+  ---
+  duration_ms: 137.241095
+  type: 'test'
+  ...
+# Subtest: domain gate fails when suites exist but too few tests run
+ok 2 - domain gate fails when suites exist but too few tests run
+  ---
+  duration_ms: 376.993029
+  type: 'test'
+  ...
+# Subtest: RC1 is deterministic, source-preserving and an exact public allowlist
+ok 3 - RC1 is deterministic, source-preserving and an exact public allowlist
+  ---
+  duration_ms: 503.815957
+  type: 'test'
+  ...
+# Subtest: RC1 verifies dependency order and rejects missing factories
+ok 4 - RC1 verifies dependency order and rejects missing factories
+  ---
+  duration_ms: 51.088794
+  type: 'test'
+  ...
+# Subtest: RC1 detects mixed/corrupt assets and never overwrites an edited candidate
+ok 5 - RC1 detects mixed/corrupt assets and never overwrites an edited candidate
+  ---
+  duration_ms: 87.058889
+  type: 'test'
+  ...
+# Subtest: RC1 rejects accidental development files in public output
+ok 6 - RC1 rejects accidental development files in public output
+  ---
+  duration_ms: 51.220524
+  type: 'test'
+  ...
+# Subtest: RC1 archive packaging rejects active legacy mutation code
+ok 7 - RC1 archive packaging rejects active legacy mutation code
+  ---
+  duration_ms: 32.742995
+  type: 'test'
+  ...
+# Subtest: RC1 verification never recreates a missing artifact or rewrites its manifest
+ok 8 - RC1 verification never recreates a missing artifact or rewrites its manifest
+  ---
+  duration_ms: 103.396273
+  type: 'test'
+  ...
+# Subtest: explicit fictional upgrade preserves the raw backup and rollback is read-only
+ok 9 - explicit fictional upgrade preserves the raw backup and rollback is read-only
+  ---
+  duration_ms: 296.292243
+  type: 'test'
+  ...
+# Subtest: separate fictional origins isolate old writers from the candidate snapshot
+ok 10 - separate fictional origins isolate old writers from the candidate snapshot
+  ---
+  duration_ms: 8.744631
+  type: 'test'
+  ...
+# Subtest: characterization: an unlocked old same-origin writer can overwrite committed history
+ok 11 - characterization: an unlocked old same-origin writer can overwrite committed history
+  ---
+  duration_ms: 9.311932
+  type: 'test'
+  ...
+# Subtest: unsupported fictional future data remains untouched in recovery
+ok 12 - unsupported fictional future data remains untouched in recovery
+  ---
+  duration_ms: 1.382632
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1053.149235
+
+> ritim-flow-lite-demo@1.0.0-rc.1 build:rc1
+> node scripts/build-rc1.cjs
+
+{
+  "release": "ritim-flow-lite-demo-v1.0-rc1",
+  "sourceDigest": "468c6c51e38e907ef4403da9706cf711383fcbb6f6d49eac028dcd0e572337d3",
+  "publicRoot": "/Users/user/projects/ritimFlowLite/RitimFlowLite-integration-operator-quality/dist/ritim-flow-lite-demo-v1.0-rc1/468c6c51e38e907ef4403da9706cf711383fcbb6f6d49eac028dcd0e572337d3/public",
+  "assets": 43,
+  "verified": true
+}
+
+> ritim-flow-lite-demo@1.0.0-rc.1 verify:rc1
+> node scripts/build-rc1.cjs --verify
+
+{
+  "release": "ritim-flow-lite-demo-v1.0-rc1",
+  "sourceDigest": "468c6c51e38e907ef4403da9706cf711383fcbb6f6d49eac028dcd0e572337d3",
+  "publicRoot": "/Users/user/projects/ritimFlowLite/RitimFlowLite-integration-operator-quality/dist/ritim-flow-lite-demo-v1.0-rc1/468c6c51e38e907ef4403da9706cf711383fcbb6f6d49eac028dcd0e572337d3/public",
+  "assets": 43,
+  "verified": true
+}
+
+> ritim-flow-lite-demo@1.0.0-rc.1 test:smoke
+> node scripts/smoke-rc1.cjs
+
+{"passed":1,"assetsChecked":43,"applicationErrors":0,"browser":"156.0.8078.74"}
+
+> ritim-flow-lite-demo@1.0.0-rc.1 test:browser
+> node scripts/run-browser.cjs
+
+PASS B01-1440: persisted legacy data survives loading and read-only navigation
+PASS B02-1440: production→close→QA→partial shipment→return keeps every screen consistent
+PASS B01-390: persisted legacy data survives loading and read-only navigation
+PASS B02-390: production→close→QA→partial shipment→return keeps every screen consistent
+PASS B01-360: persisted legacy data survives loading and read-only navigation
+PASS B02-360: production→close→QA→partial shipment→return keeps every screen consistent
+PASS B03: unsupported routes and preexisting final approvals cannot bypass terminal operation
+PASS B04: old openShip routes to guarded form; old saveShipment uses canonical command
+PASS B05: partial supplier movements retain caps, documents and good→QA→shipping chain
+PASS B06: UX05 250/150/100 equation and closure/overproduction guards remain intact
+PASS B07: UX05 inspection, rework and handover preserve quantities
+PASS B08: independent sales page cannot ship through UI, openShipment or ship
+PASS B09: read-only old approvals/dispatches stay visible but cannot release new inventory
+PASS B10: new model/service assets load on every route without app errors
+PASS B11: partial material receipts/allocations preserve free balance and reject excess
+PASS B12: manager restriction and legacy direct commit both revalidate final QA
+{"passed":16,"failed":0,"applicationErrors":0}
+FAIL T01-1440: issue, reload, accept, duplicate guards and 25/50 conservation
+PASS T01-390: issue, reload, accept, duplicate guards and 25/50 conservation
+PASS T01-360: issue, reload, accept, duplicate guards and 25/50 conservation
+PASS T02: 75 physical transfer rejected, pending transfer reserves destination capacity from direct receipt
+PASS T03: accepted physical return restores source and leaves plan unchanged, reload retains reversal reason
+PASS T04: transferred input production, inspection, closure, QA and shipment preserve lineage and totals
+PASS T05: failed storage write leaves both persisted and in-memory transfer untouched
+PASS T06: old localStorage data survives read-only transfer UI without migration
+PASS T07: transfer page accepts unassigned target without opening another machine job
+{"passed":8,"failed":1,"applicationErrors":0}
+{
+  "target": "working-tree",
+  "playwright": "1.64.1",
+  "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "suites": [
+    {
+      "suite": "p0",
+      "expected": 16,
+      "exit": 0,
+      "passed": 16,
+      "failed": 0,
+      "applicationErrors": 0,
+      "valid": true
+    },
+    {
+      "suite": "p0-transfer",
+      "expected": 9,
+      "exit": 1,
+      "passed": 8,
+      "failed": 1,
+      "applicationErrors": 0,
+      "valid": false
+    }
+  ],
+  "passed": 24,
+  "failed": 1,
+  "applicationErrors": 0
+}

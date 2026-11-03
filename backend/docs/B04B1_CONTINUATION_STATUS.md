@@ -1,0 +1,9 @@
+# B04B-1B/1C continuation — incomplete
+
+B04B-1A prerequisite was inspected and its PostgreSQL 16 restricted-role and existing projection tests rerun: 10/10 passed. Current full suite, including two new ordered reservation projection unit tests: 88/88 passed. These results do not validate a persisted reservation capability.
+
+`reservation-projection.js` evaluates explicitly ordered reserve/release entries and permits 12 approved → reserve 8 → release 3 → reserve 5 → available 2. It rejects duplicate IDs, invalid ordering, excess reservation/release and mismatched destination. It is a pure scaffold, not a source of authority: it has no database, tenant/site scoping, lot validation, locking, idempotency, authorization or audit. It must not be used to enable reservation commands.
+
+A physical provenance design remains necessary: B04A `production_ledger` records its output with the same `lot_id` as consumed material, and there is no separately persisted output-lot identity. B04B-1A therefore identifies the source input lot; it does not mint or attest an output lot. A safe implementation needs a versioned source-event → output-lot mapping linked to reconciled physical production before any API can claim the requested output-lot provenance, and must validate existing historical records without fabricating evidence. Whether the existing input-lot identity is accepted as the reservation's source-lot identifier or an explicit produced-lot entity is created must be decided and verified against frontend behavior.
+
+No reservation migration, reservation/release API, safe downstream planning, completion reconciliation or assignment/handover commands were implemented here. Drawing restrictions and unsupported downstream production remain unchanged. Full B04B-1 acceptance and Docker Compose smoke for the requested combined implementation were not run. NO-GO; no completion commit.

@@ -19,6 +19,8 @@ async function executeCommand(pool,{identity,tenantId,siteId,key,kind,payload,ca
  const hash=crypto.createHash('sha256').update(canonical({kind,payload})).digest('hex');
  return inTransaction(pool,async client=>{
   const scope=await authorizeScope(client,{identity,tenantId,siteId,capability});
+  const recovery=await client.query('SELECT status FROM pending_recovery_commands WHERE tenant_id=$1 AND site_id=$2 AND actor_id=$3 AND idempotency_key=$4 FOR UPDATE',[tenantId,siteId,identity.userId,key]);
+  if(recovery.rows[0]?.status==='rejected')throw new HttpError(409,'RECOVERY_REJECTED','Rejected recovery command cannot be executed');
   const inserted=await client.query(`INSERT INTO idempotency_records(tenant_id,site_id,actor_id,key,request_hash,status)
     VALUES($1,$2,$3,$4,$5,'pending') ON CONFLICT DO NOTHING RETURNING key`,[tenantId,siteId,identity.userId,key,hash]);
   if(!inserted.rowCount){

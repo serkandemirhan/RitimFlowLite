@@ -1,0 +1,71 @@
+TAP version 13
+# Subtest: pending and good remain unavailable without explicit approval
+ok 1 - pending and good remain unavailable without explicit approval
+  ---
+  duration_ms: 1.523378
+  type: 'test'
+  ...
+# Subtest: partial disposition and reservation preserve provenance and input objects
+ok 2 - partial disposition and reservation preserve provenance and input objects
+  ---
+  duration_ms: 2.276466
+  type: 'test'
+  ...
+# Subtest: reject over-disposition, over-reservation, duplicate ids and invalid provenance
+ok 3 - reject over-disposition, over-reservation, duplicate ids and invalid provenance
+  ---
+  duration_ms: 0.894333
+  type: 'test'
+  ...
+# Subtest: reject unsafe, negative and non-integer quantities
+ok 4 - reject unsafe, negative and non-integer quantities
+  ---
+  duration_ms: 0.417892
+  type: 'test'
+  ...
+# Subtest: append-only reservation release restores available quantity without changing history
+ok 5 - append-only reservation release restores available quantity without changing history
+  ---
+  duration_ms: 8.302652
+  type: 'test'
+  ...
+# Subtest: B04B-1A quality disposition using restricted runtime
+    # Subtest: partial decisions, retry, provenance and concurrent ceiling
+    ok 1 - partial decisions, retry, provenance and concurrent ceiling
+      ---
+      duration_ms: 1093.434309
+      type: 'test'
+      ...
+    # Subtest: good output requires a recorded decision and history is immutable
+    ok 2 - good output requires a recorded decision and history is immutable
+      ---
+      duration_ms: 266.525735
+      type: 'test'
+      ...
+    # Subtest: readiness checks quality grant and drawing restrictions remain fail closed
+    ok 3 - readiness checks quality grant and drawing restrictions remain fail closed
+      ---
+      duration_ms: 223.4459
+      type: 'test'
+      ...
+    # Subtest: audit failure rolls back quality and idempotency
+    ok 4 - audit failure rolls back quality and idempotency
+      ---
+      duration_ms: 381.312968
+      type: 'test'
+      ...
+    1..4
+ok 6 - B04B-1A quality disposition using restricted runtime
+  ---
+  duration_ms: 2844.718945
+  type: 'test'
+  ...
+1..6
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3538.280691

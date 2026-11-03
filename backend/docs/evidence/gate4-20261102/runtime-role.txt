@@ -1,0 +1,4 @@
+        rolname        | rolsuper | rolcreaterole | rolcreatedb | rolbypassrls
+-----------------------+----------+---------------+-------------+--------------
+ oc_764be62123_runtime | f        | f             | f           | f
+(1 row)

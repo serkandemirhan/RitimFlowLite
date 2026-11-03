@@ -1,0 +1,17 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),{randomUUID}=require('node:crypto');
+const {describe}=require('../src/recovery-catalog');
+const order=randomUUID(),job=randomUUID(),reserve=randomUUID();
+test('recovery catalog maps only supported commands to fixed endpoints and permissions',()=>{
+ assert.deepEqual(describe({kind:'createOrder',target:'',body:{customer:'fixture'}}),{capability:'orders.write',suffix:'/orders',payload:{customer:'fixture'}});
+ assert.equal(describe({kind:'plan',target:order,body:{}}).suffix,`/orders/${order}/work-orders`);
+ assert.equal(describe({kind:'production',target:job,body:{orderId:order,workOrderId:job,action:'results',payload:{quantity:1}}}).capability,'production.write');
+ assert.equal(describe({kind:'operation',target:reserve,body:{orderId:order,resourceId:reserve,command:'dispatch',payload:{quantity:1}}}).suffix,`/orders/${order}/output-reservations/${reserve}/dispatches`);
+ assert.deepEqual(describe({kind:'operation',target:order,body:{orderId:order,command:'reworkAllocate',payload:{decisionId:reserve,quantity:1}}}),{capability:'quality.write',suffix:`/orders/${order}/rework-allocations`,payload:{decisionId:reserve,quantity:1}});
+ assert.deepEqual(describe({kind:'operation',target:reserve,body:{orderId:order,resourceId:reserve,command:'reworkRelease',payload:{quantity:1}}}),{capability:'quality.write',suffix:`/orders/${order}/rework-allocations/${reserve}/releases`,payload:{quantity:1}});
+ assert.deepEqual(describe({kind:'operation',target:reserve,body:{orderId:order,resourceId:reserve,command:'outsourcingPlan',payload:{workOrderNumber:'F',plannedQuantity:1}}}),{capability:'planning.write',suffix:`/orders/${order}/outsourcing/returns/${reserve}/downstream-work-orders`,payload:{workOrderNumber:'F',plannedQuantity:1}});
+ assert.deepEqual(describe({kind:'operation',target:reserve,body:{orderId:order,resourceId:reserve,command:'reworkWorkOrder',payload:{workOrderNumber:'RW'}}}),{capability:'quality.write',suffix:`/orders/${order}/rework-allocations/${reserve}/work-order`,payload:{workOrderNumber:'RW'}});
+});
+test('catalog fails closed for arbitrary routes, mismatched resource and unknown operations',()=>{
+ for(const x of [{kind:'http://evil',target:'',body:{}},{kind:'createOrder',target:order,body:{}},{kind:'production',target:randomUUID(),body:{orderId:order,workOrderId:job,action:'results',payload:{}}},{kind:'production',target:job,body:{orderId:order,workOrderId:job,action:'../../orders',payload:{}}},{kind:'operation',target:reserve,body:{orderId:order,resourceId:reserve,command:'__proto__',payload:{}}}])assert.throws(()=>describe(x));
+});

@@ -9,7 +9,7 @@ test('B03A isolation on real PostgreSQL with actual restricted login',async t=>{
   await admin.query(`CREATE ROLE "${owner}" LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS`);
   await admin.query(`CREATE ROLE "${runtime}" LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS`);
   await admin.query(`CREATE SCHEMA "${schema}" AUTHORIZATION "${owner}"`);
-  migrations=new Pool({connectionString:roleUrl(owner),options:`-c search_path=${schema}`});assert.deepEqual(await migrate(migrations),['001','002','003','004','005','006','007']);
+  migrations=new Pool({connectionString:roleUrl(owner),options:`-c search_path=${schema}`});assert.deepEqual(await migrate(migrations),['001','002','003','004','005','006','007','008','009','010','011','012','013','014','015','016','017','018','019','020','021','022','023','024','025','026','027','028']);
   const c=await migrations.connect();try{await c.query('BEGIN');await provisionRuntime(c,schema,runtime);await c.query('COMMIT')}finally{c.release()}
   const seed=new Pool({connectionString:db,options:`-c search_path=${schema}`});try{
    await seed.query("INSERT INTO tenants(id,name) VALUES($1,'A'),($2,'B')",[ta,tb]);
@@ -25,9 +25,9 @@ test('B03A isolation on real PostgreSQL with actual restricted login',async t=>{
    const r=await appPool.query('SELECT current_user,rolsuper,rolbypassrls,rolcreatedb,rolcreaterole,rolinherit FROM pg_roles WHERE rolname=current_user');assert.equal(r.rows[0].current_user,runtime);for(const k of ['rolsuper','rolbypassrls','rolcreatedb','rolcreaterole','rolinherit'])assert.equal(r.rows[0][k],false);
    for(const sql of ['CREATE SCHEMA forbidden','CREATE TABLE forbidden(id int)','CREATE ROLE forbidden','UPDATE schema_migrations SET checksum=checksum','UPDATE site_memberships SET revoked_at=now()','ALTER TABLE orders DISABLE ROW LEVEL SECURITY','SELECT * FROM users'])await assert.rejects(appPool.query(sql),{code:'42501'});
   });
-  await t.test('all 25 business tables enforce RLS and runtime does not own them',async()=>{
-   const r=await admin.query(`SELECT c.relname,c.relrowsecurity,c.relforcerowsecurity,pg_get_userbyid(c.relowner) AS owner FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname=$1 AND c.relname=ANY($2::text[])`,[schema,['orders','operations','machines','work_orders','work_assignments','lots','material_receipts','reservations','physical_transfers','transfer_events','production_events','quality_decisions','rework_tasks','external_dispatches','external_returns','shipments','customer_returns','stock_movements','drawing_revisions','idempotency_records','audit_events','compensations','flow_transfers','physical_ledger','production_ledger']]);
-   assert.equal(r.rowCount,25);for(const x of r.rows){assert.equal(x.relrowsecurity,true,x.relname);assert.equal(x.relforcerowsecurity,true,x.relname);assert.equal(x.owner,owner,x.relname)}
+  await t.test('all 31 business tables enforce RLS and runtime does not own them',async()=>{
+   const r=await admin.query(`SELECT c.relname,c.relrowsecurity,c.relforcerowsecurity,pg_get_userbyid(c.relowner) AS owner FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname=$1 AND c.relname=ANY($2::text[])`,[schema,['orders','operations','machines','work_orders','work_assignments','lots','material_receipts','reservations','physical_transfers','transfer_events','production_events','quality_decisions','rework_tasks','external_dispatches','external_returns','shipments','customer_returns','stock_movements','drawing_revisions','idempotency_records','audit_events','compensations','flow_transfers','physical_ledger','production_ledger','output_dispositions','production_output_lots','output_reservation_events','operation_dispatches','operation_receipts','demo_material_sources']]);
+   assert.equal(r.rowCount,31);for(const x of r.rows){assert.equal(x.relrowsecurity,true,x.relname);assert.equal(x.relforcerowsecurity,true,x.relname);assert.equal(x.owner,owner,x.relname)}
   });
   await t.test('missing context fails closed and runtime cannot write domain rows',async()=>{
    assert.equal((await appPool.query('SELECT * FROM orders')).rowCount,0);

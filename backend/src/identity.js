@@ -1,7 +1,7 @@
 'use strict';
 const {HttpError}=require('./auth');
 // Inject only a server-configured verifier: { verify(token) -> {issuer, subject} }.
-function makeOidcVerifier({issuer,audience,jwksUrl,algorithms=['RS256'],cooldownDuration=30000,fetcher}) {
+function makeOidcVerifier({issuer,audience,jwksUrl,algorithms=['RS256'],cooldownDuration=30000,fetcher,allowJwtBearerTyp=false}) {
  if(!issuer||!audience||!jwksUrl)throw Error('OIDC_ISSUER, OIDC_AUDIENCE and OIDC_JWKS_URL are required');
  const endpoint=new URL(jwksUrl),issuerUrl=new URL(issuer);
  if(endpoint.protocol!=='https:'||issuerUrl.protocol!=='https:'||endpoint.username||endpoint.password||issuerUrl.username||issuerUrl.password||issuerUrl.search||issuerUrl.hash)throw Error('OIDC issuer and JWKS must use HTTPS without credentials');
@@ -12,8 +12,9 @@ function makeOidcVerifier({issuer,audience,jwksUrl,algorithms=['RS256'],cooldown
    const jose=await import('jose');
    resolver ||= jose.createRemoteJWKSet(endpoint,{cooldownDuration,timeoutDuration:5000,...(fetcher?{[jose.customFetch]:fetcher}:{})});
    const header=jose.decodeProtectedHeader(token);
-   if(typeof header.kid!=='string'||!header.kid||header.typ!=='at+jwt'||header.jku||header.x5u||header.jwk)throw Error('Untrusted token header');
+   if(typeof header.kid!=='string'||!header.kid||!((header.typ==='at+jwt')||(allowJwtBearerTyp&&header.typ==='JWT'))||header.jku||header.x5u||header.jwk)throw Error('Untrusted token header');
    const {payload}=await jose.jwtVerify(token,resolver,{issuer,audience,algorithms,requiredClaims:['iss','sub','aud','exp','iat'],maxTokenAge:'1h',clockTolerance:0});
+   if(header.typ==='JWT'&&payload.typ!=='Bearer')throw Error('Not a bearer access token');
    if(typeof payload.sub!=='string'||!payload.sub.trim()||typeof payload.exp!=='number'||typeof payload.iat!=='number'||payload.iat>Math.floor(Date.now()/1000))throw Error('Invalid claims');
    return Object.freeze({issuer:payload.iss,subject:payload.sub});
   } catch (_) {throw new HttpError(401,'UNAUTHENTICATED','Invalid or expired access token');}

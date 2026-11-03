@@ -1,0 +1,18 @@
+TAP version 13
+# \# PostgreSQL genealogy {"lot_code":"LOT-5578ee9c","source_input":"f467c4b6-0ec5-4c5a-ad3c-6227a8f13b75","source_output":"d23ef3f3-43de-4636-bf89-cf6297fdd528","source_quality":"approved","dispatch":"856630e4-16a8-4c24-a6cd-c4e8078c219b","supplier_return":"14a71737-5bfd-4e73-a998-4e229c043906","final_output":"7a4321a3-4d41-47cb-8afc-e487b88701bc","delivery":"deliver","rma":"a911c896-1984-4a1d-b2a6-7a155f8e1a53","returned_lot":"d9808a08-82c7-44a1-b041-15a1df208e1d","return_outcome":"rework","rework_input":"73a05267-141f-435a-8c2b-d43a4a9fcb78","rework_work_order":"19bb274b-8c2c-461d-912c-7159bd309614"}
+# \# Rework output genealogy {"input":"73a05267-141f-435a-8c2b-d43a4a9fcb78","output":"df67b72d-2b74-4d30-b9f3-88b53750e775","reinspection":[{"outcome":"approved","quantity_pieces":"2"}]}
+# Subtest: cross-module warehouse to outsourcing, delivery and return via real OIDC
+ok 1 - cross-module warehouse to outsourcing, delivery and return via real OIDC
+  ---
+  duration_ms: 58010.281685
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 58763.94027

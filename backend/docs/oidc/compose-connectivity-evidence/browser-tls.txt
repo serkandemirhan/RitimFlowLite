@@ -1,0 +1,1 @@
+browser TLS: page.goto: net::ERR_CERT_AUTHORITY_INVALID at https://127.0.0.1.nip.io:44749/realms/ritim-dev/.well-known/openid-configuration

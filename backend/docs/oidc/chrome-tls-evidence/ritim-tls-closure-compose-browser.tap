@@ -1,0 +1,17 @@
+TAP version 13
+# Canonical issuer, PKCE manager/operator sessions, logout, encrypted recovery, retry and legacy cleanup passed.
+# Subtest: Compose API uses canonical issuer with real PKCE login and scoped recovery
+ok 1 - Compose API uses canonical issuer with real PKCE login and scoped recovery
+  ---
+  duration_ms: 25672.783276
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 27672.68065

@@ -14,18 +14,18 @@ test('existing database upgrade, failed migration and isolated backup/restore',a
   const {migrate}=require(path.join(testRoot,'src/migrate.js'));
   await admin.query(`CREATE SCHEMA "${schema}"`);createdSchema=true;
   original=new Pool({connectionString:source,options:`-c search_path=${schema}`});
-  await t.test('historical 001/002 data upgrades to 007 without changing records',async()=>{
+  await t.test('historical 001/002 data upgrades to 014 without changing records',async()=>{
    assert.deepEqual(await migrate(original),['001','002']);const tenant=crypto.randomUUID(),site=crypto.randomUUID(),order=crypto.randomUUID();
    await original.query("INSERT INTO tenants(id,name) VALUES($1,'fictional')",[tenant]);await original.query("INSERT INTO sites(tenant_id,id,code,name) VALUES($1,$2,'S','Site')",[tenant,site]);await original.query("INSERT INTO orders(tenant_id,site_id,id,order_number,customer,part_number,ordered_qty) VALUES($1,$2,$3,'old-order','fictional','P',42)",[tenant,site,order]);
    const before=(await original.query('SELECT tenant_id,site_id,id,order_number,customer,part_number,ordered_qty,status,created_at FROM orders')).rows;
-   for(const file of ['003_scope_rls.sql','004_readiness.sql','005_orders_planning.sql','006_physical_flow.sql','007_production_execution.sql'])fs.copyFileSync(path.join(root,'migrations',file),path.join(testRoot,'migrations',file));
-   assert.deepEqual(await migrate(original),['003','004','005','006','007']);assert.deepEqual((await original.query('SELECT tenant_id,site_id,id,order_number,customer,part_number,ordered_qty,status,created_at FROM orders')).rows,before);assert.deepEqual(await migrate(original),[]);
+   for(const file of ['003_scope_rls.sql','004_readiness.sql','005_orders_planning.sql','006_physical_flow.sql','007_production_execution.sql','008_quality_disposition.sql','009_production_output_lots.sql','010_output_reservations.sql','011_assignment_security.sql','012_cross_operation_flow.sql','013_integration_contracts.sql','014_drawing_acknowledgements.sql'])fs.copyFileSync(path.join(root,'migrations',file),path.join(testRoot,'migrations',file));
+   assert.deepEqual(await migrate(original),['003','004','005','006','007','008','009','010','011','012','013','014']);assert.deepEqual((await original.query('SELECT tenant_id,site_id,id,order_number,customer,part_number,ordered_qty,status,created_at FROM orders')).rows,before);assert.deepEqual(await migrate(original),[]);
   });
   await t.test('failed migration rolls back its DDL and version record',async()=>{
-   fs.writeFileSync(path.join(testRoot,'migrations/008_injected_failure.sql'),'CREATE TABLE partial_should_rollback(id int); SELECT 1/0;');
+   fs.writeFileSync(path.join(testRoot,'migrations/015_injected_failure.sql'),'CREATE TABLE partial_should_rollback(id int); SELECT 1/0;');
    await assert.rejects(migrate(original),{code:'22012'});
    assert.equal((await original.query("SELECT to_regclass('partial_should_rollback') AS name")).rows[0].name,null);
-   assert.equal((await original.query("SELECT count(*)::int AS n FROM schema_migrations WHERE version='008'")).rows[0].n,0);
+   assert.equal((await original.query("SELECT count(*)::int AS n FROM schema_migrations WHERE version='015'")).rows[0].n,0);
    assert.equal((await original.query("SELECT ordered_qty::int AS qty FROM orders WHERE order_number='old-order'")).rows[0].qty,42);
   });
   await t.test('backup restores into a separate fictional database with data and schema version intact',async()=>{
@@ -37,7 +37,7 @@ test('existing database upgrade, failed migration and isolated backup/restore',a
    execFileSync('pg_restore',['--exit-on-error','--no-owner','--no-privileges','--dbname',restoreDb,dump],{env,stdio:'pipe'});
    const target=new URL(source);target.pathname='/'+restoreDb;restored=new Pool({connectionString:target.toString(),options:`-c search_path=${schema}`});
    assert.equal((await restored.query("SELECT ordered_qty::int AS qty FROM orders WHERE order_number='old-order'")).rows[0].qty,42);
-   assert.deepEqual((await restored.query('SELECT version FROM schema_migrations ORDER BY version')).rows.map(r=>r.version),['001','002','003','004','005','006','007']);
+   assert.deepEqual((await restored.query('SELECT version FROM schema_migrations ORDER BY version')).rows.map(r=>r.version),['001','002','003','004','005','006','007','008','009','010','011','012','013','014']);
    assert.equal((await restored.query("SELECT relrowsecurity AND relforcerowsecurity AS rls FROM pg_class WHERE oid='orders'::regclass")).rows[0].rls,true);
    console.log('# fictional backup sha256 '+backupHash);
   });

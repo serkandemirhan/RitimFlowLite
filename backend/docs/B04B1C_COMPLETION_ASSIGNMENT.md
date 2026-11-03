@@ -1,0 +1,17 @@
+# B04B-1C — completion, assignment and drawing safety
+
+The B04B-1A/1B checkpoint is local commit `3a7576d`. Completion locks the parent order, rechecks physical input, in-transit and open rework constraints, then reads quality dispositions under that same lock. Unresolved good or pending quantity and any rework-required quantity prevent completion. Rejected quantity is not treated as approved stock; quality and production histories remain unchanged. This intentionally changes the earlier B04A completion test: a previously classified-good production event now requires an explicit quality disposition before completion.
+
+Manager-authorized operator assignment, machine change and explicit handover use the existing command/idempotency/audit transaction and parent-order lock. Waiting or paused state is required. The original assignment is closed and a new row inserted; the historical producer identity is not altered. The helper in migration 011 checks transaction scope and locks the target user and active operator site membership with `FOR SHARE`; it exposes neither authorization-table UPDATE privileges nor an unscoped user list. A unique active-machine index remains the final protection against concurrent assignments to the same machine across orders. Active membership and identity are rechecked in subsequent production transactions.
+
+## Drawing safety decision
+
+Revision-dependent production remains disabled. The existing drawing table has no canonical active-revision pointer or immutable user/work-order/revision acknowledgement model and no verified lifecycle for selecting the current revision. Guessing by timestamp or marking the current revision as acknowledged would not establish what a user saw. A future contract needs an authoritative ordered active revision and immutable acknowledgement tied to exact work order, revision, verified user and evidence; revision changes must invalidate earlier acknowledgement. This phase neither fabricates it nor weakens existing restrictions.
+
+Rework execution, drawing acknowledgement, downstream execution/physical transfer, outsourcing and shipment are not implemented. Actor-provided quality evidence is not independently verified. The B03A compromised-runtime limitation remains: a compromised application with arbitrary SQL can forge mutable transaction context. Live OIDC/provider and production deployment remain outside this local development scope.
+
+## Verification and decision
+
+PostgreSQL 16 with restricted runtime role: **97/97 tests passed**, zero failed or skipped. [Full TAP](evidence/b04b1c-postgresql16.tap). Coverage includes mixed good/scrap/pending completion, unresolved and rework rejection, completion/decision race, manager assignment and explicit handover, busy/cross-site machines, running reassignment denial, revoked operator and concurrent membership lock, idempotent replay with one audit event, audit rollback, drawing fail-closed and previous B04B-1A/1B regressions. The [isolated Compose smoke](evidence/b04b1c-compose-smoke.txt) verifies migration, provisioning, readiness 200 and unauthenticated session/handover 401. No existing database or volume was reset.
+
+B04B-1 is GO for isolated development with revision-dependent production and rework execution explicitly disabled; production activation and deployment remain NO-GO. Full live OIDC, real evidence storage, canonical drawing revision selection/acknowledgement, rework execution and downstream physical flow require separately approved work.

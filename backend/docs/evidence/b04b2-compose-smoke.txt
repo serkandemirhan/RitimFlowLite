@@ -1,0 +1,7 @@
+/api/v1/session 401
+/health/ready 200
+NAME                           IMAGE                        COMMAND                  SERVICE     CREATED              STATUS                             PORTS
+ritimb04b2verify-api-1         ritimb04b2verify-api         "docker-entrypoint.s…"   api         14 seconds ago       Up 10 seconds (health: starting)   127.0.0.1:63662->3000/tcp
+ritimb04b2verify-db-1          postgres:16                  "docker-entrypoint.s…"   db          About a minute ago   Up About a minute (healthy)        5432/tcp
+ritimb04b2verify-migrate-1     ritimb04b2verify-migrate     "docker-entrypoint.s…"   migrate     14 seconds ago       Exited (0) 11 seconds ago
+ritimb04b2verify-provision-1   ritimb04b2verify-provision   "docker-entrypoint.s…"   provision   14 seconds ago       Exited (0) 10 seconds ago

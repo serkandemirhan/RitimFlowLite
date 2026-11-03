@@ -13,11 +13,22 @@ test('real PostgreSQL migrations, referential boundaries, rollback and append-on
  const pool=new Pool({connectionString:database,options:`-c search_path=${schema}`});
  const id=()=>crypto.randomUUID();const t=id(),t2=id(),s=id(),o=id(),op=id(),wo=id(),lot=id(),u=id(),event=id();
  try{
-  const results=await Promise.all([migrate(pool),migrate(pool)]);assert.deepEqual(results.flat(),['001','002','003','004','005','006','007']);assert.deepEqual(await migrate(pool),[]);
-  assert.equal((await pool.query('SELECT count(*)::int n FROM schema_migrations')).rows[0].n,7);
+  const results=await Promise.all([migrate(pool),migrate(pool)]);assert.deepEqual(results.flat(),['001','002','003','004','005','006','007','008','009','010','011','012','013','014','015','016','017','018','019','020','021','022','023','024','025','026','027','028']);assert.deepEqual(await migrate(pool),[]);
+  assert.equal((await pool.query('SELECT count(*)::int n FROM schema_migrations')).rows[0].n,28);
   await pool.query("INSERT INTO tenants(id,name) VALUES($1,'A'),($2,'B')",[t,t2]);
   await pool.query("INSERT INTO sites(tenant_id,id,code,name) VALUES($1,$2,'site','Site')",[t,s]);
   await pool.query("INSERT INTO users(id,issuer,subject,display_name) VALUES($1,'issuer','subject','User')",[u]);
+  // Warehouse scaffolding has no runtime grants yet; verify hierarchy and immutable history as setup role.
+  const material=id(),plant=id(),warehouse=id(),region=id(),container=id(),warehouseLot=id(),move=id();
+  await pool.query("INSERT INTO inventory_materials(tenant_id,site_id,id,code,description,base_unit) VALUES($1,$2,$3,'M','fixture','piece')",[t,s,material]);
+  await pool.query("INSERT INTO inventory_locations(tenant_id,site_id,id,kind,code) VALUES($1,$2,$3,'plant','P')",[t,s,plant]);
+  await assert.rejects(pool.query("INSERT INTO inventory_locations(tenant_id,site_id,id,kind,code,parent_id) VALUES($1,$2,$3,'warehouse','bad',$4)",[t,s,id(),plant]),{code:'23514'});
+  await pool.query("INSERT INTO inventory_locations(tenant_id,site_id,id,kind,code,parent_id,parent_kind) VALUES($1,$2,$3,'warehouse','W',$4,'plant'),($1,$2,$5,'region','R',$3,'warehouse'),($1,$2,$6,'container','C',$5,'region')",[t,s,warehouse,plant,region,container]);
+  await assert.rejects(pool.query("INSERT INTO inventory_locations(tenant_id,site_id,id,kind,code,parent_id,parent_kind) VALUES($1,$2,$3,'region','bad2',$4,'warehouse')",[t,s,id(),plant]),{code:'23503'});
+  await pool.query("INSERT INTO inventory_lots(tenant_id,site_id,id,material_id,lot_code,supplier_ref) VALUES($1,$2,$3,$4,'LOT','SUP')",[t,s,warehouseLot,material]);
+  await pool.query("INSERT INTO idempotency_records(tenant_id,site_id,actor_id,key,request_hash,status) VALUES($1,$2,$3,'inventory-fixture',repeat('a',64),'pending')",[t,s,u]);
+  await pool.query("INSERT INTO inventory_movements(tenant_id,site_id,id,lot_id,kind,destination_location_id,quantity_pieces,actor_id,idempotency_key,document_ref) VALUES($1,$2,$3,$4,'receipt',$5,5,$6,'inventory-fixture','DOC')",[t,s,move,warehouseLot,container,u]);
+  await assert.rejects(pool.query('DELETE FROM inventory_movements WHERE id=$1',[move]),{code:'55000'});
   await pool.query("INSERT INTO orders(tenant_id,site_id,id,order_number,customer,part_number,ordered_qty) VALUES($1,$2,$3,'ORDER','fictional','part',20)",[t,s,o]);
   await pool.query("INSERT INTO operations(tenant_id,site_id,order_id,id,sequence,name,kind) VALUES($1,$2,$3,$4,0,'Op','internal')",[t,s,o,op]);
   await pool.query("INSERT INTO work_orders(tenant_id,site_id,id,order_id,operation_id,work_order_number,planned_qty) VALUES($1,$2,$3,$4,$5,'WO',20)",[t,s,wo,o,op]);
