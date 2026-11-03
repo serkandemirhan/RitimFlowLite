@@ -2,6 +2,24 @@
 
 Status: **BLOCKED**, not a completed installation. See [audit](01_CURRENT_STATE_AUDIT.md).
 
+## Windows runner after integration merge
+
+The [runner](../../scripts/windows/ritim.ps1) selects the private Node 22.20.0 installation when available, otherwise requires Node 22. It never prints environment values or enables development authorization shortcuts.
+
+```powershell
+powershell -NoProfile -File scripts/windows/ritim.ps1 -Action Diagnostics
+powershell -NoProfile -File scripts/windows/ritim.ps1 -Action Install
+powershell -NoProfile -File scripts/windows/ritim.ps1 -Action TestDomain
+powershell -NoProfile -File scripts/windows/ritim.ps1 -Action TestUnit
+powershell -NoProfile -File scripts/windows/ritim.ps1 -Action TestBrowser
+```
+
+After securely configuring the restricted database runtime in that terminal, use `-Action StartApi`. In another terminal use `-Action StartWeb`. Open `http://127.0.0.1:4178/?mode=api` for premium API UI; `/integration/` is the older integration entry point, and `/` without API mode is fictional browser demo. Stop each app using Ctrl+C in its own terminal.
+
+`-Action Health` checks default API liveness/readiness and premium document response. HTTP 200 for a document is not business acceptance. `-Action TestDatabase` requires secure TEST_DATABASE_URL and RITIM_CONFIRM_DISPOSABLE_TEST_DATABASE=YES, and must only target an explicit disposable database. Existing tests create temporary passwordless roles: secure Windows/SCRAM adaptation is required, not weakened trust authentication.
+
+Runtime mismatch is resolved for this runner. Migration, permissions, initialization and backup/restore scripts remain pending the separate backend merge and confirmed dedicated database. No database setup GO is implied.
+
 ## Safe checks available now
 
 From repository root in PowerShell:

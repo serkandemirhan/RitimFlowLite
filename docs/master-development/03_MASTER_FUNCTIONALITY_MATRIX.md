@@ -1,6 +1,8 @@
 # Initial functionality matrix
 
-Scope: actual HEAD 5315388. PARTIAL means browser-demo support, not secure production support. No business API, PostgreSQL dependency, verified identity or server permissions exist in this checkout. Runtime browser and mobile checks were not rerun; all mobile acceptance is NOT TESTED. Historical integration implementations must be inventoried again after branch reconciliation.
+Historical baseline below describes 5315388. After merge ac360fb, premium UI and backend foundation 001-007 are present; 18 newer backend commits remain on origin/backend/b01-foundation pending approval. Current API/permission/table mapping must use the reconciled backend, rather than attribute missing endpoints to the old foundation. Expanded 292-test domain rerun proves demo invariants, not verified MES integration.
+
+Baseline scope: actual HEAD 5315388. PARTIAL means browser-demo support, not secure production support. No business API, PostgreSQL dependency, verified identity or server permissions existed in that checkout. Historical integration implementations must be inventoried again after backend reconciliation.
 
 All business rows require local-server offline operation and an approved synchronization classification; neither is implemented in HEAD. Primary navigation below is proposed, not a new routing implementation.
 

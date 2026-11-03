@@ -243,7 +243,20 @@ async function picture(p, name) {
         });
         const response = await pdfResponse;
         assert.equal(response.ok(), true, "drawing PDF must load successfully");
-        assert.equal(await response.finished(), null, "drawing PDF request must finish");
+        // Embedded PDF streams may never signal completion on some browser/OS builds.
+        // Fail explicitly rather than hang the entire suite; keep the acceptance strict.
+        let completionTimer;
+        try {
+          const finished = await Promise.race([
+            response.finished(),
+            new Promise((_, reject) => {
+              completionTimer = setTimeout(() => reject(new Error("Drawing PDF transfer did not finish within 20 seconds")), 20000);
+            }),
+          ]);
+          assert.equal(finished, null, "drawing PDF request must finish");
+        } finally {
+          clearTimeout(completionTimer);
+        }
         await p
           .getByRole("button", { name: "Yakınlaştır", exact: true })
           .click();

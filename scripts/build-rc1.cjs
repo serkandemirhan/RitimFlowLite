@@ -85,7 +85,10 @@ function build({root = path.resolve(__dirname, '..'), base = path.join(root,'dis
   return {publicRoot,manifestPath,manifest};
 }
 function verify({publicRoot,manifest}) {
-  const files = fs.readdirSync(publicRoot,{recursive:true}).filter(p => fs.statSync(path.join(publicRoot,p)).isFile()).sort();
+  // Manifest targets are URL paths; Windows directory enumeration uses backslashes.
+  const files = fs.readdirSync(publicRoot,{recursive:true})
+    .filter(p => fs.statSync(path.join(publicRoot,p)).isFile())
+    .map(p => p.split(path.sep).join('/')).sort();
   assert.deepEqual(files,manifest.assets.map(x => x.target).sort(),'Public artifact contains unexpected/missing files');
   for (const item of manifest.assets) {
     const bytes = fs.readFileSync(path.join(publicRoot,item.target));

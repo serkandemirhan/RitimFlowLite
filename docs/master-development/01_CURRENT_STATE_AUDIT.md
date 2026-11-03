@@ -1,5 +1,17 @@
 # Current state audit — 2026-11-03
 
+## Continuation after approved integration merge
+
+The user approved merging `origin/integration/operator-quality`. Audit checkpoint `eed41d8` and merge `ac360fb` are local commits. Conflicts in ten demo/UI/test files were resolved using expanded integration implementations; main's historical audit evidence was retained. The integration tip is now an ancestor of HEAD. No push occurred.
+
+**Correction:** the initial ancestry statement below was wrong: a multi-command shell masked a failing exit code. Actual shared base is `a28d5621f175f2e3f5f101396807d9eba60c4ff7`. Both histories were preserved by the merge. Initial HEAD observations below are historical.
+
+**Additional backend gap:** integration contains only migrations 001-007. `origin/backend/b01-foundation` has 18 further commits absent from the merged HEAD: warehouse, shipping, rework, outsourcing, returns, drawing acknowledgement, OIDC BFF and secure recovery APIs already called by the frontend. Approval for this second merge is pending. Do not recreate or mock the missing endpoints.
+
+Node 22.20.0/npm 10.9.3 were installed under the user's local application-data RitimFlowLite tools directory without changing system Node. Official Node ZIP SHA-256 matched its published checksum list. Both dependency lockfiles installed with lifecycle scripts disabled. Windows Playwright Chromium was installed.
+
+Supported-runtime reruns: 292 domain, 14 backend unit, 12 packaging and 14 recovery tests pass. Packaging initially failed four tests due to Windows separators; actual paths now normalize to URL format before the unchanged exact allowlist check. PostgreSQL accepts loopback TCP connections; authenticated database access remains untested.
+
 ## Scope and evidence
 
 Working directory: `D:/Projects/RitimFlowLite/RitimFlowLite`. Actual HEAD: `53153882cda16ff86550612faa0e85f8a130676b`, branch `main`, initially clean. No reset, merge, push, deployment, database mutation or demo-data reset was performed.
@@ -18,7 +30,7 @@ The required implementation exists on another locally recorded reference:
 | origin/backend/b01-foundation | 9367eef | Backend development history |
 | origin/integration/operator-quality | 02e75e91d5ef02f5bf7f1f2b15bf5bb81ee7f9bd | Backend, premium integration, OIDC, recovery, warehouse, shipping, outsourcing, rework and returns |
 
-`git merge-base --is-ancestor 5315388 02e75e9` exits 0. Integration has 19 commits absent from main. Historical backend features are available in Git, **not integrated into current HEAD**. Preserve them rather than recreating their logic. User approval is needed for merging because the master brief explicitly forbids merges without instruction.
+Integration initially had 19 commits absent from main. Historical features were available in Git but absent from the initial HEAD. See the correction above for ancestry and merge results. Further backend integration remains pending separate approval.
 
 ## Current functionality
 
