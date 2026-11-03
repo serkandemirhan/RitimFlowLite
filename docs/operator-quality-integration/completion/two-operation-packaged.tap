@@ -1,0 +1,18 @@
+TAP version 13
+# \# second-start-alert 
+# \# response 409 /api/v1/sites/64861786-cc4b-4e3f-863e-2ab9b6d6e7f9/1096168f-69f2-4bf6-bd0c-07eac23b07c1/orders/15a3e231-2a6b-4e37-9638-a0ee7f70bd58/work-orders/0cfa31b9-21a4-4b59-9ede-159601a41d53/production/results
+# Subtest: two operations via premium UI and real Fastify/PostgreSQL
+ok 1 - two operations via premium UI and real Fastify/PostgreSQL
+  ---
+  duration_ms: 44809.370399
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 45646.905628

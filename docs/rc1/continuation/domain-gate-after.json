@@ -1,0 +1,7 @@
+{
+  "type": "negative regression: missing domain suite fails closed",
+  "omitted": "tests/p1-domain.test.cjs",
+  "exit": 1,
+  "stderr": "Required domain test files missing: p1-domain.test.cjs",
+  "originalFilesUnchanged": true
+}

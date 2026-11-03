@@ -1,0 +1,31 @@
+TAP version 13
+# (node:67123) [FSTDEP023] FastifyDeprecation: disableRequestLogging option is deprecated. Use the logController option with disableRequestLogging or isLogDisabled override instead. The disableRequestLogging top-level option will be removed in `fastify@6`.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: I02 premium API wizard against Fastify/PostgreSQL
+not ok 1 - I02 premium API wizard against Fastify/PostgreSQL
+  ---
+  duration_ms: 38537.657933
+  type: 'test'
+  location: '/Users/user/projects/ritimFlowLite/RitimFlowLite-integration-operator-quality/tests/i02-premium-browser.cjs:8:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    locator.waitFor: Timeout 30000ms exceeded.
+    Call log:
+    [2m  - waiting for getByText('İş yeri seçin') to be visible[22m
+    
+  code: 'ERR_TEST_FAILURE'
+  name: 'TimeoutError'
+  stack: |-
+    loginFixture (/Users/user/projects/ritimFlowLite/RitimFlowLite-integration-operator-quality/tests/browser-bff-fixture.cjs:4:233)
+    async login (/Users/user/projects/ritimFlowLite/RitimFlowLite-integration-operator-quality/tests/i02-premium-browser.cjs:17:612)
+    async TestContext.<anonymous> (/Users/user/projects/ritimFlowLite/RitimFlowLite-integration-operator-quality/tests/i02-premium-browser.cjs:17:748)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 39683.568651

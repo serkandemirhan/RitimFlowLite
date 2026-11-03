@@ -1,18 +1,95 @@
-/* UX-07: integration audit - non-mutating reconciliation and navigation. */
-(function(){'use strict';
-const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function audit(){const warnings=[],rows=[];if(!window.RitimUX07Ledger)return {warnings:['UX-06 hareket defteri erişilemiyor'],rows};
-for(const o of state.orders){const l=window.RitimUX07Ledger,x=l.data(o),v=l.verifiedProduction(o),p=l.productionAvailable(o,x);
- const allocatedByJob={};for(const a of x.d.allocations)allocatedByJob[a.job]=(allocatedByJob[a.job]||0)+a.qty;
- for(const j of state.jobs.filter(j=>j.order===o.id)){const entry=j.ux05;if(!entry)continue;const physicalNew=Math.max(0,entry.received-(entry.legacyBaseline||0));if(physicalNew>(allocatedByJob[j.id]||0))warnings.push(`${j.id}: yeni fiziksel teslim ${physicalNew}, tahsis ${allocatedByJob[j.id]||0}`);
- const balance=(Number(j.good)||0)+(Number(j.scrap)||0)+entry.pending+entry.setup+entry.rework;if(balance>entry.received)warnings.push(`${j.id}: kayıtlar teslim miktarını aşıyor`);
- }
- if(x.supplierOpen<0||x.ready<0||x.materialFree<0||x.net<0||x.net>o.qty)warnings.push(`${o.id}: negatif veya siparişi aşan bakiye`);
- for(const d of x.d.dispatches){const ret=l.sum(x.d.returns.filter(r=>r.dispatch===d.ref));if(ret>d.qty)warnings.push(`${o.id}: fason irsaliyesi ${d.ref} açık miktar negatif`)}
- rows.push({o,x,v,p});
- }return {warnings,rows}}
-function diagnostic(){const {warnings,rows}=audit();return `<section class="ux07-wrap"><div class="card pad"><div class="eyebrow">UX-07 · ENTEGRASYON DOĞRULAMA</div><h2>Sipariş / İş Emri Miktar Kontrolü</h2><p class="tiny">Yerel demo: iş emirleri, fiziksel teslim, fason, sevkiyat aynı ekran üzerinden incelenir. Bu rapor hiçbir veriyi değiştirmez.</p><div class="ux07-alert ${warnings.length?'problem':'ok'}">${warnings.length?warnings.length+' kontrol uyarısı var':'Mevcut çapraz-modül kontrollerinde uyarı bulunamadı'}</div>${warnings.map(w=>`<p class="ux07-warning">${esc(w)}</p>`).join('')}</div><div class="card pad"><h3>Sipariş Mutabakatı</h3><div class="ux07-table-wrap"><table class="ux07-table"><thead><tr><th>Sipariş</th><th>Malzeme</th><th>Tahsis</th><th>UX-05 Yeni Sağlam</th><th>Fason Açık</th><th>Sevke Hazır</th><th>Net Sevk</th></tr></thead><tbody>${rows.map(({o,x,v})=>`<tr><td><button class="ux07-link" onclick="openOrder('${esc(o.id)}')">${esc(o.id)}</button></td><td>${x.material}</td><td>${x.allocated}</td><td>${v}</td><td>${x.supplierOpen}</td><td>${x.ready}</td><td>${x.net}</td></tr>`).join('')}</tbody></table></div><p class="tiny">Eski demo sevkiyatları ve üretimleri bu değerleri artırmaz. Bunlar yeniden üretim/aktarım yapılmadıkça ayrı başlangıç verileridir.</p></div><div class="card pad"><h3>Uçtan Uca Test Adımları</h3><ol class="ux07-steps"><li>Malzeme/Fason ekranında malzeme kabul edin.</li><li>İlgili iş emrine tahsis yapın.</li><li>Üretim ekranında aynı iş emri için fiziksel teslim alın.</li><li>Üretim başlatıp kontrol bekleyen kaydedin; Yönetici ile sağlam onaylayın.</li><li>Fasonlu siparişte gönderim, kısmi dönüş, son kontrol ve müşteri sevkiyatı yapın.</li><li>İade kaydedip net sevk ve karantina sonucunu doğrulayın.</li><li>Bu raporu yenileyip açık miktarları tekrar kontrol edin.</li></ol><button class="btn primary" onclick="render()">Kontrolleri Yenile</button><button class="btn" onclick="go('logistics')">Malzeme / Fason'a Git</button></div></section>`}
-const oldRender=render;render=function(){if(view==='audit'){el('app').innerHTML=shell();el('page').innerHTML=diagnostic();return}oldRender()};
-const oldShell=shell;shell=function(){let h=oldShell();h=h.replace('<div class="sidebar-note">','<button class="side-btn" onclick="go(\'audit\')">'+I('check',19)+' UX-07 Kontrol</button><div class="sidebar-note">');if(view==='audit')h=h.replace('<h1>undefined</h1>','<h1>Entegrasyon Kontrolü</h1>');return h};
-window.RitimUX07={audit};
+/* UX-07: read-only integrity findings and location/history reconciliation. */
+(function () {
+  "use strict";
+  const esc = (v) =>
+    String(v ?? "").replace(
+      /[&<>"']/g,
+      (c) =>
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        })[c],
+    );
+  function audit() {
+    const result = RitimIntegrity.validate(state);
+    // Keep the public warning-list contract for previous callers, with structured detail.
+    return {
+      ...result,
+      warnings: result.findings.map((f) => f.explanation),
+      warningFindings: result.warnings,
+      rows: result.balances.orders.map((x) => ({
+        o: state.orders.find((o) => o.id === x.order),
+        x,
+        v: state.jobs
+          .filter((j) => j.order === x.order)
+          .reduce((n, j) => n + j.good, 0),
+      })),
+    };
+  }
+  function links(f) {
+    const r = f.refs,
+      buttons = [];
+    if (r.order && state.orders.some((o) => o.id === r.order))
+      buttons.push(
+        `<button class="btn" onclick="openOrder(${jsArg(r.order)})">Siparişi Aç</button>`,
+      );
+    if (r.job && state.jobs.some((j) => j.id === r.job))
+      buttons.push(
+        `<button class="btn" onclick="openJob(${jsArg(r.job)})">İş Emrini Aç</button>`,
+      );
+    if (r.destination && state.jobs.some((j) => j.id === r.destination))
+      buttons.push(
+        `<button class="btn" onclick="openJob(${jsArg(r.destination)})">Hedef İş Emrini Aç</button>`,
+      );
+    if (r.record && r.order && state.orders.some((o) => o.id === r.order))
+      buttons.push(
+        `<button class="btn" onclick="RitimUX06.openContext(${jsArg(r.order)},'material')">Sipariş Hareketlerini Aç</button>`,
+      );
+    return buttons.join("");
+  }
+  function diagnostic() {
+    const a = audit();
+    return `<section class="ux07-wrap"><div class="card pad"><div class="eyebrow">UX-07 · VERİ BÜTÜNLÜĞÜ</div><h2>Sipariş / İş Emri Miktar Kontrolü</h2><p>Denetim salt okunurdur. Veriyi, belleği veya depolamayı değiştirmez. Tarihsel üretim, mevcut fiziksel konum ve henüz başlamamış plan ayrı gösterilir.</p><div class="ux07-alert ${a.critical.length ? "problem" : "ok"}">${a.critical.length} kritik ihlal · ${a.warningFindings.length} uyarı</div><p class="tiny">Kontrollerin geçmesi tarihsel lot bilgisini geri getirmez ve çoklu sekme güvenliği kanıtı değildir.</p><button class="btn" onclick="render()">Kontrolleri Yenile</button><button class="btn" onclick="openDataSafety()">Veri Güvenliği / Ham Veri</button></div>
+      ${a.findings
+        .map(
+          (f) =>
+            `<article class="card pad ux07-finding" data-integrity-code="${esc(f.code)}" data-severity="${esc(f.severity)}"><strong>${f.severity === "critical" ? "Kritik ihlal" : "Uyarı"} · ${esc(f.code)}</strong><p>${esc(f.explanation)}</p><p class="tiny">${Object.entries(
+              f.refs,
+            )
+              .filter(([, v]) => v !== undefined)
+              .map(([k, v]) => esc(k) + ": " + esc(v))
+              .join(
+                " · ",
+              )}<br>${esc(f.path)}</p><p>${esc(f.remediation)}</p>${links(f)}</article>`,
+        )
+        .join("")}
+      <div class="card pad"><h3>Sipariş Mutabakatı</h3><div class="ux07-table-wrap"><table class="ux07-table"><thead><tr><th>Sipariş</th><th>Malzeme</th><th>Tahsis</th><th>Fason Açık</th><th>Kayıtlı Onay − Sevk</th><th>Net Sevk</th><th>Karantina</th><th>Tarihsel Sevk</th></tr></thead><tbody>${a.balances.orders.map((x) => `<tr data-audit-order="${esc(x.order)}"><td><button class="ux07-link" onclick="openOrder(${jsArg(x.order)})">${esc(x.order)}</button></td>${["material", "allocated", "supplierOpen", "ready", "net", "quarantine", "historicalShipment"].map((k) => `<td data-metric="${k}">${esc(x[k])}</td>`).join("")}</tr>`).join("")}</tbody></table></div><p class="tiny">Kritik ihlal varsa kayıtlı onay farkı sevk izni değildir; kaynak kanıtı ayrıca doğrulanır.</p></div>
+      <div class="card pad"><h3>Üretim Geçmişi / Fiziksel Konum / Plan</h3><div class="ux07-table-wrap"><table class="ux07-table"><thead><tr><th>İş Emri</th><th>Plan</th><th>Teslim</th><th>Tarihsel Sağlam</th><th>Hurda</th><th>Kontrol Bekleyen</th><th>Fiziksel İşlenmemiş</th><th>Başlamamış Plan</th><th>Konumda Sağlam</th></tr></thead><tbody>${a.balances.jobs.map((x) => `<tr><td><button class="ux07-link" onclick="openJob(${jsArg(x.job)})">${esc(x.job)}</button></td>${["planned", "received", "historicalGood", "historicalScrap", "pending", "physicalUnprocessed", "unstartedPlan", "onHandGood"].map((k) => `<td>${x[k] === null ? "Kanıt yok" : esc(x[k])}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div></section>`;
+  }
+  const oldRender = render;
+  render = function () {
+    if (view === "audit") {
+      el("app").innerHTML = shell();
+      el("page").innerHTML = diagnostic();
+      return;
+    }
+    return oldRender();
+  };
+  const oldShell = shell;
+  shell = function () {
+    let h = oldShell();
+    h = h.replace(
+      '<div class="sidebar-note">',
+      '<button class="side-btn" onclick="go(\'audit\')">' +
+        I("check", 19) +
+        ' UX-07 Kontrol</button><div class="sidebar-note">',
+    );
+    if (view === "audit")
+      h = h.replace("<h1>undefined</h1>", "<h1>Entegrasyon Kontrolü</h1>");
+    return h;
+  };
+  window.RitimUX07 = { audit };
 })();

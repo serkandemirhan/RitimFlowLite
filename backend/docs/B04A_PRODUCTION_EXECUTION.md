@@ -1,0 +1,27 @@
+# B04A — development-only production execution
+
+This implementation is restricted to isolated development/test configuration. Production activation remains NO-GO. It implements only the first internal operation, using fictional data. See [frontend comparison](B04A_FRONTEND_RULES.md) and the B03A threat model: a compromised application process with arbitrary SQL remains outside the guarantees of transaction-scoped RLS context.
+
+## Model and transaction boundary
+
+Receipt and transfer history remain in the B03C physical ledger. Historical `production_events` are distinct from current physical input. Each result creates, in the same transaction, one historical event and two immutable `production_ledger` rows on the same source lot: one input consumption and one matching outcome. Composite foreign keys, uniqueness, RLS and checks bind each ledger row to the scoped event, actor, quantity and outcome. The balance is receipts and accepted transfers minus dispatches and production consumption; negative balances, over-plan receipts, unmatched legacy events and orphan consumption fail closed. Output ownership is recorded against the source lot and work order; it is not automatically released or made available to downstream jobs. Classified good is not a quality release. QC pending remains pending, never approved.
+
+Commands use verified identity, scoped membership inside the transaction, existing persistent idempotency and audit, and the order row lock also used by B03C. The assignment lock function uses a pinned search path, restricted EXECUTE and a shared row lock so revocation waits until the command finishes. Exactly one current machine/operator assignment is required; assignments must already exist, since no assignment API is implemented. All commands require the assigned operator role; direct good classification additionally requires manager-equivalent membership. A prior B03C `/physical-balances` deliberately stays unknown after production; use the B04A `/production/balances` projection.
+
+## API contract
+
+All endpoints use `/api/v1/sites/{tenantId}/{siteId}/orders/{orderId}/work-orders/{workOrderId}/production`. Mutations require bearer authentication, `Idempotency-Key`, and `production.write`. An idempotent replay returns the original response; payload changes with the same key conflict. State transitions: `POST /start` waiting → running, `/pause` running → paused with `{ "reason": "..." }`, `/resume` paused → running, `/complete` running/paused → complete. Start requires received usable input. Completion requires the complete planned input received and consumed, no pending quality, outstanding inbound transfer or open rework. Results: `POST /results` with `{ "lotId": "UUID", "kind": "good|scrap|setup_scrap|pending", "quantity": 1 }`; response includes the event ID and `qualityApproved: false`. `GET /summary` and `GET /balances` return work-order plan, net input, consumed input, remaining usable input, per-lot availability and historic output totals; `approvedGoodQuantity: null` means approval is not implemented, not zero approved stock.
+
+Errors are structured and fail closed, including `ASSIGNMENT_REQUIRED`, `NOT_ASSIGNED`, `OPERATOR_REQUIRED`, `INVALID_STATE`, `PHYSICAL_INPUT_REQUIRED`, `INSUFFICIENT_PHYSICAL_STOCK`, `COMPLETION_BLOCKED`, `PRODUCTION_RECONCILIATION_REQUIRED`, `DRAWING_ACKNOWLEDGEMENT_UNSUPPORTED`, `SELF_INSPECTION_NOT_AUTHORIZED`, `OPERATION_UNSUPPORTED` and `INTEGRITY_ERROR`.
+
+## Limitations and next phase
+
+No backend assignment, machine handover, drawing acknowledgement, quality decision, pending resolution, rework, final quality release, production transfer or outsourcing API exists. A drawing revision blocks start/resume/result/completion; pause remains possible. Pending jobs cannot complete until a future explicit quality workflow exists. Existing unpaired production history is not silently repaired. A migration will fail if pre-existing data contains duplicate active assignments; review and a separately approved remediation are required. The guard against intermediate outsourcing is intentionally conservative. Tests do not establish production readiness, multi-device identity-provider deployment, or safety against an arbitrary-SQL compromised runtime.
+
+B04B development should first define and test quality decisions and reconciliation of pending outcomes, source-lot provenance, explicit drawing acknowledgement, authorized assignment/handover and downstream release semantics before enabling those commands. Keep production endpoints disabled outside isolated development.
+
+## Verification (2026-10-28)
+
+The complete `npm test` suite ran against an isolated PostgreSQL 16 container: **76/76 passed, zero failed or skipped**, including 10 B04A parent/subtests. The integration fixtures create separate schema-owner/migration and restricted runtime roles, use fictional tenants and signed test JWTs, and remove only their own disposable schema/roles. See [TAP evidence](evidence/b04a-postgresql16.tap). The separate fresh Docker Compose project used tmpfs, ran migration then runtime provisioning, started a healthy API, returned 200 on readiness and 401 for an unauthenticated production request; see [smoke evidence](evidence/b04a-compose-smoke.txt). No external identity provider, real workshop data, or production deployment was tested.
+
+Development GO for specifying B04B under these fail-closed limitations; production activation remains NO-GO.

@@ -1,0 +1,66 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ritim}
+      POSTGRES_USER: ${POSTGRES_USER:-ritim}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in an untracked environment file}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  migrate:
+    build: .
+    command: ["node", "src/migrate.js"]
+    environment: &database_env
+      PGHOST: db
+      PGPORT: 5432
+      PGDATABASE: ${POSTGRES_DB:-ritim}
+      PGOPTIONS: -c search_path=${RITIM_DB_SCHEMA:-ritim}
+      PGUSER: ${MIGRATION_DB_USER:?Configure a distinct migration user}
+      PGPASSWORD: ${MIGRATION_DB_PASSWORD:?Configure the migration password}
+      DB_SSL: disable
+      NODE_ENV: ${RITIM_NODE_ENV:-production}
+      RITIM_ISOLATED_DEVELOPMENT: ${RITIM_ISOLATED_DEVELOPMENT:-false}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+  provision:
+    build: .
+    command: ["node", "security/provision-runtime.js"]
+    environment:
+      <<: *database_env
+      RITIM_DB_SCHEMA: ${RITIM_DB_SCHEMA:-ritim}
+      RITIM_RUNTIME_ROLE: ${RUNTIME_DB_USER:?Configure a distinct runtime user}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: "no"
+  api:
+    build: .
+    environment:
+      <<: *database_env
+      PGUSER: ${RUNTIME_DB_USER:?Configure a distinct runtime user}
+      PGPASSWORD: ${RUNTIME_DB_PASSWORD:?Configure the runtime password}
+      HOST: 0.0.0.0
+      PORT: 3000
+      OIDC_ISSUER: ${OIDC_ISSUER:-}
+      OIDC_AUDIENCE: ${OIDC_AUDIENCE:-}
+      OIDC_JWKS_URL: ${OIDC_JWKS_URL:-}
+    ports:
+      - "127.0.0.1:${API_PORT:-3000}:3000"
+    depends_on:
+      provision:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    restart: unless-stopped
+volumes:
+  postgres_data:

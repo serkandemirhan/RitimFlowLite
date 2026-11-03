@@ -1,0 +1,88 @@
+TAP version 13
+# Subtest: provider interface never fabricates an identity
+ok 1 - provider interface never fabricates an identity
+  ---
+  duration_ms: 1.526413
+  type: 'test'
+  ...
+# Subtest: network uncertainty survives reload, retry retains original key
+ok 2 - network uncertainty survives reload, retry retains original key
+  ---
+  duration_ms: 3.361254
+  type: 'test'
+  ...
+# Subtest: simultaneous duplicate submission invokes only one command
+ok 3 - simultaneous duplicate submission invokes only one command
+  ---
+  duration_ms: 106.74476
+  type: 'test'
+  ...
+# Subtest: confirmed conflict clears journal; timeout and server failure remain
+ok 4 - confirmed conflict clears journal; timeout and server failure remain
+  ---
+  duration_ms: 1.259096
+  type: 'test'
+  ...
+# Subtest: journal rejects corruption and failed writes before submission
+ok 5 - journal rejects corruption and failed writes before submission
+  ---
+  duration_ms: 3.295087
+  type: 'test'
+  ...
+# Subtest: credentials supplied outside permitted command shape are not saved
+ok 6 - credentials supplied outside permitted command shape are not saved
+  ---
+  duration_ms: 0.922971
+  type: 'test'
+  ...
+# Subtest: rejected retry after uncertain outcome keeps original evidence
+ok 7 - rejected retry after uncertain outcome keeps original evidence
+  ---
+  duration_ms: 1.914245
+  type: 'test'
+  ...
+# Subtest: journal accepts only declared command fields, never a bearer token in payload
+ok 8 - journal accepts only declared command fields, never a bearer token in payload
+  ---
+  duration_ms: 1.473672
+  type: 'test'
+  ...
+# Subtest: result checkpoint failure retains the original receipt key
+ok 9 - result checkpoint failure retains the original receipt key
+  ---
+  duration_ms: 1.105205
+  type: 'test'
+  ...
+# Subtest: partial success resumes with original key, without recreating order
+ok 10 - partial success resumes with original key, without recreating order
+  ---
+  duration_ms: 5.67251
+  type: 'test'
+  ...
+# Subtest: order without initial work order and foreign scope remain safe
+ok 11 - order without initial work order and foreign scope remain safe
+  ---
+  duration_ms: 2.159852
+  type: 'test'
+  ...
+# Subtest: only confirmed failed step can be corrected without recreating committed order
+ok 12 - only confirmed failed step can be corrected without recreating committed order
+  ---
+  duration_ms: 1.407731
+  type: 'test'
+  ...
+# Subtest: legacy workflow remains unchanged for another actor and recoverable by its owner
+ok 13 - legacy workflow remains unchanged for another actor and recoverable by its owner
+  ---
+  duration_ms: 1.077867
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 432.865974

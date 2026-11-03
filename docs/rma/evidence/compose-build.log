@@ -1,0 +1,56 @@
+#1 [internal] load local bake definitions
+#1 reading from stdin 593B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile:
+#2 transferring dockerfile: 389B 0.3s done
+#2 DONE 0.3s
+
+#3 [internal] load metadata for docker.io/library/node:22-bookworm-slim
+#3 DONE 1.6s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 89B 0.0s done
+#4 DONE 0.1s
+
+#5 [1/7] FROM docker.io/library/node:22-bookworm-slim@sha256:4b150b48b4116e2a22f2c39cc27025fbf4f153e2078fd3b14d159fdb5c7279da
+#5 DONE 0.0s
+
+#6 [internal] load build context
+#6 transferring context: 18.63kB 0.1s done
+#6 DONE 0.1s
+
+#7 [2/7] WORKDIR /app
+#7 CACHED
+
+#8 [3/7] COPY package.json package-lock.json ./
+#8 CACHED
+
+#9 [4/7] RUN npm ci --omit=dev && npm cache clean --force
+#9 CACHED
+
+#10 [5/7] COPY --chown=node:node src ./src
+#10 DONE 0.4s
+
+#11 [6/7] COPY --chown=node:node migrations ./migrations
+#11 DONE 0.2s
+
+#12 [7/7] COPY --chown=node:node security ./security
+#12 DONE 0.2s
+
+#13 exporting to image
+#13 exporting layers
+#13 exporting layers 0.2s done
+#13 writing image sha256:6e2f003c74741db032fbdd3ac4eef7a7d6b862a359b3583ace2e25fc127c659b
+#13 writing image sha256:6e2f003c74741db032fbdd3ac4eef7a7d6b862a359b3583ace2e25fc127c659b done
+#13 naming to docker.io/library/ritim-rma-final-api done
+#13 DONE 0.3s
+
+#14 resolving provenance for metadata file
+#14 DONE 0.4s
+ ritim-rma-final-api  Built
+ Container ritim-rma-final-api-1  Recreate
+ Container ritim-rma-final-api-1  Recreated
+ Container ritim-rma-final-api-1  Starting
+ Container ritim-rma-final-api-1  Started

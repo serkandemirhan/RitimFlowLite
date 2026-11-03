@@ -1,0 +1,17 @@
+TAP version 13
+# \# second-start-alert 
+# Subtest: two operations via premium UI and real Fastify/PostgreSQL
+ok 1 - two operations via premium UI and real Fastify/PostgreSQL
+  ---
+  duration_ms: 44101.454575
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 45790.871483

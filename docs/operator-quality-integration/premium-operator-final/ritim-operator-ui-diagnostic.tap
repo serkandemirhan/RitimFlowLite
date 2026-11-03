@@ -1,0 +1,44 @@
+TAP version 13
+# \# resume diagnostic  İşlerim
+# Yalnızca size atanmış işler · Sunucu verileri
+# Atamaları Yenile
+# VERTICAL-FIRST · Part
+# İmalat · MACHINE-A · paused
+# · Plan 20 · Üretim 0 · Fiziksel girdi 20
+# Part
+# VERTICAL-FIRST · P · İmalat
+# Makine: MACHINE-A · Plan 20 · Üretilen 0 · Kalan plan 20 · Kontrol bekleyen 0
+# Operatör · Sunucu verileri
+# Fiziksel girdi 20 · Kullanılan 0 · Kalan 20
+# Atama ve makine sunucu tarafından doğrulanır. Çizim onayı gerektiren işler kapalıdır.
+# Devam Etİşi Tamamla
+# Kalite kararları
+# Üretim kaydı kalite onayı değildir. Rework işlemi desteklenmiyor.
+# Kalite kaydı yok.
+# Üretim ve kalite geçmişi
+# Subtest: two operations via premium UI and real Fastify/PostgreSQL
+not ok 1 - two operations via premium UI and real Fastify/PostgreSQL
+  ---
+  duration_ms: 46519.155095
+  type: 'test'
+  location: '/Users/user/projects/ritimFlowLite/RitimFlowLite-integration-operator-quality/tests/second-vertical-browser.cjs:4:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    locator.waitFor: Timeout 10000ms exceeded.
+    Call log:
+    [2m  - waiting for getByRole('button', { name: 'Üretim Kaydet' }) to be visible[22m
+    
+  code: 'ERR_TEST_FAILURE'
+  name: 'TimeoutError'
+  stack: |-
+    TestContext.<anonymous> (/Users/user/projects/ritimFlowLite/RitimFlowLite-integration-operator-quality/tests/second-vertical-browser.cjs:9:4188)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 49132.826738

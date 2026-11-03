@@ -1,0 +1,12 @@
+{
+  "type": "characterization, not release approval",
+  "oldSourceDigest": "33c2d8246743b84e6fc1e6b4d386d8402f4387cc75b6d4e18c02ca8267b4a064",
+  "newSourceDigest": "d83d4c101ba370bd00d0cb3972f01f203cba4a26c581b76cd45cf33557412973",
+  "oldAsset": "assets/js/quantity-model.3cc372312875b6e415181b7b8a133cd5135012507fc984dc7c3213f127e2b1f1.js",
+  "newAsset": "assets/js/quantity-model.be13da9ed51e43d428d932b00b7bd3fe75faf2d5752c218bbf20fd222b589a50.js",
+  "oldHTMLReferencesOldAsset": true,
+  "newHTMLReferencesNewAsset": true,
+  "previousAssetInNewPublicArtifact": false,
+  "implication": "Current public artifact does not itself retain a changed previous hashed JS file; actual hosting/cache behavior requires acceptance.",
+  "sourceDataChanged": false
+}

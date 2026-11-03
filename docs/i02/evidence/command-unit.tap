@@ -1,0 +1,100 @@
+TAP version 13
+# Subtest: only verified API responses set scope and requests use bearer and idempotency headers
+ok 1 - only verified API responses set scope and requests use bearer and idempotency headers
+  ---
+  duration_ms: 32.614513
+  type: 'test'
+  ...
+# Subtest: network and authorization failure never fall back to demo state
+ok 2 - network and authorization failure never fall back to demo state
+  ---
+  duration_ms: 1.930082
+  type: 'test'
+  ...
+# Subtest: timed out request reports unknown outcome and never falls back
+ok 3 - timed out request reports unknown outcome and never falls back
+  ---
+  duration_ms: 10.688174
+  type: 'test'
+  ...
+# Subtest: provider interface never fabricates an identity
+ok 4 - provider interface never fabricates an identity
+  ---
+  duration_ms: 1.819758
+  type: 'test'
+  ...
+# Subtest: network uncertainty survives reload, retry retains original key
+ok 5 - network uncertainty survives reload, retry retains original key
+  ---
+  duration_ms: 10.068713
+  type: 'test'
+  ...
+# Subtest: simultaneous duplicate submission invokes only one command
+ok 6 - simultaneous duplicate submission invokes only one command
+  ---
+  duration_ms: 22.113627
+  type: 'test'
+  ...
+# Subtest: confirmed conflict clears journal; timeout and server failure remain
+ok 7 - confirmed conflict clears journal; timeout and server failure remain
+  ---
+  duration_ms: 4.895631
+  type: 'test'
+  ...
+# Subtest: journal rejects corruption and failed writes before submission
+ok 8 - journal rejects corruption and failed writes before submission
+  ---
+  duration_ms: 7.674345
+  type: 'test'
+  ...
+# Subtest: credentials supplied outside permitted command shape are not saved
+ok 9 - credentials supplied outside permitted command shape are not saved
+  ---
+  duration_ms: 1.026407
+  type: 'test'
+  ...
+# Subtest: rejected retry after uncertain outcome keeps original evidence
+ok 10 - rejected retry after uncertain outcome keeps original evidence
+  ---
+  duration_ms: 0.694407
+  type: 'test'
+  ...
+# Subtest: journal accepts only declared command fields, never a bearer token in payload
+ok 11 - journal accepts only declared command fields, never a bearer token in payload
+  ---
+  duration_ms: 0.299616
+  type: 'test'
+  ...
+# Subtest: result checkpoint failure retains the original receipt key
+ok 12 - result checkpoint failure retains the original receipt key
+  ---
+  duration_ms: 2.06895
+  type: 'test'
+  ...
+# Subtest: partial success resumes with original key, without recreating order
+ok 13 - partial success resumes with original key, without recreating order
+  ---
+  duration_ms: 7.098338
+  type: 'test'
+  ...
+# Subtest: order without initial work order and foreign scope remain safe
+ok 14 - order without initial work order and foreign scope remain safe
+  ---
+  duration_ms: 3.320949
+  type: 'test'
+  ...
+# Subtest: only confirmed failed step can be corrected without recreating committed order
+ok 15 - only confirmed failed step can be corrected without recreating committed order
+  ---
+  duration_ms: 1.295851
+  type: 'test'
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 15
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 680.108786

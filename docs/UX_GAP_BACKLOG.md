@@ -59,3 +59,7 @@ Baseline: `a28d562`, audited 26 October 2026. Findings only; implementation has 
 | P3-03 | Add favicon and improve export details. | No favicon 404; CSV columns distinguish order target, job plan and shipment totals; export scope explained. |
 
 Do not estimate remaining effort by counting rows. P0 model and movement work enables much of P1; visual polish alone cannot close the manufacturing gaps.
+
+## 2026-10-26 P1 uygulama notu
+
+Yerel demo kapsamındaki P1 uygulaması ve test kanıtları [P1_IMPLEMENTATION_REPORT.md](P1_IMPLEMENTATION_REPORT.md) içinde. P1-14 gerçek kimlik doğrulama/backend yetkilendirmesi kullanıcı tercihiyle ayrı işe bırakıldı. Yukarıdaki denetim bulguları tarihsel referans olarak korunur; uygulama sınırları ve açık riskler raporda belirtilmiştir.

@@ -1,0 +1,5 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),P=require('../assets/js/persistence.js'),I=require('../assets/js/integrity.js'),planning=require('../assets/js/planning-service.js'),{fresh}=require('./p0-fixtures.cjs');
+const order={id:'SIP-NEW',customer:'Fixture',part:'Part',qty:10,due:'2026-12-01',route:[],routeDeferred:true};
+test('explicit route deferral is valid without creating a job',()=>{const before=fresh(),after=structuredClone(before);after.orders.push(structuredClone(order));assert.equal(P.validate(after).ok,true);assert.equal(I.guard(before,after).ok,true);assert.equal(planning.create(after,{order:order.id,id:'NO',operation:0,qty:1,machine:'',machines:[]}).ok,false)});
+test('empty unknown routes and jobs on deferred routes fail closed',()=>{const s=fresh();s.orders.push({...order,routeDeferred:false});assert.equal(P.validate(s).ok,false);s.orders.at(-1).routeDeferred=true;s.jobs.push({...s.jobs[0],id:'BAD',order:order.id});assert.equal(P.validate(s).ok,false)});

@@ -1,0 +1,12 @@
+{
+  "type": "negative characterization: gate currently accepts missing domain suite",
+  "omitted": "tests/p1-domain.test.cjs",
+  "exit": 0,
+  "counts": {
+    "tests": 277,
+    "pass": 277,
+    "fail": 0
+  },
+  "expectedBaseline": 292,
+  "originalFilesUnchanged": true
+}

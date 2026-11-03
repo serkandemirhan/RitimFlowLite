@@ -1,0 +1,130 @@
+TAP version 13
+# Subtest: only verified API responses set scope and requests use bearer and idempotency headers
+ok 1 - only verified API responses set scope and requests use bearer and idempotency headers
+  ---
+  duration_ms: 5.378142
+  type: 'test'
+  ...
+# Subtest: network and authorization failure never fall back to demo state
+ok 2 - network and authorization failure never fall back to demo state
+  ---
+  duration_ms: 1.111554
+  type: 'test'
+  ...
+# Subtest: timed out request reports unknown outcome and never falls back
+ok 3 - timed out request reports unknown outcome and never falls back
+  ---
+  duration_ms: 10.601298
+  type: 'test'
+  ...
+# Subtest: provider interface never fabricates an identity
+ok 4 - provider interface never fabricates an identity
+  ---
+  duration_ms: 2.128191
+  type: 'test'
+  ...
+# Subtest: network uncertainty survives reload, retry retains original key
+ok 5 - network uncertainty survives reload, retry retains original key
+  ---
+  duration_ms: 6.866602
+  type: 'test'
+  ...
+# Subtest: simultaneous duplicate submission invokes only one command
+ok 6 - simultaneous duplicate submission invokes only one command
+  ---
+  duration_ms: 23.834563
+  type: 'test'
+  ...
+# Subtest: confirmed conflict clears journal; timeout and server failure remain
+ok 7 - confirmed conflict clears journal; timeout and server failure remain
+  ---
+  duration_ms: 44.728944
+  type: 'test'
+  ...
+# Subtest: journal rejects corruption and failed writes before submission
+ok 8 - journal rejects corruption and failed writes before submission
+  ---
+  duration_ms: 4.091155
+  type: 'test'
+  ...
+# Subtest: credentials supplied outside permitted command shape are not saved
+ok 9 - credentials supplied outside permitted command shape are not saved
+  ---
+  duration_ms: 0.301549
+  type: 'test'
+  ...
+# Subtest: rejected retry after uncertain outcome keeps original evidence
+ok 10 - rejected retry after uncertain outcome keeps original evidence
+  ---
+  duration_ms: 2.754934
+  type: 'test'
+  ...
+# Subtest: journal accepts only declared command fields, never a bearer token in payload
+ok 11 - journal accepts only declared command fields, never a bearer token in payload
+  ---
+  duration_ms: 10.313117
+  type: 'test'
+  ...
+# Subtest: result checkpoint failure retains the original receipt key
+ok 12 - result checkpoint failure retains the original receipt key
+  ---
+  duration_ms: 0.561133
+  type: 'test'
+  ...
+# Subtest: partial success resumes with original key, without recreating order
+ok 13 - partial success resumes with original key, without recreating order
+  ---
+  duration_ms: 36.881527
+  type: 'test'
+  ...
+# Subtest: order without initial work order and foreign scope remain safe
+ok 14 - order without initial work order and foreign scope remain safe
+  ---
+  duration_ms: 13.865543
+  type: 'test'
+  ...
+# Subtest: only confirmed failed step can be corrected without recreating committed order
+ok 15 - only confirmed failed step can be corrected without recreating committed order
+  ---
+  duration_ms: 2.677169
+  type: 'test'
+  ...
+# Subtest: production and quality commands use selected scope and idempotency key
+ok 16 - production and quality commands use selected scope and idempotency key
+  ---
+  duration_ms: 4.411075
+  type: 'test'
+  ...
+# Subtest: uncertain production retry preserves identity and rejects secrets
+ok 17 - uncertain production retry preserves identity and rejects secrets
+  ---
+  duration_ms: 1.580839
+  type: 'test'
+  ...
+# Subtest: movement journal retries original operation and rejects unknown fields
+ok 18 - movement journal retries original operation and rejects unknown fields
+  ---
+  duration_ms: 0.898598
+  type: 'test'
+  ...
+# Subtest: assigned jobs are scoped server-side and pagination sends no actor selector
+ok 19 - assigned jobs are scoped server-side and pagination sends no actor selector
+  ---
+  duration_ms: 0.417631
+  type: 'test'
+  ...
+# Subtest: drawing acknowledgement retains exact publication on uncertain retry
+ok 20 - drawing acknowledgement retains exact publication on uncertain retry
+  ---
+  duration_ms: 1.568059
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 494.346817

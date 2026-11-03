@@ -1,0 +1,31 @@
+TAP version 13
+# Subtest: real Keycloak authorization code, scoped identity and session lifecycle
+not ok 1 - real Keycloak authorization code, scoped identity and session lifecycle
+  ---
+  duration_ms: 2464.124082
+  type: 'test'
+  location: '/Users/user/projects/ritimFlowLite/RitimFlowLite-integration-operator-quality/tests/oidc-keycloak-browser.cjs:7:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot find package 'jose' imported from /Users/user/projects/ritimFlowLite/RitimFlowLite-integration-operator-quality/tests/oidc-keycloak-browser.cjs"
+  code: 'ERR_MODULE_NOT_FOUND'
+  stack: |-
+    Object.getPackageJSONURL (node:internal/modules/package_json_reader:266:9)
+    packageResolve (node:internal/modules/esm/resolve:767:81)
+    moduleResolve (node:internal/modules/esm/resolve:853:18)
+    defaultResolve (node:internal/modules/esm/resolve:983:11)
+    #cachedDefaultResolve (node:internal/modules/esm/loader:731:20)
+    ModuleLoader.resolve (node:internal/modules/esm/loader:708:38)
+    ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)
+    onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:36)
+    TracingChannel.tracePromise (node:diagnostics_channel:344:14)
+    ModuleLoader.import (node:internal/modules/esm/loader:663:21)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5261.213949

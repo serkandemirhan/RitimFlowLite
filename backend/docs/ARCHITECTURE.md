@@ -1,0 +1,26 @@
+# B01 — portable MES backend architecture
+
+Status: foundation only, not production ready. Cloud SaaS and on-premise must run the **same container image, API contracts, PostgreSQL schema, migrations and domain rules**. Differences are configuration and operations: identity provider, secret injection, TLS, storage backend, backups, monitoring, scale and infrastructure. Do not fork business logic by deployment edition.
+
+## Stack and rationale
+
+Node 22 + Fastify 5 + node-postgres + PostgreSQL: existing P0/P1 domain code is JavaScript with CommonJS exports, which allows future adapters and differential tests against the same behavior. Fastify provides a small routing/plugin surface and schema-based request validation ([official Fastify validation documentation](https://fastify.dev/docs/latest/Reference/Validation-and-Serialization/)). `pg` supplies an explicit per-client transaction boundary; all queries within a transaction use the same client ([node-postgres transaction documentation](https://node-postgres.com/features/transactions)). SQL migrations are plain PostgreSQL and run in both environments. Exact npm versions and dependency tree are locked under `backend/`.
+
+## Boundaries
+
+1. REST transport: versioned `/api/v1`, request validation, structured errors, no tenant inferred from untrusted roles/headers.
+2. Identity adapter verifies configured issuer, signature, expiry and audience and constructs a server-trusted identity. Database user/grant revocation is checked locally; remote token revocation is not checked. On-prem identity provider and SaaS identity provider use the same interface. Never accept client-selected actor as authentication.
+3. Authorization: per-command membership in tenant/site and allowed role are checked in the same transaction. Roles and tenant/site context must be chosen and verified by server policy, never supplied by client as authorization evidence. B01 `executeCommand` is only a foundation; no production route uses it yet.
+4. Application service: load a tenant/site-scoped aggregate and lock relevant rows in a deterministic order; revalidate commands against latest DB state; execute existing rule behavior, movement and audit writes, idempotency receipt, then commit once.
+5. Database: canonical piece counts and immutable events; current balances are projections computed from movements, distinct from historical production. Use explicit source/destination and provenance. Multiple devices and instances coordinate in PostgreSQL, not Web Locks.
+6. Infrastructure adapters: filesystem/S3-compatible drawing storage, mail/notifications and telemetry are separate ports, with deployment-specific implementations. File metadata is stored in PostgreSQL; do not store secrets or binary files in migrations.
+
+## B01 implementation and limits
+
+`src/command.js` validates trusted identity flag, queries membership and roles inside the transaction, creates an idempotency receipt with unique tenant/site/actor/key, locks duplicate rows and replays an identical committed result. Different content with the same key fails; handler or storage failure rolls back both effects and receipt. This is tested against concurrent real PostgreSQL sessions. Identity middleware sets this flag **only** after real verification; directly constructing it is not authentication. The command boundary does not itself prove stock/quality/route rules or lock the right business rows: each future service must do so. Business APIs remain absent (404). `GET /api/v1/session` returns verified identity and database-derived scopes when OIDC is configured; otherwise it fails closed.
+
+Migrations run with an advisory transaction lock, checksums, atomic application and rejection of unknown versions. Run migration under a dedicated privileged identity; normal API should use a least-privilege identity. Compose is configured for distinct pre-provisioned migration and runtime accounts; its deployment has not yet been verified. PostgreSQL `CHECK` and composite foreign keys prevent many corrupt records but do not enforce aggregate limits, all role/site relations, or all current domain invariants. Append-only triggers protect four history tables from ordinary UPDATE/DELETE; owner/superuser/TRUNCATE, privileged operations and retention require proper DB privileges and separate operations controls.
+
+## Deployment and security gaps
+
+Compose binds API to loopback, requires an explicit password and persists a named volume. Real deployment additionally requires TLS, secrets, verified identity, DB role separation, deployment automation, backups/restore tests, monitoring, disaster recovery, rate limiting and threat review. Cloud database TLS should use `DB_SSL=verify` with a trusted CA; treat PostgreSQL connection-string TLS overrides carefully and verify configuration at deploy time. Validate cross-tenant access and authorization at application boundary; RLS is installed for tenant/site domain tables, within the trust limits in [B03A](B03A_IMPLEMENTATION.md). Readiness checks installed migration checksums and selected runtime privileges and RLS flags; it is not complete security certification. CORS, object storage, service-to-service authentication and observability integrations are not implemented. Do not run a real workshop on B01/B02. See [B02 authorization](B02_AUTHORIZATION.md) for remaining blockers.

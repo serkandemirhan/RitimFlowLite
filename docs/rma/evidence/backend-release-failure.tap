@@ -1,0 +1,138 @@
+TAP version 13
+# (node:33747) [FSTDEP023] FastifyDeprecation: disableRequestLogging option is deprecated. Use the logController option with disableRequestLogging or isLogDisabled override instead. The disableRequestLogging top-level option will be removed in `fastify@6`.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: B04B-1A quality disposition using restricted runtime
+    # Subtest: outsourcing supplier identity is scoped, idempotent and audit atomic
+    ok 1 - outsourcing supplier identity is scoped, idempotent and audit atomic
+      ---
+      duration_ms: 926.949189
+      type: 'test'
+      ...
+    # Subtest: supplier dispatch, partial return and inspection remain physically isolated
+    ok 2 - supplier dispatch, partial return and inspection remain physically isolated
+      ---
+      duration_ms: 2625.249938
+      type: 'test'
+      ...
+    # Subtest: shipping allocation dispatch delivery and concurrent limit
+    not ok 3 - shipping allocation dispatch delivery and concurrent limit
+      ---
+      duration_ms: 4041.420971
+      type: 'test'
+      location: '/Users/user/projects/ritimFlowLite/RitimFlowLite-backend-b01/backend/test/b04b1a-quality.test.js:38:11'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+
+        16 !== 10
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 10
+      actual: 16
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/Users/user/projects/ritimFlowLite/RitimFlowLite-backend-b01/backend/test/b04b1a-quality.test.js:53:609)
+        process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/Users/user/projects/ritimFlowLite/RitimFlowLite-backend-b01/backend/test/b04b1a-quality.test.js:38:3)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+      ...
+    # Subtest: partial decisions, retry, provenance and concurrent ceiling
+    ok 4 - partial decisions, retry, provenance and concurrent ceiling
+      ---
+      duration_ms: 1305.207626
+      type: 'test'
+      ...
+    # Subtest: good output requires a recorded decision and history is immutable
+    ok 5 - good output requires a recorded decision and history is immutable
+      ---
+      duration_ms: 873.301237
+      type: 'test'
+      ...
+    # Subtest: readiness checks quality grant and drawing restrictions remain fail closed
+    ok 6 - readiness checks quality grant and drawing restrictions remain fail closed
+      ---
+      duration_ms: 869.719991
+      type: 'test'
+      ...
+    # Subtest: output lot is event-specific, idempotent and quality retains input genealogy
+    ok 7 - output lot is event-specific, idempotent and quality retains input genealogy
+      ---
+      duration_ms: 795.947166
+      type: 'test'
+      ...
+    # Subtest: concurrent output events have distinct lots and audit failure rolls back lot
+    ok 8 - concurrent output events have distinct lots and audit failure rolls back lot
+      ---
+      duration_ms: 513.555167
+      type: 'test'
+      ...
+    # Subtest: historical event and decision stay readable without invented output lot
+    ok 9 - historical event and decision stay readable without invented output lot
+      ---
+      duration_ms: 157.287271
+      type: 'test'
+      ...
+    # Subtest: approved output reservation, partial release and downstream planning
+    ok 10 - approved output reservation, partial release and downstream planning
+      ---
+      duration_ms: 1539.119782
+      type: 'test'
+      ...
+    # Subtest: reservation concurrency, authorization and audit rollback
+    ok 11 - reservation concurrency, authorization and audit rollback
+      ---
+      duration_ms: 1318.146008
+      type: 'test'
+      ...
+    # Subtest: concurrent planning respects operation capacity after reservation release
+    ok 12 - concurrent planning respects operation capacity after reservation release
+      ---
+      duration_ms: 1163.362029
+      type: 'test'
+      ...
+    # Subtest: cross-operation dispatch and partial receipt preserve provenance, concurrency and rollback
+    ok 13 - cross-operation dispatch and partial receipt preserve provenance, concurrency and rollback
+      ---
+      duration_ms: 5056.283825
+      type: 'test'
+      ...
+    # Subtest: frontend discovery and fictional material onboarding use restricted runtime and reconcile history
+    ok 14 - frontend discovery and fictional material onboarding use restricted runtime and reconcile history
+      ---
+      duration_ms: 1236.118698
+      type: 'test'
+      ...
+    # Subtest: rework decision discovery is scoped and does not claim physical availability
+    ok 15 - rework decision discovery is scoped and does not claim physical availability
+      ---
+      duration_ms: 1967.577763
+      type: 'test'
+      ...
+    # Subtest: audit failure rolls back quality and idempotency
+    ok 16 - audit failure rolls back quality and idempotency
+      ---
+      duration_ms: 233.386832
+      type: 'test'
+      ...
+    1..16
+not ok 1 - B04B-1A quality disposition using restricted runtime
+  ---
+  duration_ms: 28597.650023
+  type: 'test'
+  location: '/Users/user/projects/ritimFlowLite/RitimFlowLite-backend-b01/backend/test/b04b1a-quality.test.js:5:1'
+  failureType: 'subtestsFailed'
+  error: '1 subtest failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 17
+# suites 0
+# pass 15
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 29764.183599

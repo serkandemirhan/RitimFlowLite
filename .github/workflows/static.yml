@@ -22,8 +22,16 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Single deploy job since we're just deploying
+  # Existing live release is untouched until an explicitly authorized push/run.
+  verify:
+    uses: ./.github/workflows/rc1-ci.yml
+    permissions:
+      contents: read
+
   deploy:
+    # RC1 review only: release gates, including legacy writer isolation and mobile acceptance, remain open.
+    if: ${{ false }}
+    needs: verify
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -31,13 +39,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Download only the verified public candidate
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: rc1-public
+          path: artifacts/pages-public
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload entire repository
-          path: '.'
+          # Tests, evidence, source tooling and backups are excluded.
+          path: artifacts/pages-public
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5

@@ -1,0 +1,14 @@
+{
+  "run": "https://github.com/serkandemirhan/RitimFlowLite/actions/runs/40648159648",
+  "candidate": "3675b270c322a89dc32e7422a5c457cbbfe29f52",
+  "passed": 11,
+  "failed": 0,
+  "applicationErrors": [
+    {
+      "test": "P1-01/16 quoted unassigned job and drawing preserve context",
+      "kind": "requestfailed",
+      "url": "http://127.0.0.1:44363/teknikResim.pdf",
+      "message": "net::ERR_ABORTED"
+    }
+  ]
+}

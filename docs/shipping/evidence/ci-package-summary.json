@@ -1,0 +1,73 @@
+{
+  "target": "8e15d757ce03afa8edb689aadf89479ec621e02b7930cac25691c110b39df14e",
+  "playwright": "1.64.1",
+  "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "suites": [
+    {
+      "suite": "p0",
+      "expected": 16,
+      "exit": 0,
+      "passed": 16,
+      "failed": 0,
+      "applicationErrors": 0,
+      "valid": true
+    },
+    {
+      "suite": "p0-transfer",
+      "expected": 9,
+      "exit": 0,
+      "passed": 9,
+      "failed": 0,
+      "applicationErrors": 0,
+      "valid": true
+    },
+    {
+      "suite": "p0-planning",
+      "expected": 9,
+      "exit": 0,
+      "passed": 9,
+      "failed": 0,
+      "applicationErrors": 0,
+      "valid": true
+    },
+    {
+      "suite": "p1",
+      "expected": 11,
+      "exit": 0,
+      "passed": 11,
+      "failed": 0,
+      "applicationErrors": 0,
+      "valid": true
+    },
+    {
+      "suite": "p0-persistence",
+      "expected": 34,
+      "exit": 0,
+      "passed": 34,
+      "failed": 0,
+      "applicationErrors": 0,
+      "valid": true
+    },
+    {
+      "suite": "p0-integrity",
+      "expected": 11,
+      "exit": 0,
+      "passed": 11,
+      "failed": 0,
+      "applicationErrors": 0,
+      "valid": true
+    },
+    {
+      "suite": "p0-concurrency",
+      "expected": 20,
+      "exit": 0,
+      "passed": 20,
+      "failed": 0,
+      "applicationErrors": 0,
+      "valid": true
+    }
+  ],
+  "passed": 110,
+  "failed": 0,
+  "applicationErrors": 0
+}

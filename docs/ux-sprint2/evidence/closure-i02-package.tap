@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: I02 premium API wizard against Fastify/PostgreSQL
+ok 1 - I02 premium API wizard against Fastify/PostgreSQL
+  ---
+  duration_ms: 60419.11625
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 62542.376506

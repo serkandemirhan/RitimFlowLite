@@ -1,0 +1,7 @@
+PASS split work-order plan used in list, details, linked order, machine and CSV
+PASS partial historical production is displayed against each job plan
+PASS unassigned work shows unassigned machine and accurate ownership message
+PASS rejected machine change restores persisted selection
+PASS modal focus, tab trap, Escape and trigger restoration
+PASS UX07 historical -2 remains visible with warning and unchanged raw snapshot
+6/6 sprint checks; zero unexpected page errors

@@ -1,0 +1,30 @@
+PASS split work-order plan used in list, details, linked order, machine and CSV
+PASS partial historical production is displayed against each job plan
+PASS unassigned work shows unassigned machine and accurate ownership message
+PASS rejected machine change restores persisted selection
+PASS modal focus, tab trap, Escape and trigger restoration
+PASS UX07 historical -2 remains visible with warning and unchanged raw snapshot
+6/6 sprint checks; zero unexpected page errors
+PASS responsive pages 320
+PASS responsive pages 360
+PASS responsive pages 390
+PASS responsive pages 430
+PASS responsive pages 768
+PASS responsive pages 1440
+PASS dashboard four KPIs, assignment and translated activity
+PASS order results, clear filters, detail and one net progress
+PASS planning availability, quantity consequences and contextual reductions
+9/9 sprint 1 checks; zero unexpected page errors
+PASS operator and quality 320
+PASS operator and quality 360
+PASS operator and quality 375
+PASS operator and quality 390
+PASS operator and quality 430
+PASS operator and quality 768
+PASS operator and quality 1440
+7/7 sprint 2 checks
+PASS action waiting
+PASS action running
+PASS action paused
+PASS action complete
+4/4 action checks

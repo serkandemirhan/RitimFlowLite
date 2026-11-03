@@ -1,0 +1,28 @@
+TAP version 13
+# Subtest: two operations via premium UI and real Fastify/PostgreSQL
+not ok 1 - two operations via premium UI and real Fastify/PostgreSQL
+  ---
+  duration_ms: 60574.306228
+  type: 'test'
+  location: '/Users/user/projects/ritimFlowLite/RitimFlowLite-integration-operator-quality/tests/second-vertical-browser.cjs:4:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    locator.evaluate: Timeout 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('summary').filter({ hasText: 'Atama ve devir' })[22m
+    
+  code: 'ERR_TEST_FAILURE'
+  name: 'TimeoutError'
+  stack: |-
+    open (/Users/user/projects/ritimFlowLite/RitimFlowLite-integration-operator-quality/tests/second-vertical-browser.cjs:8:136)
+    async TestContext.<anonymous> (/Users/user/projects/ritimFlowLite/RitimFlowLite-integration-operator-quality/tests/second-vertical-browser.cjs:9:2332)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 62085.805927
