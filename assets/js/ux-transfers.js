@@ -52,7 +52,7 @@
       <label class="formfield">Transfer adedi<input class="input" id="transfer-qty" type="number" min="1" step="1" value="${Math.min(25, b.unprocessed)}"></label>
       <label class="formfield">Transfer / geri alma gerekçesi<input class="input" id="transfer-reason" placeholder="Makine değişimi, yanlış hedef…"></label>
       <button class="btn primary full" data-source="${h(j.id)}" onclick="RitimUXTransfers.issue(this.dataset.source)" ${!targets.length || !b.unprocessed || state.user !== "Yönetici" ? "disabled" : ""}>Fiziksel Transferi Gönder</button>
-      ${!targets.length ? '<p class="tiny">Aynı operasyonda açık hedef iş emri yok. İş emirleri ekranından hedef oluşturun. Operasyon ve bölünmüş plan yönetimi ayrı geliştirme kapsamındadır.</p>' : ""}
+      ${!targets.length || !lots.some((l) => l.available > 0) ? '<p class="tiny">Bu iş emri için transfer yapılabilecek bir lot veya uygun hedef bulunmuyor. Önce uygun fiziksel girdi ve hedef iş emrini kontrol edin.</p>' : ""}
       ${rows
         .map(
           (
@@ -87,7 +87,7 @@
     const j = job(selectedJob) || state.jobs[0];
     el("app").innerHTML = shell();
     const title = document.querySelector(".header h1");
-    if (title) title.textContent = "Fiziksel Transferler";
+    if (title) title.textContent = "Operasyon Transferleri";
     el("page").innerHTML = j
       ? `<div class="ux05-wrap"><div class="card pad"><label class="formfield">Transfer iş emri<select class="select" onchange="RitimUXTransfers.open(this.value)">${state.jobs.map((t) => `<option value="${h(t.id)}" ${t.id === j.id ? "selected" : ""}>${h(t.id)} · ${h(t.machine || "Makine atanmamış")}</option>`).join("")}</select></label><p class="tiny">Makine ataması olmadan da iş emrinin fiziksel teslimi burada kabul edilebilir.</p></div>${panel(j)}</div>`
       : '<div class="empty">İş emri yok.</div>';

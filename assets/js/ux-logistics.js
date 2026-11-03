@@ -185,10 +185,13 @@
     let o = order(selected) || state.orders[0];
     if (!o) return '<div class="empty">Sipariş yok.</div>';
     selected = o.id;
+    const area = window.RitimNavigation?.area(), visibleTabs = area === 'warehouse' ? ['material', 'allocate'] : area === 'logistics' ? ['external', 'return', 'shipping', 'customerReturn'] : Object.keys(actions);
+    // Legacy deep links may deliberately open another task; keep that task visible.
+    if (!visibleTabs.includes(tab)) visibleTabs.push(tab);
     const x = data(o),
       a = actions[tab],
       max = Math.max(0, a.max(x));
-    return `<div class="ux6-wrap"><div class="card pad"><div class="ux6-head"><div><div class="eyebrow">UX-06 · HAREKET DEFTERİ</div><h2>Malzeme & Fason & Sevkiyat</h2></div><span class="demo">DEMO</span></div><label class="formfield">Sipariş<select class="select" id="ux6-order" onchange="RitimUX06.changeOrder(this.value)">${opts(state.orders, "id", (o) => o.id + " · " + o.part)}</select></label><p class="tiny">${esc(o.customer)} · Sipariş ${o.qty} adet · ${esc(o.route.join(" → "))}</p><div class="ux6-stats">${[
+    return `<div class="ux6-wrap"><div class="card pad"><div class="ux6-head"><div><div class="eyebrow">HAREKET DEFTERİ</div><h2>${area === 'warehouse' ? 'Malzeme' : area === 'logistics' ? 'Lojistik' : 'Malzeme ve Lojistik'}</h2></div><span class="demo">DEMO</span></div><label class="formfield">Sipariş<select class="select" id="ux6-order" onchange="RitimUX06.changeOrder(this.value)">${opts(state.orders, "id", (o) => o.id + " · " + o.part)}</select></label><p class="tiny">${esc(o.customer)} · Sipariş ${o.qty} adet · ${esc(o.route.join(" → "))}</p><div class="ux6-stats">${[
       ["Kabul", x.material],
       ["Serbest Malzeme", x.materialFree],
       ["Fason Açık", x.supplierOpen],
@@ -201,7 +204,7 @@
         "",
       )}</div><div class="ux6-progress"><div style="width:${x.percent}%"></div></div><p class="tiny">Siparişin net sevk ilerlemesi: ${x.net} / ${o.qty} (%${Math.round(x.percent * 100) / 100}) · UX-06 hareketlerinden hesaplanır.</p></div>
 ${x.issues.map((issue) => '<div class="ux6-alert">' + esc(issue) + "</div>").join("")}
-<div class="ux6-tabs">${Object.entries(actions)
+<div class="ux6-tabs">${Object.entries(actions).filter(([key]) => visibleTabs.includes(key))
       .map(
         ([k, v]) =>
           `<button class="${tab === k ? "active" : ""}" onclick="RitimUX06.setTab('${k}')">${v.title}</button>`,

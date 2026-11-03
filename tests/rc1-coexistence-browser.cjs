@@ -34,9 +34,11 @@ const legacyKey='ritimLiteAnonymousDemoV1',demoKey='ritimFlowLite:fictional-demo
   let initialized=JSON.parse(await demo.evaluate(k=>localStorage.getItem(k),demoKey));
   assert(initialized.transactionState.commands.some(c=>c.kind==='demo.initialize'));
   await demo.evaluate(()=>changeUser("Yönetici"));
-  await demo.evaluate(()=>{openWizard();Object.assign(wizard,{id:'SIP-P0',customer:'Kurgusal Test Firma',part:'Test Parçası',partNo:'TEST',qty:20,jobQty:20,jobId:'WO-P0',machine:'',step:3});renderModal();});
-  await demo.getByRole('button',{name:'Siparişi Oluştur',exact:true}).click();
+  await demo.evaluate(()=>{openWizard();Object.assign(wizard,{id:'SIP-P0',customer:'Kurgusal Test Firma',part:'Test Parçası',partNo:'TEST',qty:20,due:'2026-12-01',route:['İmalat'],step:3});renderModal();});
+  await demo.getByRole('button',{name:'Siparişi Kaydet',exact:true}).click();
   await demo.waitForFunction(()=>state.orders.some(o=>o.id==='SIP-P0'));
+  const planned=await demo.evaluate(()=>RitimCommands.submit('planning.create',{order:'SIP-P0',id:'WO-P0',operation:0,qty:20,machine:'',machines:MACHINES.map(m=>m.id)}));
+  assert.equal(planned.ok,true,JSON.stringify(planned));
   const fixture=completed(); fixture.jobs[0].machine='';
   const added=await demo.evaluate(async fixture=>commitState(d=>{
     Object.assign(d.jobs.find(j=>j.id==='WO-P0'),fixture.jobs[0]);

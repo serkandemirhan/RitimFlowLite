@@ -567,6 +567,7 @@ async function picture(p, name) {
           customer: "Test Firma",
           part: "Test Parçası",
           qty: 20,
+          due: "2026-12-01",
           jobQty: 20,
           jobId: "NEW-FIRST",
           machine: "CNC-02",

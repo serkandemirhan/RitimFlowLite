@@ -246,7 +246,8 @@
         !o.id ||
         !count(o.qty) ||
         !Array.isArray(o.route) ||
-        !o.route.length
+        (!o.route.length && (o.routeDeferred !== true || (Array.isArray(s.jobs) && s.jobs.some(j => j.order === o.id)))) ||
+        (o.routeDeferred !== undefined && (typeof o.routeDeferred !== 'boolean' || (o.routeDeferred && o.route.length > 0)))
       )
         bad("orders: id/qty/route");
       if (

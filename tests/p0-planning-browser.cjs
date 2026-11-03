@@ -369,7 +369,7 @@ async function picture(p, name) {
       }),
   );
   await run(
-    "P05-wizard: initial order creation passes shared plan validation and remains usable",
+    "P05-wizard: order creation and subsequent planning preserve shared capacity",
     () =>
       isolated(fresh(), 390, async (p) => {
         await p.evaluate(() => {
@@ -379,16 +379,19 @@ async function picture(p, name) {
             customer: "Test Firma",
             part: "Parça",
             qty: 150,
-            jobQty: 100,
-            jobId: "NEW-FIRST",
-            machine: "CNC-02",
+            due: "2026-12-01",
+            route: ["İmalat"],
             step: 3,
           });
           renderModal();
         });
         await p
-          .getByRole("button", { name: "Siparişi Oluştur", exact: true })
+          .getByRole("button", { name: "Siparişi Kaydet", exact: true })
           .click();
+        await p.waitForFunction(() => state.orders.some(o => o.id === "NEW-ORDER"));
+        assert.equal(await p.evaluate(() => state.jobs.filter(j => j.order === "NEW-ORDER").length), 0);
+        await p.evaluate(() => newJobFor("NEW-ORDER"));
+        await plan(p, "NEW-FIRST", 100, 0, "CNC-02");
         assert.equal(
           await p.evaluate(
             () => state.jobs.find((j) => j.id === "NEW-FIRST").plannedQty,

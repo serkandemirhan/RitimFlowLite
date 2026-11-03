@@ -234,10 +234,16 @@ async function picture(p, name) {
           ),
           true,
         );
+        // Keep the PDF dialog open until the actual network response completes.
+        // This tests the resource instead of ignoring requestfailed events on close.
+        const pdfResponse = p.waitForResponse(r => new URL(r.url()).pathname === "/teknikResim.pdf");
         await p.evaluate(() => {
           openJob(state.jobs[0].id);
           showDrawing(state.orders[0].id);
         });
+        const response = await pdfResponse;
+        assert.equal(response.ok(), true, "drawing PDF must load successfully");
+        assert.equal(await response.finished(), null, "drawing PDF request must finish");
         await p
           .getByRole("button", { name: "Yakınlaştır", exact: true })
           .click();

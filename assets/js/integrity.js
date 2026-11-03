@@ -864,7 +864,7 @@
         ref = { order: o.id },
         path = `orders.${o.id}`,
         js = s.jobs.filter((j) => j.order === o.id);
-      if (!r.supported)
+      if (!r.supported && !(o.routeDeferred === true && r.operations.length === 0 && js.length === 0))
         add(
           "UNSUPPORTED_ROUTE",
           path,
