@@ -2,6 +2,8 @@
 
 ## Current native backend / Windows operations results
 
+Installed-service continuation: database `ritim_local_dev` on 5432 has 65 tables/28 migrations. Real local Keycloak PKCE/BFF login, encrypted recovery-backed order creation, SQL read under restricted RLS scope, durable 201 receipt and browser reload all verified for test order **SIP-1793716581659**, quantity **10**. [Detailed proof/restart steps](17_LOCAL_RUN_VERIFICATION.md). This updates the earlier statement that existing-service provisioning and live local identity had not run. Broad premium browser, PDF, outage, cloud and sync acceptance remain open.
+
 Source baseline: merge **2ffcdc1**, incorporating both existing implementation branches, plus Windows SCRAM test provisioning and operational helpers. Node 22.20.0, npm 10.9.3; PostgreSQL server and clients **18.6**. No historical SQL changed.
 
 | Check | Result | Evidence / limit |

@@ -15,6 +15,11 @@ function Protect-RitimConfigDirectory {
     if ($LASTEXITCODE -ne 0) { throw 'Could not protect the local configuration directory.' }
 }
 
+function Get-RitimIdentityConfigPath {
+    param([string]$ProjectRoot)
+    return Join-Path (Split-Path -Parent (Get-RitimDatabaseConfigPath $ProjectRoot)) 'identity.clixml'
+}
+
 function Get-RitimSecretText {
     param([Security.SecureString]$Secret)
     return (New-Object System.Management.Automation.PSCredential('ritim', $Secret)).GetNetworkCredential().Password

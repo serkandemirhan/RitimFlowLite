@@ -1,6 +1,6 @@
 # Windows setup — initial inspection
 
-Current status: native PostgreSQL validation **PASS**, persistent development installation **BLOCKED** until the user supplies credentials locally. Both implementation branches are merged. See [audit](01_CURRENT_STATE_AUDIT.md) and [results](14_TEST_RESULTS.md). Instructions below supersede the historical preliminary notes later in this file.
+Current status: native PostgreSQL validation and persistent local development startup **PASS**. The user supplied database credentials locally; real Keycloak/BFF browser-to-SQL order persistence is verified in [local run proof](17_LOCAL_RUN_VERIFICATION.md). Both implementation branches are merged. Broader product/offline/production acceptance remains open. See [audit](01_CURRENT_STATE_AUDIT.md) and [results](14_TEST_RESULTS.md).
 
 ## Verified Docker-free native regression
 

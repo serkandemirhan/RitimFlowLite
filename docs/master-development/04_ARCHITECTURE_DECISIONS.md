@@ -1,8 +1,8 @@
 # Architecture decision gate
 
-Repository restoration is complete: both existing implementation branches were merged with user approval. That approval does not select A-G. Native PostgreSQL tests and Windows operations passed without deciding offline identity or synchronization policy.
+Repository restoration is complete. Earlier merge approvals did not select A-G; the user's later approval accepted the design direction, then prioritized running the local program. Detailed production offline identity and synchronization policies are still open.
 
-## Onay bekleyen yön (Türkçe)
+## Onaylanan yön ve açık ayrıntılar (Türkçe)
 
 - A: Yerel kimlik hizmeti ve doğrulanmış bulut/yerel kullanıcı eşlemesi öneriliyor. İlk çevrimdışı kullanıcı, parola değişimi, iptal ve çevrimdışı yetki süresi ayrıca kesinleştirilecek; sınırsız çevrimdışı yetki varsayılmıyor.
 - B: Fiziksel stok ve üretimde tesisin yetkili yazar olması; bulut taleplerinin tesisçe onaylanması, ana veri çakışmalarının sürümle görünür yönetilmesi öneriliyor. Aynı stoğu bağımsız iki yerde harcatmak önerilmiyor.
@@ -12,9 +12,9 @@ Repository restoration is complete: both existing implementation branches were m
 - F: İlk kapsamda internet kesilirken yerel ağ/sunucu çalışmaya devam eder. Yerel ağdan da kopuk telefon/laptop işlemleri ayrı kapsam olarak öneriliyor.
 - G: Önce kurgusal test/pilot, müşteri verisinde salt-okunur eşleme analizi, açık geçiş planı, doğrulanmış yedek ve kontrollü mutabakat öneriliyor. Mevcut müşteri verisi otomatik taşınmayacak/sıfırlanmayacak.
 
-Bu öneriler uygulanmış karar değildir. Aşağıdaki alternatif/güvenlik/bakım değerlendirmesiyle birlikte onay bekler. Tasarım yönünün onayı bile çevrimdışı süre, sağlayıcı, yetki ve geçiş ayrıntıları kesinleşmeden eşitleme yazma yetkisi vermez.
+Bu tasarım yönü onaylandı; uygulanmış bir üretim politikası olarak kabul edilmez. Çevrimdışı süre, sağlayıcı, yetki ve geçiş ayrıntıları kesinleşmeden eşitleme yazma yetkisi açılmaz.
 
-Status: **PROPOSED — none of A–G approved**. Existing Keycloak/OIDC and encrypted recovery must remain intact. Do not enable dual-writer stock or production synchronization before approval and verified contracts. Branch reconciliation is a separate prerequisite; it does not approve these choices.
+Status: **DESIGN DIRECTION APPROVED by the user on 2026-11-03**, with immediate priority to run the local application and verify PostgreSQL order persistence. Offline lease/revocation specifics, cloud API provider and migration/reconciliation details remain undecided; no dual-writer sync or production offline policy is enabled. Existing Keycloak/OIDC and encrypted recovery remain intact. The native Keycloak development fixture used for local verification does not settle production offline identity policy.
 
 | Decision | Alternatives and consequences | Recommendation requiring approval |
 |---|---|---|

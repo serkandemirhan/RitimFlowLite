@@ -2,6 +2,8 @@
 
 ## Current continuation: both branches reconciled
 
+Latest requested local run: installed service database `ritim_local_dev` initialized with 65 tables/28 migrations, separate owner/runtime roles, real native Keycloak/BFF login and persisted 10-piece order **SIP-1793716581659**, verified by restricted SQL and browser reload. [Proof](17_LOCAL_RUN_VERIFICATION.md) supersedes the earlier persistent-installation/login blockers below. Existing databases were not reset; only the new explicit development DB and local fictional identity fixture were provisioned. A-G design direction was approved; detailed production/offline/sync policy remains open.
+
 User approved the second merge while asking to continue the master task. Audited HEAD is `2ffcdc1ebc782ed5d217cbf802dc090465c0085e` (backend merge), with integration `02e75e9` and backend `9367eef` both ancestors. Tests include the Windows helper changes in this checkpoint's working tree. No push/deployment. Migration inventory is now **001-028**, not only 001-007. [Current matrix](03_MASTER_FUNCTIONALITY_MATRIX.md) supersedes the original demo inventory.
 
 Native Windows PostgreSQL **18.6**, SCRAM for all local/host logins: **142 backend tests passed, zero fail/skip/cancel**. Seven role-using suites now create random per-role credentials rather than depending on trust authentication; no bootstrap password is shared with runtime/migration roles. All historical migrations are unchanged. Restricted-role Fastify smoke applied 28 migrations, repeated with zero changes, returned liveness/readiness 200 and unauthenticated session 401. Backup/restore recovery tests passed.

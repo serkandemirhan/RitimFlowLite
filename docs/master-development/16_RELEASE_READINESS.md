@@ -2,7 +2,7 @@
 
 | Area | Decision | Evidence / next gate |
 |---|---|---|
-| Windows local setup | BLOCKED | Both branches, native tests, runtime and setup scripts verified; persistent service configuration/live login pending |
+| Windows local setup | GO (local development scope) | Installed PostgreSQL service, 65 tables/28 migrations, restricted runtime, real local Keycloak/BFF login and browser-to-SQL order persistence verified |
 | Local database integration | GO (native test scope) | PostgreSQL 18.6, 142/142, restricted runtime readiness, 28 migrations and tested backup/restore; persistent installed-service DB remains pending |
 | Existing MES regression | GO (backend tested scope) | 142/142 actual PostgreSQL tests; full authenticated Windows UI regression remains BLOCKED |
 | Offline authentication | BLOCKED | ADR A/F pending |

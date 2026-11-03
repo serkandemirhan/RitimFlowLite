@@ -2,6 +2,8 @@
 
 ## Current remaining gates after backend merge 2ffcdc1
 
+Latest continuation: persistent `ritim_local_dev` setup and one real local-Keycloak browser-to-SQL order journey now PASS; see [local run proof](17_LOCAL_RUN_VERIFICATION.md). A-G design direction is approved, while its detailed offline lease/provider/sync rollout decisions remain open. The corresponding earlier pending statements below are historical. Local verification uses a 14-day localhost certificate and fictional test identities, not production identity or offline policy acceptance.
+
 - Both branch discrepancies are resolved; no further merge approval is pending. M0 inventory and all sixteen master documents exist. Earlier findings are preserved in Git history.
 - Native PostgreSQL 18.6 regression 142/142 and Windows operational backup/restore rehearsal PASS. Persistent development DB on installed service still needs the user's local credential entry; interactive setup has not run there.
 - Live local user login, Supabase migration, cloud API hosting and offline authentication are not verified. A-G decisions remain unapproved.
