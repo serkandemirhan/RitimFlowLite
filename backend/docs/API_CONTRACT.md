@@ -142,3 +142,17 @@ The response includes the classified `quantity`, outstanding `allocated`, `avail
 ### Müşteri iadesi geliştirme API'si
 
 Teslimat kaynaklı RMA, mantıksal karantina, kontrol, rework ve yönetici serbest bırakma sözleşmesi için [Gate 3 müşteri iadesi notlarına](GATE3_CUSTOMER_RETURNS.md) bakın. Bu uçlar yalnız izole geliştirme modunda açıktır.
+
+### Scoped logistics queue discovery (development only)
+
+`GET /api/v1/sites/{tenantId}/{siteId}/logistics/queues/{shipping|outsourcing|returns}?limit=50&after={uuid}` returns `{items,nextAfter}` ordered by record ID, with at most 100 items per page. Each item has its own ID, order ID/number and creation time; returns additionally carry the RMA number and authorized quantity. These are recorded entities, not calculated ready-to-ship or physical balance projections. Every request checks the verified identity, active tenant/site membership and `orders.read`; outsourcing additionally requires one of `stock.write`, `quality.write` or `planning.write`, and returns requires one of `shipment.write`, `stock.write` or `quality.write`. Forced RLS and the restricted runtime role remain in force. Unknown query parameters, invalid limits and cursors are rejected. Existing detailed order-scoped reads and mutation commands remain authoritative. These endpoints are available only in isolated development.
+
+### Scoped record search (development only)
+
+`GET /api/v1/sites/{tenantId}/{siteId}/search?q={text}&limit={1..100}` requires verified identity, active tenant/site membership and `orders.read`. It searches order, work-order, material, inventory/production lot, shipping, outsourcing and return identifiers or relevant codes, escaping SQL wildcard characters. Outsourcing and return results require the same capability families as their respective queues. The response `{results,truncated,scope}` is bounded and identifies `scope: supported_site_records`; it does not claim supplier-name search or full lot genealogy. RLS applies. Results include scoped IDs and labels, and the API provides no mutation. Available only in isolated development.
+
+### Lot trace: recorded direct relationships (development only)
+
+`GET /api/v1/sites/{tenantId}/{siteId}/trace/lots/{lotId}` requires verified identity, active site membership and `orders.read`. It resolves an input, output or warehouse lot and returns recorded direct production, physical receipt, warehouse pick, quality and shipping relations. Rework is included; outsourcing and customer-return relations are included only for the corresponding capability families. Each relationship list is capped at 100, with `truncated` set when any list exceeds that limit. Unknown IDs return 404; identifiers present in more than one lot namespace return 409. This endpoint does not infer missing historical provenance, calculate stock or provide a complete recursive genealogy. Only isolated development registers it.
+
+The direct outsourcing group includes recorded supplier returns when queried from either their source output lot or returned input lot. For authorized return-capability users, the returns group also includes recorded customer-return rework links with `record_kind: rma_rework`: `output_lot_id` is the receipt lot and `lot_id` the rework input lot. These are stored foreign-key relationships; they do not imply release or approval. Callers traversing multiple direct responses must impose their own limits and report unavailable or truncated relationships.
