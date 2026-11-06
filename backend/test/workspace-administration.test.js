@@ -41,5 +41,25 @@ test('workspace administration: restricted runtime, isolation, roles, concurrenc
  const body=new URLSearchParams({tenantId:tenant,siteId:site,action:'company',name:'Form update',version:'6',key:id()}).toString();
  assert.equal((await app.inject({method:'POST',url:'/auth/team',headers:{...headers,'content-type':'application/x-www-form-urlencoded',origin:'https://evil.example'},payload:body})).statusCode,403);
  const saved=await app.inject({method:'POST',url:'/auth/team',headers:{...headers,'content-type':'application/x-www-form-urlencoded',origin:'https://app.example'},payload:body});assert.equal(saved.statusCode,303,saved.body);
+ const invites=require('../src/workspace-invitations');
+ const request=()=>({server:{pgPool:pool},auth:{verified:true,userId:manager},params:{tenantId:tenant,siteId:site},headers:{'idempotency-key':id()}});
+ const invitation=await invites.create(request(),{email:'NEW@example.test',name:'New operator',destinationSiteId:site,role:'operator'}),iid=invitation.body.id;
+ assert.equal((await invites.list(pool,{identity:{verified:true,userId:manager},tenantId:tenant,siteId:site}))[0].email,'new@example.test');
+ await assert.rejects(pool.query('SELECT * FROM workspace_invitations'),{code:'42501'});
+ await assert.rejects(invites.create(request(),{email:'other@example.test',name:'User',destinationSiteId:otherSite,role:'operator'}),{code:'FORBIDDEN'});
+ await assert.rejects(invites.create(request(),{email:'new@example.test',name:'User',destinationSiteId:site,role:'operator'}),{code:'23505'});
+ await assert.rejects(invites.accept(pool,{id:iid,email:'wrong@example.test',issuer:'issuer',subject:'new'}),{code:'INVITATION_UNAVAILABLE'});
+ let sends=0;await invites.send(request(),iid,async()=>{sends++;return 'sent';});
+ await assert.rejects(invites.send(request(),iid,async()=>{sends++;return 'sent';}),{code:'INVITATION_WAIT'});assert.equal(sends,1);
+ const uid=await invites.accept(pool,{id:iid,email:'new@example.test',issuer:'issuer',subject:'new'});
+ assert.equal((await seed.query('SELECT role FROM site_memberships WHERE user_id=$1',[uid])).rows[0].role,'operator');
+ await assert.rejects(invites.accept(pool,{id:iid,email:'new@example.test',issuer:'issuer',subject:'new'}),{code:'INVITATION_UNAVAILABLE'});
+ const cancelled=await invites.create(request(),{email:'cancel@example.test',name:'Cancel',destinationSiteId:site,role:'planner'});await invites.cancel(request(),cancelled.body);
+ await assert.rejects(invites.accept(pool,{id:cancelled.body.id,email:'cancel@example.test',issuer:'issuer',subject:'cancel'}),{code:'INVITATION_UNAVAILABLE'});
+ const expired=await invites.create(request(),{email:'expired@example.test',name:'Expired',destinationSiteId:site,role:'viewer'});await seed.query("UPDATE workspace_invitations SET expires_at=now()-interval '1 second' WHERE id=$1",[expired.body.id]);
+ await assert.rejects(invites.accept(pool,{id:expired.body.id,email:'expired@example.test',issuer:'issuer',subject:'expired'}),{code:'INVITATION_UNAVAILABLE'});
+ const revoked=await invites.create(request(),{email:'revoked@example.test',name:'Revoked',destinationSiteId:site,role:'operator'});await seed.query('UPDATE tenant_memberships SET revoked_at=now() WHERE tenant_id=$1',[tenant]);
+ await assert.rejects(invites.accept(pool,{id:revoked.body.id,email:'revoked@example.test',issuer:'issuer',subject:'revoked'}),{code:'INVITATION_UNAVAILABLE'});
+ assert.equal((await seed.query("SELECT count(*)::int n FROM users WHERE subject IN ('cancel','expired','revoked')")).rows[0].n,0);
  }finally{if(app)await app.close();if(pool)await pool.end();if(seed)await seed.end();await admin.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE`);await admin.query(`DROP ROLE IF EXISTS ${role}`);await admin.end();}
 });
