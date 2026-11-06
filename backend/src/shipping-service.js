@@ -4,11 +4,11 @@ const crypto=require('node:crypto');
 const {data,payload,identifier,qty,cmd,scoped,audit,lockedOrder,number,fail}=require('./orders-planning');
 const {lotView}=require('./output-reservations');
 async function availableLot(c,s,order,lotId){
- const route=await c.query('SELECT sequence,kind FROM operations WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 ORDER BY sequence',[s.tenantId,s.siteId,order]);
- if((route.rowCount<1||route.rowCount>2||route.rows.some((r,i)=>r.kind!=='internal'||r.sequence!==i))&&!await require('./route-support').supportsSupplierFinal(c,s,order,2))fail(409,'OPERATION_UNSUPPORTED','Only one or two consecutive internal operations are supported');
  const lot=await lotView(c,s,order,lotId);
- const q=await c.query('SELECT w.status,o.sequence FROM work_orders w JOIN operations o ON (o.tenant_id,o.site_id,o.order_id,o.id)=(w.tenant_id,w.site_id,w.order_id,w.operation_id) WHERE w.tenant_id=$1 AND w.site_id=$2 AND w.order_id=$3 AND w.id=$4',[s.tenantId,s.siteId,order,lot.sourceWorkOrderId]);
- if(!q.rowCount||q.rows[0].sequence!==route.rows.length-1||q.rows[0].status!=='complete')fail(409,'FINAL_OPERATION_INCOMPLETE','Final operation must be completed');
+ const q=await c.query('SELECT w.status,w.production_order_id,o.sequence FROM work_orders w JOIN operations o ON (o.tenant_id,o.site_id,o.order_id,o.id)=(w.tenant_id,w.site_id,w.order_id,w.operation_id) WHERE w.tenant_id=$1 AND w.site_id=$2 AND w.order_id=$3 AND w.id=$4',[s.tenantId,s.siteId,order,lot.sourceWorkOrderId]);
+ if(!q.rowCount)fail(404,'NOT_FOUND','Source work order not found');const job=q.rows[0];const route=await c.query('SELECT sequence,kind FROM operations WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND production_order_id IS NOT DISTINCT FROM $4::uuid ORDER BY sequence',[s.tenantId,s.siteId,order,job.production_order_id]);
+ if(!job.production_order_id&&(route.rowCount<1||route.rowCount>2||route.rows.some((r,i)=>r.kind!=='internal'||r.sequence!==i))&&!await require('./route-support').supportsSupplierFinal(c,s,order,2))fail(409,'OPERATION_UNSUPPORTED','Unsupported historical route');
+ if(job.sequence!==route.rows.length-1||job.status!=='complete')fail(409,'FINAL_OPERATION_INCOMPLETE','Final operation must be completed');
  return {...lot,availableToShip:lot.availableApproved};
 }
 async function view(c,s,order){

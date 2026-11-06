@@ -1,0 +1,39 @@
+'use strict';
+const {data,payload,identifier,cmd,scoped,lockedOrder,audit,fail}=require('./orders-planning');
+const {minutes}=require('./planning-experience');
+function calendar(v){if(!v||typeof v!=='object'||Array.isArray(v)||!Array.isArray(v.weekdays)||!v.weekdays.length||v.weekdays.length>7||new Set(v.weekdays).size!==v.weekdays.length||v.weekdays.some(x=>!Number.isInteger(x)||x<1||x>7))fail(400,'INVALID_INPUT','Çalışma günlerini seçin');for(const k of ['startMinute','endMinute','breakStartMinute','breakEndMinute'])if(!Number.isInteger(v[k])||v[k]<0||v[k]>1440)fail(400,'INVALID_INPUT','Geçerli vardiya saatleri girin');if(v.startMinute>=v.endMinute||v.breakStartMinute<v.startMinute||v.breakEndMinute>v.endMinute||v.breakStartMinute>v.breakEndMinute||v.endMinute-v.startMinute<=v.breakEndMinute-v.breakStartMinute)fail(400,'INVALID_INPUT','Vardiya ve mola aralıklarını kontrol edin');return {weekdays:[...v.weekdays].sort(),startMinute:v.startMinute,endMinute:v.endMinute,breakStartMinute:v.breakStartMinute,breakEndMinute:v.breakEndMinute}}
+const dateFormatter=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Istanbul',year:'numeric',month:'2-digit',day:'2-digit'});
+function dayKey(ms){return dateFormatter.format(new Date(ms))}
+function nextDay(day){return new Date(Date.parse(day+'T12:00:00Z')+86400000).toISOString().slice(0,10)}
+function windows(day,c){const base=Date.parse(day+'T00:00:00+03:00'),dow=new Date(day+'T12:00:00Z').getUTCDay()||7;if(!c.weekdays.includes(dow))return [];return [[c.startMinute,c.breakStartMinute],[c.breakEndMinute,c.endMinute]].filter(([a,b])=>b>a).map(([a,b])=>[base+a*60000,base+b*60000])}
+function advance(start,mins,c,{segmentTo=Infinity}={}){let day=dayKey(start),left=mins*60000,first=null;const segments=[];for(let n=0;n<3660;n++,day=nextDay(day))for(const [a,b] of windows(day,c)){const at=Math.max(start,a);if(at>=b)continue;if(first===null)first=at;const end=Math.min(b,at+left);if(at<segmentTo&&end>at)segments.push({start:new Date(at).toISOString(),end:new Date(Math.min(end,segmentTo)).toISOString()});if(left<=b-at)return {start:first,end:at+left,segments};left-=b-at}return null}
+
+function estimate(board,now=Date.now()){
+ const today=dayKey(now),dates=[];let day=today;for(let i=0;i<7;i++,day=nextDay(day))dates.push(day);
+ const segmentTo=Date.parse(nextDay(dates.at(-1))+'T00:00:00+03:00');
+ board.generatedAt=new Date(now).toISOString();board.horizon={from:today,to:dates.at(-1),timeZone:'Europe/Istanbul',dates};
+ for(const j of board.jobs)j.schedule={durationMinutes:j.timing.setupMinutes===null||j.timing.cycleMinutes===null?null:(j.produced>0?0:j.timing.setupMinutes)+Math.max(0,j.quantity-j.produced)*j.timing.cycleMinutes,start:null,end:null,segments:[],reason:'Makine atanmamış'};
+ const queues=new Map(board.machines.map(m=>[m.id,[]]));for(const j of board.jobs)queues.get(j.machineId)?.push(j);
+ for(const machine of board.machines){
+  const c=calendar(machine.calendar),queue=queues.get(machine.id).sort((a,b)=>(a.status==='running'?-1:0)-(b.status==='running'?-1:0));let cursor=now,unknown=false;
+  const days=dates.map(date=>{const slots=windows(date,c).map(([a,b])=>[Math.max(a,now),b]).filter(([a,b])=>b>a);return {date,windows:slots.map(([a,b])=>({start:new Date(a).toISOString(),end:new Date(b).toISOString()})),availableMinutes:slots.reduce((n,[a,b])=>n+(b-a)/60000,0),scheduledMinutes:0,utilization:0}});
+  for(const [index,j]of queue.entries()){
+   const known=j.timing.cycleMinutes!==null&&j.timing.setupMinutes!==null,duration=j.schedule.durationMinutes;let reason=null;
+   if(j.planningState==='held'){unknown=true;reason='Üretim emri beklemede'}if(!known){unknown=true;reason='Süre bilgisi eksik'}
+   if(j.attention?.blockers?.some(b=>['held','unplanned','material','predecessor','transit','drawing','operator','operator_revoked','machine','quality','repair','reconciliation','repair_task'].includes(b.code))){unknown=true;reason=reason||j.attention.reason}
+   if(j.plannedDate)cursor=Math.max(cursor,Date.parse(j.plannedDate+'T00:00:00+03:00'));
+   const slot=!unknown?advance(cursor,duration,c,{segmentTo}):null;if(slot)cursor=slot.end;else unknown=true;
+   j.schedule={position:index+1,durationMinutes:duration,start:slot?new Date(slot.start).toISOString():null,end:slot?new Date(slot.end).toISOString():null,segments:slot?.segments||[],reason:reason||(!slot?'Önceki işin zamanı belirsiz veya tahmin sınırı aşıldı':null),late:!!(slot&&j.dueDate&&dayKey(slot.end)>j.dueDate)};
+   if(slot)for(const d of days)for(const segment of slot.segments)if(dayKey(Date.parse(segment.start))===d.date)d.scheduledMinutes+=(Date.parse(segment.end)-Date.parse(segment.start))/60000;
+  }
+  for(const d of days){d.scheduledMinutes=Math.round(d.scheduledMinutes);d.availableMinutes=Math.round(d.availableMinutes);d.utilization=d.availableMinutes?Math.round(d.scheduledMinutes/d.availableMinutes*100):0}
+  machine.capacity={...days[0],days,unknownJobs:queue.filter(j=>!j.schedule.end).length,knownBacklogMinutes:Math.round(queue.reduce((n,j)=>n+(j.schedule.durationMinutes||0),0)),unscheduledKnownMinutes:Math.round(queue.filter(j=>!j.schedule.end).reduce((n,j)=>n+(j.schedule.durationMinutes||0),0))};
+ }
+ return board;
+}
+
+function routes(api){const base='/sites/:tenantId/:siteId';
+ api.post(base+'/orders/:orderId/work-orders/:workOrderId/timing',async(req,reply)=>{const s=data(req),b=payload(req),p={orderId:identifier(req.params.orderId),id:identifier(req.params.workOrderId),version:b.version,setupMinutes:minutes(b.setupMinutes),cycleMinutes:minutes(b.cycleMinutes)};if(!Number.isSafeInteger(p.version)||p.version<1)fail(400,'INVALID_INPUT','Sürüm gerekli');const r=await cmd(req,'work_order.timing','planning.write',p,async c=>{const o=await lockedOrder(c,s,p.orderId);if(o.status!=='open')fail(409,'ORDER_CLOSED','Sipariş kapalı');const old=(await c.query('SELECT * FROM work_orders WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND id=$4 FOR UPDATE',[s.tenantId,s.siteId,p.orderId,p.id])).rows[0];if(!old)fail(404,'NOT_FOUND','İş emri bulunamadı');if(!['waiting','paused'].includes(old.status))fail(409,'INVALID_STATE','Süreyi düzenlemeden önce işi duraklatın');if(old.timing_version!==p.version)fail(409,'VERSION_CONFLICT','Süre değişti');await c.query('UPDATE work_orders SET setup_minutes=$4,cycle_minutes=$5,timing_version=timing_version+1 WHERE tenant_id=$1 AND site_id=$2 AND id=$3',[s.tenantId,s.siteId,p.id,p.setupMinutes,p.cycleMinutes]);await audit(c,s,'work_order.timing','work_order',p.id,{before:{setupMinutes:old.setup_minutes,cycleMinutes:old.cycle_minutes},after:p});return {status:200,body:{...p,version:p.version+1}}});return reply.code(r.status).send(r.body)});
+ api.post(base+'/machine-planning/machines/:machineId/calendar',async(req,reply)=>{const s=data(req),b=payload(req),p={id:identifier(req.params.machineId),version:b.version,calendar:calendar(b.calendar)};if(!Number.isSafeInteger(p.version)||p.version<1)fail(400,'INVALID_INPUT','Sürüm gerekli');const r=await cmd(req,'machine.calendar','planning.write',p,async c=>{await c.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',['machine-board:'+s.tenantId+':'+s.siteId]);const old=(await c.query('SELECT * FROM machines WHERE tenant_id=$1 AND site_id=$2 AND id=$3 FOR UPDATE',[s.tenantId,s.siteId,p.id])).rows[0];if(!old)fail(404,'NOT_FOUND','Makine bulunamadı');if(old.calendar_version!==p.version)fail(409,'VERSION_CONFLICT','Vardiya değişti');await c.query('UPDATE machines SET calendar=$4::jsonb,calendar_version=calendar_version+1 WHERE tenant_id=$1 AND site_id=$2 AND id=$3',[s.tenantId,s.siteId,p.id,JSON.stringify(p.calendar)]);await audit(c,s,'machine.calendar','machine',p.id,{before:old.calendar,after:p.calendar});return {status:200,body:{id:p.id,version:p.version+1,calendar:p.calendar}}});return reply.code(r.status).send(r.body)});
+}
+module.exports={routes,calendar,estimate,advance,windows};

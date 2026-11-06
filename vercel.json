@@ -1,0 +1,14 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "npm ci && npm ci --prefix backend",
+  "buildCommand": "node scripts/build-cloud.cjs",
+  "outputDirectory": "dist/cloud",
+  "functions": { "api/index.js": { "includeFiles": "backend/**", "maxDuration": 30 } },
+  "rewrites": [
+    { "source": "/auth/:path*", "destination": "/api/index" },
+    { "source": "/health/:path*", "destination": "/api/index" },
+    { "source": "/api/v1/:path*", "destination": "/api/index" }
+  ],
+  "headers": [{"source":"/:path*","headers":[{"key":"X-Content-Type-Options","value":"nosniff"},{"key":"Referrer-Policy","value":"strict-origin-when-cross-origin"}]}]
+}

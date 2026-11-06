@@ -22,7 +22,7 @@
     "test:isolation": "node scripts/run-isolation.cjs",
     "test:isolation:rc1": "node scripts/run-isolation.cjs --rc1",
     "test:recovery": "node --test tests/server-pending-commands.test.cjs tests/server-wizard-workflow.test.cjs tests/legacy-recovery.test.cjs",
-    "test:architecture": "node --test tests/ux-architecture-shell-browser.cjs tests/demo-navigation.test.cjs tests/simple-order-wizard.test.cjs tests/demo-simple-order.test.cjs tests/demo-simple-order-domain.test.cjs"
+    "test:architecture": "node --test tests/ux-architecture-shell-browser.cjs tests/demo-navigation.test.cjs tests/simple-order-wizard.test.cjs tests/demo-simple-order.test.cjs tests/demo-simple-order-domain.test.cjs tests/premium-phase2.test.cjs"
   },
   "devDependencies": {
     "playwright": "1.64.1"

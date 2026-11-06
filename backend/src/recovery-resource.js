@@ -6,6 +6,15 @@ const {HttpError}=require('./auth');
 const denied=()=>{throw new HttpError(403,'FORBIDDEN','Recovery resource unavailable')};
 async function authorizeRecoveryResource(client,scope,storedKind,command){
  const descriptor=describe(command);if(storageKind(command)!==storedKind)denied();
+ if(command.kind==='machineBatch'){for(const id of command.body.payload.workOrderIds){const q=await client.query('SELECT 1 FROM work_orders WHERE tenant_id=$1 AND site_id=$2 AND id=$3',[scope.tenantId,scope.siteId,identifier(id)]);if(!q.rowCount)denied()}return descriptor}
+ if(command.kind==='workspacePreference')return descriptor;
+ if(command.kind==='routeTemplate'){if(command.body.action!=='create'){const q=await client.query('SELECT 1 FROM route_templates WHERE tenant_id=$1 AND site_id=$2 AND id=$3',[scope.tenantId,scope.siteId,identifier(command.target)]);if(!q.rowCount)denied()}return descriptor}
+ if(command.kind==='machineCreate')return descriptor;
+ if(command.kind==='machineCalendar'){const q=await client.query('SELECT 1 FROM machines WHERE tenant_id=$1 AND site_id=$2 AND id=$3',[scope.tenantId,scope.siteId,identifier(command.target)]);if(!q.rowCount)denied();return descriptor;}
+ if(command.kind==='machinePlanning'){const q=await client.query('SELECT 1 FROM work_orders WHERE tenant_id=$1 AND site_id=$2 AND id=$3',[scope.tenantId,scope.siteId,identifier(command.body.payload.workOrderId)]);if(!q.rowCount)denied();return descriptor}
+ if(command.kind==='productionSupplier'){const q=await client.query('SELECT 1 FROM work_orders WHERE tenant_id=$1 AND site_id=$2 AND production_order_id=$3 AND id=$4',[scope.tenantId,scope.siteId,identifier(command.target),identifier(command.body.workOrderId)]);if(!q.rowCount)denied();return descriptor}
+ if(command.kind==='productionOrder'){const table=command.body.action==='create'?'orders':'production_orders';const row=await client.query(`SELECT 1 FROM ${table} WHERE tenant_id=$1 AND site_id=$2 AND id=$3`,[scope.tenantId,scope.siteId,identifier(command.target)]);if(!row.rowCount)denied();return descriptor}
+ if(command.kind==='masterData'){if(command.body.action!=='create'){const table=command.body.entity==='customers'?'master_customers':command.body.entity==='scrap-reasons'?'master_scrap_reasons':'master_parts';const record=await client.query(`SELECT 1 FROM ${table} WHERE tenant_id=$1 AND site_id=$2 AND id=$3`,[scope.tenantId,scope.siteId,identifier(command.target)]);if(!record.rowCount)denied()}return descriptor}
  if(command.kind==='createOrder'||command.kind==='outsourcing')return descriptor;
  if(command.kind==='inventory'){const p=command.body.payload;for(const [field,table] of [['materialId','inventory_materials'],['locationId','inventory_locations'],['lotId','inventory_lots'],['sourceLocationId','inventory_locations'],['destinationLocationId','inventory_locations'],['orderId','orders'],['workOrderId','work_orders']])if(p[field]){const q=await client.query(`SELECT 1 FROM ${table} WHERE tenant_id=$1 AND site_id=$2 AND id=$3`,[scope.tenantId,scope.siteId,identifier(p[field])]);if(!q.rowCount)denied()}if(p.orderId&&p.workOrderId){const q=await client.query('SELECT 1 FROM work_orders WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND id=$4',[scope.tenantId,scope.siteId,identifier(p.orderId),identifier(p.workOrderId)]);if(!q.rowCount)denied()}return descriptor}
  const b=command.body,order=command.kind==='defineRoute'||command.kind==='plan'?command.target:b.orderId;
@@ -23,9 +32,9 @@ async function authorizeRecoveryResource(client,scope,storedKind,command){
  }
  let job=null;
  if(command.kind==='production'||command.kind==='quality')job=b.workOrderId;
- if(command.kind==='operation'&&['drawingAck','operator','machine','handover'].includes(b.command))job=b.resourceId;
+ if(command.kind==='operation'&&['drawingAck','operator','machine','handover','jobTiming','operatorHandoff'].includes(b.command))job=b.resourceId;
  if(job){const result=await client.query('SELECT 1 FROM work_orders WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND id=$4',[scope.tenantId,scope.siteId,order,identifier(job)]);if(!result.rowCount)denied()}
- if(command.kind==='production'||(command.kind==='operation'&&b.command==='drawingAck')){
+ if(command.kind==='production'||(command.kind==='operation'&&['drawingAck','operatorHandoff'].includes(b.command))){
   const assignments=await client.query('SELECT * FROM ritim_lock_assignments($1,$2,$3)',[scope.tenantId,scope.siteId,job]);
   if(assignments.rowCount!==1||assignments.rows[0].user_id!==scope.identity.userId)denied();
  }

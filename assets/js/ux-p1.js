@@ -432,7 +432,9 @@
     }
   }).observe(overlay, { childList: true, subtree: true });
   document.addEventListener("keydown", (event) => {
+    if (document.querySelector('dialog[open]')) return;
     if (!current || !current.isConnected) return;
+    if (event.key === "Escape" && event.target.getAttribute?.("role") === "combobox" && event.target.getAttribute("aria-expanded") === "true") return;
     if (event.key === "Escape") {event.preventDefault();event.stopPropagation();closeModal();return;}
     if (event.key !== "Tab") return;
     const items = visibleFocusable(current), active = document.activeElement;

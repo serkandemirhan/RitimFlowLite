@@ -29,6 +29,7 @@ async function executeCommand(pool,{identity,tenantId,siteId,key,kind,payload,ca
    if(r.rows[0].status!=='completed')throw new HttpError(409,'COMMAND_PENDING','Command has not completed');
    return {status:r.rows[0].response_status,body:r.rows[0].response_body,duplicate:true};
   }
+  if(payload.orderId&&!kind.startsWith('production_order.')&&!kind.startsWith('assignment.'))for(const field of ['workOrderId','sourceWorkOrderId','destinationWorkOrderId'])if(payload[field])await require('./production-orders').requirePlanned(client,{identity,tenantId,siteId},payload.orderId,payload[field]);
   const result=await handler(client,scope);
   if(!result || !Number.isInteger(result.status)||result.status<200||result.status>299)throw Error('Command handler must return a successful HTTP response');
   const body=JSON.parse(canonical(result.body));

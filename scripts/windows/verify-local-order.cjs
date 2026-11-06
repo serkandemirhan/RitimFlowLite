@@ -26,14 +26,16 @@ const root=path.resolve(__dirname,'../..'),out=path.join(root,'artifacts/local-s
   },{tenant:process.env.RITIM_LOCAL_TENANT_ID,site:process.env.RITIM_LOCAL_SITE_ID});
   let created=previous.orders.filter(o=>o.customer==='Yerel PostgreSQL Test Müşterisi'&&o.partName==='TEST-PARÇA-001'&&o.orderedQuantity===10).sort((a,b)=>b.orderNumber.localeCompare(a.orderNumber))[0];
   if(!created){
+   // Provision explicit fictional master fixtures for the current selection-only UI.
+   await page.evaluate(async({tenant,site})=>{for(const [kind,name,code] of [['customers','Yerel PostgreSQL Test Müşterisi','LOCAL-PG-CUSTOMER'],['parts','TEST-PARÇA-001','TEST-PARÇA-001']]){const base=`/api/v1/sites/${tenant}/${site}/master-data/${kind}`,list=await fetch(base+'?q='+encodeURIComponent(code));if(!list.ok)throw Error('Master fixture lookup failed');if(!(await list.json()).items.some(x=>x.code===code)){const r=await fetch(base,{method:'POST',headers:{'content-type':'application/json','idempotency-key':crypto.randomUUID()},body:JSON.stringify({name,code})});if(!r.ok)throw Error('Master fixture creation failed')}}},{tenant:process.env.RITIM_LOCAL_TENANT_ID,site:process.env.RITIM_LOCAL_SITE_ID});
    await page.getByRole('button',{name:'Yeni Sipariş',exact:true}).click();
-  await page.locator('[data-wiz=customer]').fill('Yerel PostgreSQL Test Müşterisi');
-  await page.locator('[data-wiz=part]').fill('TEST-PARÇA-001');
+  await page.locator('[data-wiz=customer]').fill('LOCAL-PG-CUSTOMER');await page.getByRole('option').filter({hasText:'LOCAL-PG-CUSTOMER'}).click();
+  await page.locator('[data-wiz=part]').fill('TEST-PARÇA-001');await page.getByRole('option').filter({hasText:'TEST-PARÇA-001'}).click();
   await page.locator('[data-wiz=qty]').fill('10');
   const due=new Date(Date.now()+7*86400000).toISOString().slice(0,10);
   await page.locator('[data-wiz=due]').fill(due);
   await page.getByRole('button',{name:'Devam Et →',exact:true}).click();
-  await page.getByRole('button',{name:'Rotayı Daha Sonra Belirle',exact:true}).click();
+
   // The UI deliberately executes domain commands via encrypted server recovery.
   // POST /orders is internal to that retry, not a separate browser request.
   const creation=page.waitForResponse(r=>r.request().method()==='POST'&&/\/recovery\/[0-9a-f-]+\/retry$/.test(new URL(r.url()).pathname));
@@ -58,7 +60,7 @@ const root=path.resolve(__dirname,'../..'),out=path.join(root,'artifacts/local-s
    await client.query('COMMIT');
   }catch(error){await client.query('ROLLBACK');throw error;}
   finally{client.release();await pool.end();pool=null;}
-  assert.equal(row?.quantity,10);assert.equal(row.customer,'Yerel PostgreSQL Test Müşterisi');assert.equal(row.part_name,'TEST-PARÇA-001');assert.equal(migrations,28);assert.equal(receiptStatus,201);assert(tables.includes('orders'));
+  assert.equal(row?.quantity,10);assert.equal(row.customer,'Yerel PostgreSQL Test Müşterisi');assert.equal(row.part_name,'TEST-PARÇA-001');assert.equal(migrations,30);assert.equal(receiptStatus,201);assert(tables.includes('orders'));
   await page.reload();
   await page.getByRole('button',{name:'Devam',exact:true}).click();
   await page.getByText(row.order_number,{exact:false}).first().waitFor();

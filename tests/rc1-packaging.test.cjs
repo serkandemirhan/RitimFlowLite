@@ -14,7 +14,7 @@ test('RC1 is deterministic, source-preserving and an exact public allowlist',()=
     const a=build({base:path.join(base,'a')}), b=build({base:path.join(base,'b')});
     assert.deepEqual(a.manifest,b.manifest);
     assert(verify(a));
-    assert.equal(a.manifest.assets.length,45);
+    assert.equal(a.manifest.assets.length,46);
     for (const row of a.manifest.assets) {
       const bytes=fs.readFileSync(path.join(a.publicRoot,row.target));
       assert(bytes.equals(fs.readFileSync(path.join(b.publicRoot,row.target))));

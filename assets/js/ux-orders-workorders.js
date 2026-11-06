@@ -30,7 +30,7 @@ function enrichDetails(){
  }
 }
 function findOptions(key,typed){const v=typed.toLocaleLowerCase('tr-TR');const st=window.ritimUXBridge?.getState?.();if(!st||!Array.isArray(st.orders))return[];const unique=new Set();for(const o of st.orders){const label=String(key==='customer'?o.customer:o.part||'');if(label.toLocaleLowerCase('tr-TR').includes(v))unique.add(label)}return [...unique].slice(0,7)}
-function enhanceWizard(){const modal=document.querySelector('.modal-body');if(!modal)return;
+function enhanceWizard(){const modal=document.querySelector('.modal-body');if(!modal||modal.closest('.order-compose'))return;
  for(const key of ['customer','part']){
  const input=modal.querySelector('[data-wiz="'+key+'"]');if(!input||input.dataset.uxSearch)return;input.dataset.uxSearch='yes';input.setAttribute('autocomplete','off');
  const results=document.createElement('div');results.className='ux-suggestions';results.hidden=true;input.after(results);

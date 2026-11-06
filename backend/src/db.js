@@ -1,9 +1,9 @@
 'use strict';
 const {Pool} = require('pg');
 function createPool(config) {
-  const options = {connectionTimeoutMillis:5000};
+  const options = {connectionTimeoutMillis:5000,...(config.poolMax?{max:config.poolMax,idleTimeoutMillis:10000,allowExitOnIdle:true}:{})};
   if (config.databaseUrl) options.connectionString = config.databaseUrl;
-  if (config.ssl === 'verify') options.ssl = {rejectUnauthorized:true};
+  if (config.ssl === 'verify') options.ssl = {rejectUnauthorized:true,...(config.sslCa?{ca:config.sslCa}:{})};
   return new Pool(options); // PGHOST/PGPORT/PGUSER/PGPASSWORD/PGDATABASE supplied by environment if no URL
 }
 async function inTransaction(pool, fn) {

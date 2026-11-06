@@ -1,0 +1,30 @@
+'use strict';
+const crypto=require('node:crypto');
+const {data,payload,identifier,cmd,scoped,audit,lockedOrder,number,fail}=require('./orders-planning');
+async function preview(c,s,order,job){
+ const r=await c.query(`SELECT w.id,w.status,w.production_order_id,op.sequence,op.name FROM work_orders w JOIN operations op ON (op.tenant_id,op.site_id,op.id)=(w.tenant_id,w.site_id,w.operation_id) WHERE w.tenant_id=$1 AND w.site_id=$2 AND w.order_id=$3 AND w.id=$4`,[s.tenantId,s.siteId,order,job]);if(!r.rowCount)fail(404,'NOT_FOUND','İş bulunamadı.');const src=r.rows[0];
+ const next=await c.query(`SELECT w.id,w.operation_id,w.planned_qty,op.name,op.kind FROM work_orders w JOIN operations op ON (op.tenant_id,op.site_id,op.id)=(w.tenant_id,w.site_id,w.operation_id) WHERE w.tenant_id=$1 AND w.site_id=$2 AND w.production_order_id=$3 AND op.sequence=$4 AND w.purpose='normal'`,[s.tenantId,s.siteId,src.production_order_id,src.sequence+1]);
+ if(!next.rowCount)return {available:false,reason:'Son operasyon; ürünler sevkiyat akışına hazır.',sourceName:src.name};const destination=next.rows[0];
+ if((await c.query('SELECT 1 FROM operation_handoff_confirmations WHERE tenant_id=$1 AND site_id=$2 AND source_work_order_id=$3',[s.tenantId,s.siteId,job])).rowCount)return {available:false,reason:'Sonraki alana taşıma kaydedildi.'};
+ const rows=await c.query('SELECT id,input_lot_id FROM production_output_lots WHERE tenant_id=$1 AND site_id=$2 AND work_order_id=$3 ORDER BY id',[s.tenantId,s.siteId,job]),lots=[];
+ for(const row of rows.rows){const lot=await require('./output-reservations').lotView(c,s,order,row.id);if(lot.availableApproved)lots.push({...lot,inputLotId:row.input_lot_id})}
+ const quantity=lots.reduce((n,x)=>n+x.availableApproved,0);
+ return {available:src.status==='complete'&&quantity>0,sourceName:src.name,destination:{id:destination.id,name:destination.name,kind:destination.kind,operationId:destination.operation_id,quantity:number(destination.planned_qty)},quantity,lots,reason:src.status!=='complete'?'Önce işi tamamlayın.':quantity?'':'Taşınabilir onaylı ürün kalmadı.'};
+}
+function routes(api){const base='/sites/:tenantId/:siteId/orders/:orderId/work-orders/:workOrderId/handoff';
+ api.get(base,req=>scoped(req,async(c,s)=>{const order=identifier(req.params.orderId);await lockedOrder(c,s,order);const x=await preview(c,s,order,identifier(req.params.workOrderId));return {...x,lots:undefined}}));
+ api.post(base,async(req,reply)=>{const s=data(req),order=identifier(req.params.orderId),job=identifier(req.params.workOrderId),b=payload(req),p={orderId:order,workOrderId:job,destinationWorkOrderId:identifier(b.destinationWorkOrderId),quantity:b.quantity};if(b.confirmed!==true)fail(400,'INVALID_INPUT','Fiziksel taşıma onayı gerekli.');const r=await cmd(req,'operator.handoff','production.write',p,async c=>{const orderRow=await lockedOrder(c,s,order);if(orderRow.status!=='open')fail(409,'ORDER_CLOSED','Sipariş kapalı.');await require('./operator-workflow').assigned(c,s,job);const v=await preview(c,s,order,job);if(!v.available||v.destination.id!==p.destinationWorkOrderId||v.quantity!==p.quantity)fail(409,'HANDOFF_CHANGED','Taşınacak miktar veya hedef değişti. Yeniden kontrol edin.');const dest=v.destination,key=req.headers['idempotency-key'];
+ if(dest.kind==='internal'){
+  await require('./output-reservations').target(c,s,order,job,dest.id,true);
+  const reserved=number((await c.query("SELECT COALESCE(SUM(CASE WHEN event_type='reserve' THEN quantity_pieces ELSE -quantity_pieces END),0) n FROM output_reservation_events WHERE tenant_id=$1 AND site_id=$2 AND destination_work_order_id=$3",[s.tenantId,s.siteId,dest.id])).rows[0].n);
+  if(v.quantity>dest.quantity-reserved)fail(409,'DESTINATION_CAPACITY_EXCEEDED','Hedef işin kalan miktarı yetersiz.');
+  for(const lot of v.lots){const reservation=crypto.randomUUID(),dispatch=crypto.randomUUID(),receipt=crypto.randomUUID(),input=crypto.randomUUID(),q=lot.availableApproved;
+   await c.query("INSERT INTO output_reservation_events(tenant_id,site_id,order_id,id,event_type,reservation_id,output_lot_id,production_event_id,source_work_order_id,destination_work_order_id,destination_operation_id,quantity_pieces,actor_id,idempotency_key) VALUES($1,$2,$3,$4,'reserve',$4,$5,$6,$7,$8,$9,$10,$11,$12)",[s.tenantId,s.siteId,order,reservation,lot.lotId,lot.productionEventId,job,dest.id,dest.operationId,q,s.identity.userId,key]);
+   await c.query('INSERT INTO operation_dispatches(tenant_id,site_id,order_id,id,reservation_id,output_lot_id,production_event_id,source_input_lot_id,source_work_order_id,destination_work_order_id,destination_operation_id,quantity_pieces,actor_id,idempotency_key) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)',[s.tenantId,s.siteId,order,dispatch,reservation,lot.lotId,lot.productionEventId,lot.inputLotId,job,dest.id,dest.operationId,q,s.identity.userId,key]);
+   await c.query("INSERT INTO lots(tenant_id,site_id,id,order_id,lot_code,kind,originating_lot_id) VALUES($1,$2,$3,$4,$5,'operation',$6)",[s.tenantId,s.siteId,input,order,'OP-'+input,lot.inputLotId]);
+   await c.query('INSERT INTO operation_receipts(tenant_id,site_id,order_id,id,dispatch_id,output_lot_id,source_input_lot_id,destination_work_order_id,destination_operation_id,input_lot_id,quantity_pieces,actor_id,idempotency_key) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)',[s.tenantId,s.siteId,order,receipt,dispatch,lot.lotId,lot.inputLotId,dest.id,dest.operationId,input,q,s.identity.userId,key]);
+  }
+ }
+ const id=crypto.randomUUID();await c.query('INSERT INTO operation_handoff_confirmations(tenant_id,site_id,id,source_work_order_id,destination_work_order_id,quantity,actor_id) VALUES($1,$2,$3,$4,$5,$6,$7)',[s.tenantId,s.siteId,id,job,dest.id,v.quantity,s.identity.userId]);await audit(c,s,'operation.handoff_confirmed','work_order',job,{...p,id,destinationKind:dest.kind,physicalReceipt:dest.kind==='internal'});return {status:201,body:{id,quantity:v.quantity,physicalReceipt:dest.kind==='internal'}}});return reply.code(r.status).send(r.body)});
+}
+module.exports={routes,preview};

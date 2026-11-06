@@ -1,0 +1,23 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto'),{chromium}=require('playwright');
+const out=path.resolve('artifacts/premium-development/workflow-polish/'+(process.env.RITIM_CAPTURE_PHASE||'before'));fs.mkdirSync(out,{recursive:true});const root='/api/v1/sites/'+process.env.RITIM_LOCAL_TENANT_ID+'/'+process.env.RITIM_LOCAL_SITE_ID,statePath=path.resolve('artifacts/premium-development/workflow-experience/checkpoint.json'),state=fs.existsSync(statePath)?JSON.parse(fs.readFileSync(statePath)):{stamp:Date.now(),steps:{}};let browser;const pages={},errors=[],checks=[];const save=()=>fs.writeFileSync(statePath,JSON.stringify(state,null,2));
+const ready=p=>p.waitForFunction(()=>document.getElementById('app')?.getAttribute('aria-busy')!=='true');
+async function login(user){const p=await browser.newPage({viewport:{width:1440,height:1000},locale:'tr-TR'});pages[user]=p;p.on('pageerror',e=>errors.push(e.message));await p.goto('http://127.0.0.1:4178/?mode=api');await p.getByRole('button',{name:'Giriş yap',exact:true}).click();await p.locator('#username').fill(user);await p.locator('#password').fill(process.env.RITIM_LOCAL_LOGIN_PASSWORD);await p.locator('#kc-login').click();await p.getByRole('button',{name:'Devam',exact:true}).click();await ready(p);return p}
+async function call(user,url,body,key){return pages[user].evaluate(async({url,body,key})=>{const r=await fetch(url,{method:body?'POST':'GET',headers:body?{'content-type':'application/json','idempotency-key':key||crypto.randomUUID()}:{},...(body?{body:JSON.stringify(body)}:{})});return {status:r.status,data:await r.json()}},{url:root+url,body,key})}
+async function get(url,user='manager'){const r=await call(user,url);assert.equal(r.status,200,JSON.stringify(r));return r.data}
+async function post(key,url,body,user='manager'){if(state.steps[key])return state.steps[key];const r=await call(user,url,body,'workflow-'+state.stamp+'-'+key);assert(r.status<300,JSON.stringify(r));state.steps[key]=r.data;save();return r.data}
+async function nav(user,fn,...args){const p=pages[user];await ready(p);await p.evaluate(({fn,args})=>RitimPremiumAPI[fn](...args),{fn,args});await ready(p);const alert=await p.locator('#api-alert').innerText();assert.equal(alert,'');}
+async function shot(name,user='manager',mobile=false){const p=pages[user];await p.setViewportSize({width:1440,height:1000});await p.screenshot({path:path.join(out,name+'.png'),fullPage:true});if(mobile){await p.setViewportSize({width:390,height:844});assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await p.screenshot({path:path.join(out,name+'-mobile.png'),fullPage:true});await p.setViewportSize({width:1440,height:1000})}}
+(async()=>{browser=await chromium.launch();try{
+ const p=await login('manager'),po=await get('/production-orders/'+state.productionId);
+ await nav('manager','openJob',po.workOrders[1].id,state.orderId);await shot('job','manager',true);
+ await p.locator('#assign-operator-choice').click();await shot('picker','manager',true);await p.locator('#workflow-dialog button[aria-label=Kapat]').click();
+ await nav('manager','openSupplierJob',po.id,po.workOrders[2].id);await p.locator('#work-document-list').waitFor();await shot('supplier','manager',true);
+ await nav('manager','navigate','master');await nav('manager','masterSize',10);await shot('master','manager',true);
+ if(process.env.RITIM_CAPTURE_PHASE==='after'){
+ await nav('manager','openJob',po.workOrders[1].id,state.orderId);assert(await p.locator('#assignment-savebar').isHidden());await p.locator('#assign-machine-choice').click();await p.locator('#workflow-dialog [data-choice]').first().click();assert(await p.locator('#assign-handover').isEnabled());assert.equal(await p.locator('#assign-operator-save').count(),0);await shot('assignment-draft','manager',true);
+ await nav('manager','openSupplierJob',po.id,po.workOrders[2].id);assert.equal(await p.getByRole('button',{name:'Fason operasyonunu tamamla',exact:true}).count(),0);await p.locator('#document-add').click();await shot('document-picker','manager',true);assert.equal(await p.locator('#workflow-dialog input[type=file]').count(),4);await p.locator('#workflow-dialog button[aria-label=Kapat]').click();
+ await nav('manager','navigate','master');await p.locator('.master-sortbar button').nth(1).click();await ready(p);assert.equal(await p.locator('#api-alert').innerText(),'');
+ }
+ assert.deepEqual(errors,[]);console.log('PASS screenshots, mobile overflow, assignment draft, phase gating, document picker and sorting');
+}finally{await browser?.close()}})().catch(e=>{console.error(e.stack);process.exitCode=1});

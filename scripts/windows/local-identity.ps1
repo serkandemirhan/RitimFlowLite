@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([Parameter(Mandatory = $true)][ValidateSet('Configure','Start','Api','VerifyOrder')][string]$Action,[switch]$GenerateVerificationPassword)
+param([Parameter(Mandatory = $true)][ValidateSet('Configure','Start','Api','VerifyOrder','VerifyMasterData','VerifyProduction')][string]$Action,[switch]$GenerateVerificationPassword)
 $ErrorActionPreference = 'Stop'
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 . (Join-Path $PSScriptRoot 'local-config.ps1')
@@ -97,11 +97,11 @@ try {
         $env:RECOVERY_ENCRYPTION_KEY=Get-RitimSecretText $identity.RecoveryKey
         $env:RECOVERY_KEY_VERSION='local-dev-v1'
         Invoke-LocalNode 'backend/src/server.js'
-    } elseif ($Action -eq 'VerifyOrder') {
+    } elseif ($Action -in @('VerifyOrder','VerifyMasterData','VerifyProduction')) {
         Set-RitimRuntimeEnvironment $database
         $env:RITIM_LOCAL_LOGIN_PASSWORD=Get-RitimSecretText $identity.ManagerPassword
         $env:RITIM_LOCAL_TENANT_ID=$identity.TenantId; $env:RITIM_LOCAL_SITE_ID=$identity.SiteId
-        try { Invoke-LocalNode 'scripts/windows/verify-local-order.cjs' }
+        try { if ($Action -eq 'VerifyProduction') { Invoke-LocalNode 'scripts/windows/verify-production-orders.cjs' } elseif ($Action -eq 'VerifyMasterData') { Invoke-LocalNode 'scripts/windows/verify-master-data.cjs' } else { Invoke-LocalNode 'scripts/windows/verify-local-order.cjs' } }
         finally { Remove-Item Env:RITIM_LOCAL_LOGIN_PASSWORD -ErrorAction SilentlyContinue }
     }
 } finally {

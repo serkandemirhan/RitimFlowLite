@@ -1,6 +1,6 @@
 (function () {
   "use strict";
-  let selected = "";
+  let selected = "", section = "all";
   const h = esc,
     val = (id) => el(id)?.value,
     num = (id) => Number(val(id));
@@ -41,9 +41,9 @@
         )
         .map((d) => ({ id: d.id, label: d.id + " · iade hurdası " + d.qty })),
     ];
-    return `<div class="ux05-wrap"><div class="card pad"><h2>Malzeme, İade ve Telafi</h2><label class="formfield">Sipariş<select class="select" onchange="RitimStockUI.open(this.value)">${state.orders.map((o) => `<option value="${h(o.id)}" ${o.id === selected ? "selected" : ""}>${h(o.id)} · ${h(o.part)}</option>`).join("")}</select></label><p>Serbest malzeme: ${x.materialFree} · Net sevk: ${x.net}/${o.qty} · Sevke hazır: ${x.ready}</p><button class="btn full" onclick="RitimUX.logistics(${jsArg(o.id)},'material')">Birimli Malzeme Kabulü</button><button class="btn full" onclick="RitimUX.logistics(${jsArg(o.id)},'return')">Fason Dönüşü / Fark Kapatma</button><button class="btn full" onclick="RitimUX.logistics(${jsArg(o.id)},'customerReturn')">Müşteri İadesi Kaydet</button></div>
+    return `<div class="ux05-wrap ux-stock-view"><div class="card pad"><h2>Malzeme, İade ve Telafi</h2><label class="formfield">Sipariş<select class="select" onchange="RitimStockUI.open(this.value,'${section}')">${state.orders.map((o) => `<option value="${h(o.id)}" ${o.id === selected ? "selected" : ""}>${h(o.id)} · ${h(o.part)}</option>`).join("")}</select></label><p>Serbest malzeme: ${x.materialFree} · Net sevk: ${x.net}/${o.qty} · Sevke hazır: ${x.ready}</p><button class="btn full" onclick="RitimUX.logistics(${jsArg(o.id)},'material')">Birimli Malzeme Kabulü</button><button class="btn full" onclick="RitimUX.logistics(${jsArg(o.id)},'return')">Fason Dönüşü / Fark Kapatma</button><button class="btn full" onclick="${section==='returns'?'RitimUX06.openContext':'RitimUX.logistics'}(${jsArg(o.id)},'customerReturn')">Müşteri İadesi Kaydet</button></div>
 <div class="card pad"><h3>İşlem Miktarı ve Gerekçesi</h3><label class="formfield">Adet<input class="input" id="stock-qty" type="number" value="1" min="1"></label><label class="formfield">Gerekçe<input class="input" id="stock-decision-reason"></label><label class="formfield">Kalite kararı<select class="select" id="stock-decision"><option value="restock">Kontrol edildi · yeniden sevke hazır</option><option value="scrap">Hurda</option><option value="rework">Rework işi aç</option></select></label></div>
-<div class="card pad"><h3>Müşteri İade Dosyaları</h3>${
+<div class="card pad"><h3 data-order-stock="returns">Müşteri İade Dosyaları</h3>${
       returns
         .map((r) => {
           const decisions = (state.returnDispositions || []).filter(
@@ -54,8 +54,8 @@
         .join("") ||
       "<p>Yeni iade dosyası yok. Eski kimliksiz iadeler tarihsel kayıttır; otomatik stok dönüşümü yapılmaz.</p>"
     }</div>
-<div class="card pad"><h3>Rework Sonuçları</h3><label class="formfield">Sağlam<input class="input" id="stock-good" type="number" value="0" min="0"></label><label class="formfield">Hurda<input class="input" id="stock-scrap" type="number" value="0" min="0"></label>${supplier.map((r) => `<button class="btn full" onclick="RitimStockUI.resolve('supplierRework',${jsArg(r.id)})">Fason ${h(r.id)} · ${r.remaining} açık · sonucu onayla</button>`).join("")}${reworks.map((r) => `<button class="btn full" onclick="RitimStockUI.resolve('returnRework',${jsArg(r.id)})">İade ${h(r.id)} · ${r.remaining} açık · sonucu onayla</button>`).join("")}</div>
-<div class="card pad"><h3>Kayıp Telafisi ve Ek Malzeme</h3><label class="formfield">Belgelenmiş kayıp<select class="select" id="stock-loss">${losses.map((l) => `<option value="${h(l.id)}">${h(l.label)}</option>`).join("")}</select></label><button class="btn full" onclick="RitimStockUI.compensate()">Kayıp İçin Telafi Planlama İzni Ver</button><button class="btn full" onclick="RitimStockUI.authorize()">Yalnızca Fazla Malzeme Kabulüne İzin Ver</button><p class="tiny">Yukarıdaki adet ve gerekçe kullanılır. Telafi izni yeni iş emri değildir; Planlama ekranında ilk operasyon için ek iş emri açın. Sipariş miktarı ve kayıp parçalar değişmez.</p><button class="btn full" onclick="RitimUXPlanning.open(${jsArg(o.id)})">Telafi İş Emrini Planla</button>${(
+<div class="card pad"><h3 data-order-stock="returns">Rework Sonuçları</h3><label class="formfield">Sağlam<input class="input" id="stock-good" type="number" value="0" min="0"></label><label class="formfield">Hurda<input class="input" id="stock-scrap" type="number" value="0" min="0"></label>${supplier.map((r) => `<button class="btn full" onclick="RitimStockUI.resolve('supplierRework',${jsArg(r.id)})">Fason ${h(r.id)} · ${r.remaining} açık · sonucu onayla</button>`).join("")}${reworks.map((r) => `<button class="btn full" onclick="RitimStockUI.resolve('returnRework',${jsArg(r.id)})">İade ${h(r.id)} · ${r.remaining} açık · sonucu onayla</button>`).join("")}</div>
+<div class="card pad"><h3 data-order-stock="compensations">Kayıp Telafisi ve Ek Malzeme</h3><label class="formfield">Belgelenmiş kayıp<select class="select" id="stock-loss">${losses.map((l) => `<option value="${h(l.id)}">${h(l.label)}</option>`).join("")}</select></label><button class="btn full" onclick="RitimStockUI.compensate()">Kayıp İçin Telafi Planlama İzni Ver</button><button class="btn full" onclick="RitimStockUI.authorize()">Yalnızca Fazla Malzeme Kabulüne İzin Ver</button><p class="tiny">Yukarıdaki adet ve gerekçe kullanılır. Telafi izni yeni iş emri değildir; Planlama ekranında ilk operasyon için ek iş emri açın. Sipariş miktarı ve kayıp parçalar değişmez.</p><button class="btn full" onclick="RitimUXPlanning.open(${jsArg(o.id)})">Telafi İş Emrini Planla</button>${(
       state.compensations || []
     )
       .filter((c) => c.order === o.id)
@@ -68,7 +68,8 @@
       el("app").innerHTML = shell();
       el("page").innerHTML = page();
       document.querySelector(".header h1").textContent =
-        "Malzeme ve İade Yönetimi";
+        section==='returns'?'İadeler':section==='compensations'?'Telafiler':"Malzeme ve İade Yönetimi";
+      if(section!=='all'){const root=el('page');root.querySelector('h2').textContent=section==='returns'?'Müşteri İadeleri':'Kayıp Telafileri';for(const h of root.querySelectorAll('[data-order-stock]'))h.parentElement.hidden=h.dataset.orderStock!==section;for(const b of root.querySelectorAll('.ux05-wrap > .card:first-child > button'))b.hidden=section!=='returns'||!b.getAttribute('onclick')?.includes('customerReturn');const decision=el('stock-decision');if(decision)decision.closest('.formfield').hidden=section==='compensations';}
     } else oldRender();
     if (view === "more")
       document
@@ -86,7 +87,8 @@
     );
   };
   window.RitimStockUI = {
-    open(id) {
+    open(id, targetSection = "all") {
+      section = targetSection;
       selected = id || selected;
       go("stock");
     },

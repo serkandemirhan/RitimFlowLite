@@ -185,13 +185,13 @@
     let o = order(selected) || state.orders[0];
     if (!o) return '<div class="empty">Sipariş yok.</div>';
     selected = o.id;
-    const area = window.RitimNavigation?.area(), visibleTabs = area === 'warehouse' ? ['material', 'allocate'] : area === 'logistics' ? ['external', 'return', 'shipping', 'customerReturn'] : Object.keys(actions);
+    const area = window.RitimNavigation?.area(), visibleTabs = area === 'warehouse' ? ['material', 'allocate'] : area === 'logistics' ? ['external', 'return', 'shipping'] : area === 'orders' ? ['customerReturn'] : Object.keys(actions);
     // Legacy deep links may deliberately open another task; keep that task visible.
     if (!visibleTabs.includes(tab)) visibleTabs.push(tab);
     const x = data(o),
       a = actions[tab],
       max = Math.max(0, a.max(x));
-    return `<div class="ux6-wrap"><div class="card pad"><div class="ux6-head"><div><div class="eyebrow">HAREKET DEFTERİ</div><h2>${area === 'warehouse' ? 'Malzeme' : area === 'logistics' ? 'Lojistik' : 'Malzeme ve Lojistik'}</h2></div><span class="demo">DEMO</span></div><label class="formfield">Sipariş<select class="select" id="ux6-order" onchange="RitimUX06.changeOrder(this.value)">${opts(state.orders, "id", (o) => o.id + " · " + o.part)}</select></label><p class="tiny">${esc(o.customer)} · Sipariş ${o.qty} adet · ${esc(o.route.join(" → "))}</p><div class="ux6-stats">${[
+    return `<div class="ux6-wrap"><div class="card pad"><div class="ux6-head"><div><div class="eyebrow">HAREKET DEFTERİ</div><h2>${area === 'warehouse' ? 'Malzeme' : area === 'logistics' ? 'Lojistik' : area === 'orders' ? 'İadeler' : 'Malzeme ve Lojistik'}</h2></div><span class="demo">DEMO</span></div><label class="formfield">Sipariş<select class="select" id="ux6-order" onchange="RitimUX06.changeOrder(this.value)">${opts(state.orders, "id", (o) => o.id + " · " + o.part)}</select></label><p class="tiny">${esc(o.customer)} · Sipariş ${o.qty} adet · ${esc(o.route.join(" → "))}</p><div class="ux6-stats">${[
       ["Kabul", x.material],
       ["Serbest Malzeme", x.materialFree],
       ["Fason Açık", x.supplierOpen],
@@ -228,7 +228,7 @@ ${tab === "customerReturn" ? `<label class="formfield">İlgili sevkiyat<select c
   }
   function renderPage() {
     const p = document.getElementById("page");
-    if (p) p.innerHTML = logisticsView();
+    if (p) {const orderNav=p.querySelector('nav[aria-label="Sipariş işlemleri"]');p.innerHTML=logisticsView();if(orderNav&&window.RitimNavigation?.area()==='orders')p.prepend(orderNav);}
   }
   window.RitimUX06 = {
     openContext(id, t) {
@@ -276,7 +276,7 @@ ${tab === "customerReturn" ? `<label class="formfield">İlgili sevkiyat<select c
     originalGo(v);
     if (v === "logistics") {
       const title = document.querySelector(".header h1");
-      if (title) title.textContent = "Malzeme, Fason ve Sevkiyat";
+      if (title) title.textContent = window.RitimNavigation?.area()==='orders'?'İadeler':"Malzeme, Fason ve Sevkiyat";
     }
   };
   const originalShell = shell;
