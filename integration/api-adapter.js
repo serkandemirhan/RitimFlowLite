@@ -2,14 +2,21 @@
 (function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory();else root.RitimApiAdapter=factory()})(globalThis,function(){
  'use strict';
  class ApiError extends Error {constructor(code,message,status,recoveryStatus){super(message);this.code=code;this.status=status;this.recoveryStatus=recoveryStatus}}
- function create({token,cookieSession=false,onUnauthorized=()=>{},onScopeDenied=()=>{},fetcher=globalThis.fetch,randomUUID=()=>globalThis.crypto.randomUUID(),timeoutMs=30000}){
+ function create({token,cookieSession=false,refreshEnabled=false,onUnauthorized=()=>{},onScopeDenied=()=>{},fetcher=globalThis.fetch,randomUUID=()=>globalThis.crypto.randomUUID(),timeoutMs=30000}){
   if(!Number.isSafeInteger(timeoutMs)||timeoutMs<1)throw new TypeError('Invalid timeout');
   if(!cookieSession&&(!token||typeof token!=='string'))throw new ApiError('UNAUTHENTICATED','Oturum gerekli',401);
-  let scope=null;
+  let scope=null,refreshing=null;
+  async function renew(){
+   if(!refreshing){const run=async()=>{let r;try{r=await fetcher('/auth/refresh',{method:'POST',credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(timeoutMs)})}catch{throw new ApiError('AUTH_UNAVAILABLE','Oturum hizmetine ulaşılamadı. Yeniden deneyin.',503)}if(r.status>=500||r.status===429)throw new ApiError('AUTH_UNAVAILABLE','Oturum yenilenemedi. Yeniden deneyin.',503);return r.ok};refreshing=(globalThis.navigator?.locks?globalThis.navigator.locks.request('ritim-session-refresh',run):run()).finally(()=>{refreshing=null})}
+   return refreshing;
+  }
   async function request(path,{method='GET',body,key}={}){
    const headers={accept:'application/json',...(cookieSession?{}:{authorization:`Bearer ${token}`})};
    if(body!==undefined){headers['content-type']='application/json';headers['idempotency-key']=key||randomUUID()}
    let response;try{response=await fetcher(`/api/v1${path}`,{method,headers,credentials:'same-origin',...(body!==undefined?{body:JSON.stringify(body)}:{}),cache:'no-store',signal:AbortSignal.timeout(timeoutMs)})}catch(e){throw new ApiError('NETWORK_ERROR','Sunucuya ulaşılamadı; işlem durumu bilinmiyor. Aynı komut anahtarıyla tekrar deneyin.',0)}
+   if(response.status===401&&cookieSession&&refreshEnabled&&await renew()){
+    try{response=await fetcher(`/api/v1${path}`,{method,headers,credentials:'same-origin',...(body!==undefined?{body:JSON.stringify(body)}:{}),cache:'no-store',signal:AbortSignal.timeout(timeoutMs)})}catch{throw new ApiError('NETWORK_ERROR','Sunucuya ulaşılamadı; aynı komut anahtarıyla tekrar deneyin.',0)}
+   }
    let json;try{json=await response.json()}catch(e){throw new ApiError('INVALID_RESPONSE','Sunucu yanıtı okunamadı.',response.status)}
    if(response.status===401&&cookieSession)onUnauthorized();
    if(response.status===403&&json?.error?.code==='FORBIDDEN')onScopeDenied();

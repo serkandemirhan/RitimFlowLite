@@ -9,9 +9,18 @@ async function main(){
  try{
   const login=await app.inject({method:'POST',url:'/auth/login',headers:{origin:process.env.APP_ORIGIN},payload:credentials});
   assert.equal(login.statusCode,303);assert(!login.headers.location.includes('failed'));
-  const cookie=login.headers['set-cookie'];assert(cookie);
+  const cookies=login.headers['set-cookie'];assert(cookies);const cookie=(Array.isArray(cookies)?cookies:[cookies]).map(c=>c.split(';')[0]).join('; ');
   const response=await app.inject({url:'/api/v1/session',headers:{cookie}});assert.equal(response.statusCode,200);
   const session=response.json();assert(session.memberships.length>0);
+  const refreshCookie=(Array.isArray(cookies)?cookies:[]).find(c=>c.startsWith('__Host-ritim_refresh='));
+  if(refreshCookie){
+   const refreshed=await app.inject({method:'POST',url:'/auth/refresh',headers:{origin:process.env.APP_ORIGIN,cookie:refreshCookie.split(';')[0]}});assert.equal(refreshed.statusCode,200);assert.equal(refreshed.json().renewed,true);
+   const freshCookie=refreshed.headers['set-cookie'].map(c=>c.split(';')[0]).join('; ');
+   assert.equal((await app.inject({url:'/api/v1/session',headers:{cookie:freshCookie}})).statusCode,200);
+   const logout=await app.inject({method:'POST',url:'/auth/logout',headers:{origin:process.env.APP_ORIGIN,cookie:freshCookie}});assert.equal(logout.statusCode,200);
+   const revoked=await app.inject({method:'POST',url:'/auth/refresh',headers:{origin:process.env.APP_ORIGIN,cookie:refreshed.headers['set-cookie'].find(c=>c.startsWith('__Host-ritim_refresh=')).split(';')[0]}});assert.equal(revoked.statusCode,401);
+   console.log('Provider refresh, authenticated retry and refresh-token revocation passed.');
+  }
   console.log(JSON.stringify({login:login.statusCode,session:response.statusCode,displayName:session.identity.displayName,memberships:session.memberships}));
  }finally{await app.close()}
 }
