@@ -4,7 +4,8 @@ const directory=path.join(__dirname,'..','migrations');
 function expectedMigrations(){return fs.readdirSync(directory).filter(f=>/^\d+_[a-z0-9_]+\.sql$/.test(f)).sort().map(f=>({version:f.split('_')[0],checksum:crypto.createHash('sha256').update(fs.readFileSync(path.join(directory,f))).digest('hex')}));}
 async function checkReadiness(pool,{isolatedDevelopment=false}={}){
  const actual=await pool.query('SELECT version,checksum FROM ritim_schema_versions() ORDER BY version');
- if(JSON.stringify(actual.rows)!==JSON.stringify(expectedMigrations()))throw Error('Migration version mismatch');
+ const files=fs.readdirSync(directory).filter(f=>/^\d+_[a-z0-9_]+\.sql$/.test(f)).sort();
+ if(actual.rows.length!==files.length||files.some((f,i)=>actual.rows[i].version!==f.split('_')[0]||!require('./migration-checksum').checksums(fs.readFileSync(path.join(directory,f),'utf8')).includes(actual.rows[i].checksum)))throw Error('Migration version mismatch');
  if(isolatedDevelopment){const grants=await pool.query("SELECT has_table_privilege(current_user,'workspace_preferences','SELECT,INSERT') AND has_column_privilege(current_user,'workspace_preferences','settings','UPDATE') AND NOT has_table_privilege(current_user,'workspace_preferences','DELETE') AND has_table_privilege(current_user,'route_templates','SELECT,INSERT') AND has_column_privilege(current_user,'route_templates','operations','UPDATE') AND NOT has_table_privilege(current_user,'route_templates','DELETE') ok");if(grants.rows[0]?.ok!==true)throw Error('Workspace tool privileges invalid')}
  const result=await pool.query(`SELECT
   NOT (r.rolsuper OR r.rolbypassrls OR r.rolcreaterole OR r.rolcreatedb OR r.rolreplication OR r.rolinherit) AS role_safe,

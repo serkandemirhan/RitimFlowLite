@@ -9,7 +9,7 @@ test('existing database upgrade, failed migration and isolated backup/restore',a
  try{
   const testRoot=path.join(tmp,'fixture');fs.mkdirSync(path.join(testRoot,'src'),{recursive:true});fs.mkdirSync(path.join(testRoot,'migrations'));
   fs.copyFileSync(path.join(root,'src/migrate.js'),path.join(testRoot,'src/migrate.js'));
-  for(const file of ['db','config'])fs.writeFileSync(path.join(testRoot,'src',file+'.js'),`module.exports=require(${JSON.stringify(path.join(root,'src',file+'.js'))});\n`);
+  for(const file of ['db','config','migration-checksum'])fs.writeFileSync(path.join(testRoot,'src',file+'.js'),`module.exports=require(${JSON.stringify(path.join(root,'src',file+'.js'))});\n`);
   for(const file of ['001_foundation.sql','002_authorization.sql'])fs.copyFileSync(path.join(root,'migrations',file),path.join(testRoot,'migrations',file));
   const {migrate}=require(path.join(testRoot,'src/migrate.js'));
   await admin.query(`CREATE SCHEMA "${schema}"`);createdSchema=true;

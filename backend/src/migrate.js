@@ -12,9 +12,9 @@ async function migrate(pool) {
     const seen=new Set(),applied=[];
     for(const file of files){
       const version=file.split('_')[0]; if(seen.has(version)) throw Error('Duplicate migration version');seen.add(version);
-      const sql=fs.readFileSync(path.join(dir,file),'utf8'),hash=crypto.createHash('sha256').update(sql).digest('hex');
+      const sql=fs.readFileSync(path.join(dir,file),'utf8'),validHashes=require('./migration-checksum').checksums(sql),hash=validHashes[0];
       const current=await client.query('SELECT checksum FROM schema_migrations WHERE version=$1',[version]);
-      if(current.rowCount){if(current.rows[0].checksum!==hash)throw Error('Applied migration checksum mismatch: '+version);continue;}
+      if(current.rowCount){if(!validHashes.includes(current.rows[0].checksum))throw Error('Applied migration checksum mismatch: '+version);continue;}
       await client.query(sql);await client.query('INSERT INTO schema_migrations(version,checksum) VALUES($1,$2)',[version,hash]);applied.push(version);
     }
     const known=await client.query('SELECT version FROM schema_migrations');
