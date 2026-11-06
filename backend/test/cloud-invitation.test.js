@@ -30,3 +30,11 @@ test('provider creates new invitation, uses OTP for existing email, and never re
  provider=deliveryProvider({url:'https://auth.example',secretKey:'secret',appOrigin:origin,fetcher:async()=>({ok:false,status:422,json:async()=>({code:'email_exists'})}),authRequest:async(path,body)=>{assert.equal(body.create_user,false);assert(path.startsWith('/otp?redirect_to='));return {ok:true};}});assert.equal(await provider(invite),'sent');
  provider=deliveryProvider({url:'https://auth.example',secretKey:'secret',appOrigin:origin,fetcher:async()=>{throw Error('timeout')}});assert.equal(await provider(invite),'unknown');
 });
+
+test('numeric provider status does not hide the existing-account error code',async()=>{
+ for(const error_code of ['email_exists','user_already_exists']){
+  let calls=0;
+  const provider=deliveryProvider({url:'https://auth.example',secretKey:'secret',appOrigin:origin,fetcher:async()=>({ok:false,status:422,json:async()=>({code:422,error_code})}),authRequest:async(path,body)=>{calls++;assert.equal(body.create_user,false);assert(path.startsWith('/otp?redirect_to='));return {ok:true}}});
+  assert.equal(await provider({id:iid,email:'person@example.test'}),'sent');assert.equal(calls,1);
+ }
+});

@@ -27,7 +27,7 @@ function deliveryProvider({url,secretKey,appOrigin,authRequest,fetcher=fetch}){
   if(response.ok)return 'sent';
   const body=await response.json().catch(()=>({}));
   // Existing accounts keep their password; the email link verifies ownership before joining.
-  if(['email_exists','user_already_exists'].includes(body.code||body.error_code)){
+  if(['email_exists','user_already_exists'].includes(body.error_code||body.code)){
    const otp=await authRequest('/otp?redirect_to='+encodeURIComponent(redirect),{email:invite.email,create_user:false});return otp.ok?'sent':otp.status>=500?'unknown':'failed';
   }
   return response.status>=500?'unknown':'failed';
