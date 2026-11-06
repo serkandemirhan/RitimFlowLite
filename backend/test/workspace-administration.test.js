@@ -1,0 +1,45 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),crypto=require('node:crypto'),{Pool}=require('pg');
+const {migrate}=require('../src/migrate'),{provisionRuntime}=require('../security/provision-runtime'),{buildApp}=require('../src/app');
+const {render}=require('../src/workspace-admin-page');
+test('workspace administration: restricted runtime, isolation, roles, concurrency and replay',async()=>{
+ const db=process.env.TEST_DATABASE_URL;if(!db)throw Error('Disposable PostgreSQL required');
+ const admin=new Pool({connectionString:db}),suffix=crypto.randomBytes(8).toString('hex'),schema='admin_'+suffix,role='admin_app_'+suffix;
+ const {roleUrl,createRole}=require('../test-support/roles.cjs').roleConnections(db);const id=()=>crypto.randomUUID(),tenant=id(),other=id(),site=id(),otherSite=id(),manager=id(),operator=id(),outsider=id();let seed,pool,app;
+ try{
+ await createRole(admin,role);await admin.query(`CREATE SCHEMA ${schema}`);seed=new Pool({connectionString:db,options:`-c search_path=${schema}`});await migrate(seed);
+ await provisionRuntime(seed,schema,role,{isolatedDevelopment:true});
+ await seed.query("INSERT INTO tenants(id,name) VALUES($1,'Company'),($2,'Private')",[tenant,other]);
+ await seed.query("INSERT INTO sites(tenant_id,id,code,name) VALUES($1,$2,'MAIN','Main'),($3,$4,'OTHER','Other')",[tenant,site,other,otherSite]);
+ await seed.query("INSERT INTO users(id,issuer,subject,display_name) VALUES($1,'issuer','manager','Manager'),($2,'issuer','operator','Operator'),($3,'issuer','outsider','Private user')",[manager,operator,outsider]);
+ await seed.query("INSERT INTO tenant_memberships(tenant_id,user_id,role) VALUES($1,$2,'tenant_admin')",[tenant,manager]);
+ await seed.query("INSERT INTO site_memberships(tenant_id,site_id,user_id,role) VALUES($1,$2,$3,'operator'),($4,$5,$6,'operator')",[tenant,site,operator,other,otherSite,outsider]);
+ pool=new Pool({connectionString:roleUrl(role),options:`-c search_path=${schema}`});
+ const verifier={verify:async token=>({issuer:'issuer',subject:token==='o.b.c'?'operator':'manager'})},tokenFor=req=>req.headers.authorization?.slice(7),origin=req=>{if(req.headers.origin!=='https://app.example')throw new (require('../src/auth').HttpError)(403,'ORIGIN_REJECTED','Invalid origin');};
+ app=buildApp({pool,workflowEnabled:true,verifier,bff:{tokenFor,routes(app){app.addContentTypeParser('application/x-www-form-urlencoded',{parseAs:'string'},(_r,b,done)=>done(null,Object.fromEntries(new URLSearchParams(b))));require('../src/workspace-admin-page').routes(app,{pool,verifier,tokenFor,origin});}}});
+ const url=`/api/v1/sites/${tenant}/${site}/administration`,headers={authorization:'Bearer m.b.c'};
+ const send=(action,p,key=id())=>app.inject({method:'POST',url:url+'/'+action,headers:{...headers,'idempotency-key':key},payload:p});
+ let r=await app.inject({url,headers});assert.equal(r.statusCode,200,r.body);assert.equal(r.json().members.length,2);assert.equal(r.json().version,1);
+ assert.equal((await app.inject({url,headers:{authorization:'Bearer o.b.c'}})).statusCode,403);
+ assert.equal((await app.inject({url:`/api/v1/sites/${other}/${otherSite}/administration`,headers})).statusCode,403);
+ await assert.rejects(pool.query('SELECT * FROM users'),{code:'42501'});await assert.rejects(pool.query("SELECT ritim_admin_workspace('read','{}')"),{code:'42501'});
+ const key=id(),payload={version:1,name:'Updated'};r=await send('company',payload,key);assert.equal(r.statusCode,200,r.body);assert.equal(r.json().version,2);
+ assert.equal((await send('company',payload,key)).json().version,2);assert.equal((await send('company',payload)).statusCode,409);
+ assert.equal((await send('member',{version:2,userId:outsider,siteId:site,role:'manager'})).statusCode,403);
+ assert.equal((await send('member',{version:2,userId:manager,siteId:site,role:'none'})).statusCode,403);
+ assert.equal((await send('member',{version:2,userId:operator,siteId:site,role:'tenant_admin'})).statusCode,400);
+ r=await send('member',{version:2,userId:operator,siteId:site,role:'planner'});assert.equal(r.statusCode,200,r.body);
+ r=await send('member',{version:3,userId:operator,siteId:site,role:'none'});assert.equal(r.statusCode,200,r.body);
+ assert.equal((await app.inject({url:`/api/v1/sites/${tenant}/${site}/capabilities`,headers:{authorization:'Bearer o.b.c'}})).statusCode,403);
+ r=await send('site',{version:4,id:id(),create:true,code:'SECOND',name:'Second'});assert.equal(r.statusCode,200,r.body);assert.equal(r.json().sites.length,2);
+ assert.equal((await send('site',{version:5,id:otherSite,create:false,code:'THEFT',name:'No'})).statusCode,403);
+ const pair=await Promise.all([send('company',{version:5,name:'One'}),send('company',{version:5,name:'Two'})]);assert.deepEqual(pair.map(x=>x.statusCode).sort(),[200,409]);
+ const audit=await seed.query("SELECT count(*)::int n FROM audit_events WHERE event_type LIKE 'workspace.%'");assert.equal(audit.rows[0].n,5);
+ const html=render({...r.json(),name:'<script>bad</script>'},{tenantId:tenant,siteId:site},manager,true);assert.ok(html.includes('&lt;script&gt;'));assert.ok(!html.includes('<script>bad'));assert.ok(html.includes('Yeni kullanıcı daveti henüz'));
+ const page=await app.inject({url:'/auth/team',headers});assert.equal(page.statusCode,200,page.body);assert.ok(page.body.includes('Firma ve ekip'));
+ assert.equal((await app.inject({url:'/auth/team',headers:{authorization:'Bearer o.b.c'}})).statusCode,403);
+ const body=new URLSearchParams({tenantId:tenant,siteId:site,action:'company',name:'Form update',version:'6',key:id()}).toString();
+ assert.equal((await app.inject({method:'POST',url:'/auth/team',headers:{...headers,'content-type':'application/x-www-form-urlencoded',origin:'https://evil.example'},payload:body})).statusCode,403);
+ const saved=await app.inject({method:'POST',url:'/auth/team',headers:{...headers,'content-type':'application/x-www-form-urlencoded',origin:'https://app.example'},payload:body});assert.equal(saved.statusCode,303,saved.body);
+ }finally{if(app)await app.close();if(pool)await pool.end();if(seed)await seed.end();await admin.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE`);await admin.query(`DROP ROLE IF EXISTS ${role}`);await admin.end();}
+});
