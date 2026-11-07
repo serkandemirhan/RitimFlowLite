@@ -1,0 +1,31 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
+const source=fs.readFileSync('integration/premium-api.js','utf8');
+function fn(name){const start=source.indexOf(' async function '+name+'(');let pos=source.indexOf('{',start),depth=1;for(let i=pos+1;i<source.length;i++){if(source[i]==='{')depth++;if(source[i]==='}'&&!--depth)return source.slice(start,i+1);}throw Error(name)}
+// These two loaders contain no template literals or braces inside strings.
+function context(fail){let active=0,max=0;const calls=[];const read=async(name,value)=>{calls.push(name);max=Math.max(max,++active);await new Promise(r=>setTimeout(r,10));active--;if(name===fail)throw Error('denied');return value};const c={detail:{id:'old'},jobs:[],extras:{old:true},selected:'old',orders:[],shippingReady:[],jobSelected:'job',isOperator:()=>true,capable:()=>false,api:{order:id=>read('order',{id,route:[{sequence:0,id:'op'}]}),workOrders:()=>read('jobs',{workOrders:[{id:'job'}]}),orderEditing:()=>read('editing',{}),orderSummary:()=>read('summary',{}),availability:()=>read('availability',{}),readOperation:name=>read(name,{name})}};vm.createContext(c);vm.runInContext(fn('loadDetail')+';'+fn('loadExtras'),c);return {c,calls,max:()=>max}}
+test('detail reads overlap, but never exceed two concurrent reads',async()=>{const h=context();await h.c.loadDetail('new');assert.equal(h.max(),2);assert.equal(h.c.selected,'new');assert.equal(h.calls.length,5)});
+test('operator detail omits summary, editing and availability',async()=>{const h=context();await h.c.loadDetail('new',false);assert.deepEqual(h.calls,['order','jobs']);assert.equal(h.c.orderSummary,null)});
+test('failed detail does not publish partially loaded record',async()=>{const h=context('jobs');await assert.rejects(h.c.loadDetail('new'));assert.equal(h.c.detail.id,'old');assert.equal(h.c.selected,'old')});
+test('extra reads respect role and publish together',async()=>{const h=context();await h.c.loadExtras();assert.equal(h.max(),2);assert(!h.calls.includes('assignment'));assert(h.c.extras.qualityHistory);assert.equal(h.c.extras.assignment,null)});
+test('failed extras do not publish a mixture of histories',async()=>{const h=context('qualityHistory');await assert.rejects(h.c.loadExtras());assert.deepEqual(h.c.extras,{old:true})});
+
+test('orders entry fetches choices/workspace once and preserves fresh filters',async()=>{
+ const calls=[];const c={URLSearchParams,location:{search:'?view=orders'},sessionStorage:{},scope:null,caps:null,journal:null,workflow:null,resume:null,viewPreferences:{},boardMode:'queue',guidedMachineMode:'all',page:'orders',orders:[],selected:null,orderChoicesView:null,ordersWorkspace:null,boardTimeEdit:null,boardDrawer:null,boardBulk:null,preferenceNotice:'',logisticsRecord:null,capable:()=>true,allowedPage:()=>true,clarityRead:()=>({}),orderListFilters:fresh=>({fresh:!!fresh}),RitimServerPendingCommands:{create:()=>({load:async()=>{}})},RitimServerWizardWorkflow:{create:()=>({load:async()=>{},read:()=>({id:'resumable'})})},api:{workspacePreferences:async()=>({views:[]}),orderChoices:async()=>{calls.push('choices');return {items:[]}},orderWorkspace:async filters=>{calls.push(filters);return {items:[]}}}};
+ vm.createContext(c);for(const name of ['enterScope','loadPage','reloadOrders']){const line=source.split('\n').find(x=>x.startsWith(' async function '+name+'('));vm.runInContext(line,c)}
+ await c.enterScope({scope:{},caps:[]});assert.equal(calls.filter(x=>x==='choices').length,1);assert.equal(calls.filter(x=>typeof x==='object').length,1);assert.equal(c.resume.id,'resumable');
+ calls.length=0;await c.loadPage('orders',{fresh:true});assert.equal(calls.length,2);assert.equal(calls[1].fresh,true);
+});
+
+test('empty operator workspace has one heading and refresh, no filters, and lazy history',()=>{
+ const slice=(a,b)=>source.slice(source.indexOf(a),source.indexOf(b,source.indexOf(a)));
+ const c={assignedJobs:[],operatorJobId:null,operatorFinishedCount:8,operatorHistoryLoaded:false,assignedListOpen:true,extras:{},operatorQuery:'',operatorMachineFilter:'all',h:x=>x,jsArg:JSON.stringify};vm.createContext(c);vm.runInContext(slice(' function operatorStudioList()',' function operatorStudioPanel(')+slice(' function operatorHomeContent()',' function mountOperatorStudio('),c);
+ const html=c.operatorHomeContent();assert.equal((html.match(/<h2>/g)||[]).length,1);assert.equal((html.match(/RitimPremiumAPI.refreshAssigned\(\)/g)||[]).length,1);assert(!html.includes('id="operator-query"'));assert(!html.includes('id="operator-machine"'));assert(html.includes('loadOperatorHistory()'));assert(html.includes('8</summary>'));
+});
+test('operator refresh loads active jobs only and preserves a completed focused job with a fresh scoped read',async()=>{
+ const calls=[],c={scope:{tenantId:'t',siteId:'s'},caps:[],assignedJobs:[],operatorJobId:'finished',operatorHistoryLoaded:true,operatorFinishedCount:0,productionView:{},qualityView:{},api:{selectScope:async()=>({roles:['operator'],capabilities:['production.write']}),assignedWorkOrders:async(after,id,state)=>{calls.push({id,state});return id?{workOrders:[{id,status:'complete'}]}:{workOrders:[],finishedCount:8,nextAfter:null}}}};
+ vm.createContext(c);vm.runInContext(source.split('\n').find(x=>x.startsWith(' async function refreshAssigned()')),c);await c.refreshAssigned();assert.deepEqual(calls,[{id:null,state:'active'},{id:'finished',state:undefined}]);assert.equal(c.operatorJobId,'finished');assert.equal(c.operatorFinishedCount,8);assert.equal(c.operatorHistoryLoaded,false);
+});
+test('revoked operator membership clears actionable data without reading jobs',async()=>{
+ const c={scope:{tenantId:'t',siteId:'s'},caps:[],assignedJobs:[{id:'old'}],operatorJobId:'old',operatorHistoryLoaded:true,productionView:{},qualityView:{},api:{selectScope:async()=>({roles:[],capabilities:[]}),assignedWorkOrders:()=>{throw Error('must not read')}}};vm.createContext(c);vm.runInContext(source.split('\n').find(x=>x.startsWith(' async function refreshAssigned()')),c);await c.refreshAssigned();assert.equal(c.assignedJobs.length,0);assert.equal(c.operatorJobId,null);assert.equal(c.productionView,null);assert.equal(c.qualityView,null);
+});
