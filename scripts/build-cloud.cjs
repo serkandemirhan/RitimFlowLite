@@ -8,4 +8,6 @@ html=html.replace("const API_MODE=new URL(location.href).searchParams.get('mode'
 if(!html.includes('const API_MODE=true;'))throw Error('Cloud API mode not enabled');
 const assets=new Set([...html.matchAll(/(?:src|href)="((?:assets|integration)\/[^"?#]+)(?:[^" ]*)"/g)].map(m=>m[1]));
 for(const asset of assets){if(asset.includes('..')||!['.js','.css','.svg','.png','.jpg','.woff2'].includes(path.extname(asset)))throw Error('Unexpected public asset');const target=path.join(out,asset);fs.mkdirSync(path.dirname(target),{recursive:true});fs.copyFileSync(path.join(root,asset),target)}
-fs.writeFileSync(path.join(out,'index.html'),html);console.log('Cloud UI packaged:',assets.size,'assets');
+fs.copyFileSync(path.join(root,'integration/drawing-viewer.mjs'),path.join(out,'integration/drawing-viewer.mjs'));
+fs.cpSync(path.join(root,'assets/vendor/pdfjs'),path.join(out,'assets/vendor/pdfjs'),{recursive:true});
+fs.writeFileSync(path.join(out,'index.html'),html);console.log('Cloud UI packaged:',assets.size,'assets plus local PDF renderer');

@@ -25,6 +25,7 @@
     "test:architecture": "node --test tests/ux-architecture-shell-browser.cjs tests/demo-navigation.test.cjs tests/simple-order-wizard.test.cjs tests/demo-simple-order.test.cjs tests/demo-simple-order-domain.test.cjs tests/premium-phase2.test.cjs"
   },
   "devDependencies": {
+    "pdfjs-dist": "6.5.438",
     "playwright": "1.64.1"
   }
 }
