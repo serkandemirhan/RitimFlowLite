@@ -447,9 +447,15 @@
 .api-shell .planning-studio .board-commandbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;border:1px solid #e2e7ee;background:#fff;border-radius:12px;padding:10px;margin-bottom:18px;box-shadow:0 2px 4px #1f365503}
 .api-shell .planning-studio .board-machine-row{flex:1;min-width:180px;max-width:380px}
 .api-shell .planning-studio .board-machine-row .select{border:0;background:#f5f7fa;min-height:40px;font-size:13px;color:#233a53;border-radius:8px}
-.api-shell .planning-studio .board-action-row{margin:0;flex:1;gap:8px}
+.api-shell .planning-studio .board-action-row{margin:0;flex:1 1 340px;min-width:0;gap:8px;flex-wrap:wrap}
 .api-shell .planning-studio .board-action-row .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:0;border-radius:8px;min-height:36px;padding:8px 12px;font-size:12px;box-shadow:none}
-.api-shell .planning-studio .board-view-toggle{background:#f0f3f8;padding:3px;border-radius:9px}
+.api-shell .planning-studio .board-view-toggle{background:#f0f3f8;padding:3px;border-radius:9px;flex-shrink:0}
+.api-shell .planning-studio .board-commandbar .btn{white-space:nowrap;overflow-wrap:normal;flex-shrink:0}
+.api-shell .planning-studio .board-commandbar>.guided-machine-views{flex:0 0 100%;flex-wrap:wrap;box-sizing:border-box}
+.api-shell .planning-studio .planning-machine-status.is-running{color:#16705c}
+.api-shell .planning-studio .machine-lane.is-empty .machine-lane-body{padding-top:0;min-height:0}
+.api-shell .planning-pending>div{display:flex;flex-wrap:wrap;gap:8px}
+.api-shell .planning-pending p{margin:7px 0 12px}
 .api-shell .planning-studio .board-view-toggle .btn[aria-pressed=true]{color:#294ca7;box-shadow:0 1px 4px #162f4d12}
 .api-shell .planning-studio .compact-filter-summary{flex-basis:100%;padding:0 4px}
 .api-shell .planning-queue-layout{display:flex;align-items:stretch;gap:14px;min-width:0}
