@@ -16,3 +16,12 @@ test('network read failure suggests refresh; uncertain write preserves retry gui
  await assert.rejects(api.production('order','job'),e=>e.code==='NETWORK_ERROR'&&!e.message.includes('komut anahtarı'));
  await assert.rejects(api.productionCommand('order','job','start',{},'original-key'),e=>e.code==='NETWORK_ERROR'&&e.message.includes('komut anahtarı'));
 });
+test('operator detail omits order-wide summaries without dropping work-order context',async()=>{
+ const start=source.indexOf('async function loadDetail('),end=source.indexOf('\n',start),calls=[];
+ const api={order:async()=>({id:'o',route:[{id:'op',sequence:0}]}),workOrders:async()=>({workOrders:[{id:'j'}]}),orderSummary:async()=>{calls.push('summary');return {}},orderEditing:async()=>{calls.push('editing');return {}},availability:async()=>{calls.push('availability');return {}}};
+ const context=vm.createContext({api,orders:[],shippingReady:[],orderSummary:{stale:true},orderEditingView:{stale:true}});
+ vm.runInContext(source.slice(start,end),context);
+ await context.loadDetail('o',false);
+ assert.deepEqual(calls,[]);assert.equal(context.orderSummary,null);assert.equal(context.orderEditingView,null);assert.equal(context.jobs[0].id,'j');assert.equal(context.selected,'o');
+ await context.loadDetail('o');assert.deepEqual(calls,['editing','summary','availability']);
+});
