@@ -11,11 +11,12 @@
    return refreshing;
   }
   async function request(path,{method='GET',body,key}={}){
+   const unavailable=()=>new ApiError('NETWORK_ERROR',['GET','HEAD'].includes(method)?'Güncel bilgiler alınamadı. Bağlantınızı kontrol edip ekranı yenileyin.':'Sunucuya ulaşılamadı; işlem durumu bilinmiyor. Aynı komut anahtarıyla tekrar deneyin.',0);
    const headers={accept:'application/json',...(cookieSession?{}:{authorization:`Bearer ${token}`})};
    if(body!==undefined){headers['content-type']='application/json';headers['idempotency-key']=key||randomUUID()}
-   let response;try{response=await fetcher(`/api/v1${path}`,{method,headers,credentials:'same-origin',...(body!==undefined?{body:JSON.stringify(body)}:{}),cache:'no-store',signal:AbortSignal.timeout(timeoutMs)})}catch(e){throw new ApiError('NETWORK_ERROR','Sunucuya ulaşılamadı; işlem durumu bilinmiyor. Aynı komut anahtarıyla tekrar deneyin.',0)}
+   let response;try{response=await fetcher(`/api/v1${path}`,{method,headers,credentials:'same-origin',...(body!==undefined?{body:JSON.stringify(body)}:{}),cache:'no-store',signal:AbortSignal.timeout(timeoutMs)})}catch(e){throw unavailable()}
    if(response.status===401&&cookieSession&&refreshEnabled&&await renew()){
-    try{response=await fetcher(`/api/v1${path}`,{method,headers,credentials:'same-origin',...(body!==undefined?{body:JSON.stringify(body)}:{}),cache:'no-store',signal:AbortSignal.timeout(timeoutMs)})}catch{throw new ApiError('NETWORK_ERROR','Sunucuya ulaşılamadı; aynı komut anahtarıyla tekrar deneyin.',0)}
+    try{response=await fetcher(`/api/v1${path}`,{method,headers,credentials:'same-origin',...(body!==undefined?{body:JSON.stringify(body)}:{}),cache:'no-store',signal:AbortSignal.timeout(timeoutMs)})}catch{throw unavailable()}
    }
    let json;try{json=await response.json()}catch(e){throw new ApiError('INVALID_RESPONSE','Sunucu yanıtı okunamadı.',response.status)}
    if(response.status===401&&cookieSession)onUnauthorized();
