@@ -12,7 +12,16 @@ async function availableLot(c,s,order,lotId){
  return {...lot,availableToShip:lot.availableApproved};
 }
 async function view(c,s,order){
- const lots=await c.query('SELECT id FROM production_output_lots WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 ORDER BY created_at,id',[s.tenantId,s.siteId,order]);const available=[];
+ // Only final, completed operations can ship. Avoid replaying quality and stock
+ // histories for every intermediate lot merely to discard them afterwards.
+ // availableLot still performs the full provenance and route checks below.
+ const lots=await c.query(`SELECT l.id FROM production_output_lots l
+ JOIN work_orders w ON (w.tenant_id,w.site_id,w.order_id,w.id)=(l.tenant_id,l.site_id,l.order_id,l.work_order_id)
+ JOIN operations op ON (op.tenant_id,op.site_id,op.order_id,op.id)=(w.tenant_id,w.site_id,w.order_id,w.operation_id)
+ WHERE l.tenant_id=$1 AND l.site_id=$2 AND l.order_id=$3 AND w.status='complete'
+ AND op.sequence=(SELECT count(*)-1 FROM operations route WHERE route.tenant_id=w.tenant_id AND route.site_id=w.site_id
+ AND route.order_id=w.order_id AND route.production_order_id IS NOT DISTINCT FROM w.production_order_id)
+ ORDER BY l.created_at,l.id`,[s.tenantId,s.siteId,order]);const available=[];
  for(const l of lots.rows){try{available.push(await availableLot(c,s,order,l.id))}catch(e){if(!['FINAL_OPERATION_INCOMPLETE','OPERATION_UNSUPPORTED'].includes(e.code))throw e}}
  const events=await c.query('SELECT id,sequence,shipping_order_id,event_type,allocation_id,dispatch_id,output_lot_id,rma_release_id,quantity_pieces,actor_id,created_at FROM shipping_events WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 ORDER BY sequence',[s.tenantId,s.siteId,order]);
  const shippingOrders=await c.query('SELECT id,created_at AS "createdAt" FROM shipping_orders WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 ORDER BY created_at,id',[s.tenantId,s.siteId,order]);
