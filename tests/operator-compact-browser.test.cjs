@@ -1,0 +1,14 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),{chromium}=require('playwright');
+test('compact notification keeps all context and closed-job history remains reachable',async()=>{
+ const src=fs.readFileSync('integration/premium-api.js','utf8'),css=fs.readFileSync('assets/css/ux-premium-workspace.css','utf8');
+ const slice=(a,b)=>src.slice(src.indexOf(a),src.indexOf(b,src.indexOf(a)));
+ const code=slice(' function operatorStudioList()',' function operatorStudioPanel(')+slice(' function operatorHomeContent()',' function mountOperatorStudio(');
+ const browser=await chromium.launch();try{const p=await browser.newPage({viewport:{width:384,height:721}});await p.setContent('<style>body{margin:16px;font:14px system-ui}.btn{border:1px solid #ddd;border-radius:8px;background:white}'+css+'</style><div id="app"></div>');
+ await p.evaluate(code=>{Object.assign(window,{assignedJobs:[{id:'done',status:'complete',operation:{name:'CNC torna'},partName:'Mil'}],operatorJobId:'done',operatorFinishedCount:9,operatorHistoryLoaded:false,assignedListOpen:false,extras:{},operatorQuery:'',operatorMachineFilter:'all',h:x=>String(x??''),jsArg:JSON.stringify,poStatus:x=>x,operatorStudioPanel:()=>'<article>İş emri tamamlandı</article>',RitimPremiumAPI:{loadOperatorHistory:()=>window.historyRequested=true}});eval(code+';document.getElementById("app").innerHTML=operatorHomeContent()')},code);
+ assert.equal(await p.locator('.operator-list-panel>summary').isVisible(),false);assert.equal(await p.locator('.operator-empty-state').count(),0);await p.locator('.operator-completed-list>summary').click();assert.equal(await p.evaluate(()=>window.historyRequested),true);
+ await p.evaluate(()=>document.getElementById('app').insertAdjacentHTML('afterbegin','<div class="operator-new-work-banner"><svg></svg><div><b>Size yeni bir iş geldi</b><span>SAHA-20261107-03 · CNC torna · Termin 20 Kas 2026</span></div><button class="btn" aria-label="Atanan işleri gör">Gör</button></div>'));
+ const banner=await p.locator('.operator-new-work-banner').boundingBox(),button=await p.getByRole('button',{name:'Atanan işleri gör'}).boundingBox();assert(banner.height<110);assert(button.width>=44&&button.height>=44);assert(button.x+button.width<=384);assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+ fs.mkdirSync('artifacts/cloud-release/operator-performance',{recursive:true});await p.screenshot({path:'artifacts/cloud-release/operator-performance/compact-mobile-preview.png',fullPage:true});
+ }finally{await browser.close()}
+});
