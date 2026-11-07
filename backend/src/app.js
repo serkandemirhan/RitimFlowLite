@@ -7,7 +7,7 @@ const {inTransaction}=require('./db');
 const {checkReadiness}=require('./readiness');
 function buildApp({pool,verifier=null,logger=false,isolatedDevelopment=false,workflowEnabled=isolatedDevelopment,bff=null,recovery=null}={}) {
   if (!pool || typeof pool.query !== 'function') throw new Error('Database pool required');
-  const app=Fastify({logger,disableRequestLogging:!!bff,bodyLimit:1024*1024});
+  const app=Fastify({logger,logController:new Fastify.LogController({disableRequestLogging:!!bff}),bodyLimit:1024*1024});
   app.decorate('pgPool',pool);
   app.setErrorHandler((error,request,reply)=>{
     if(error.code==='23505')return reply.code(409).send({error:{code:'CONFLICT',message:'A record already exists',requestId:request.id}});

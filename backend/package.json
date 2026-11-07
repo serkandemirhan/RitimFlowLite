@@ -13,6 +13,9 @@
     "test:integration": "node --test test/integration.test.js test/b02-security.test.js test/b03a-rls.test.js test/b03a-migration-recovery.test.js test/b03b-planning.test.js test/b03c-flow.test.js test/b04a-production.test.js test/b04b1a-quality.test.js test/inventory-upgrade.test.js test/recovery-routes.test.js test/recovery-store.test.js",
     "test:unit": "node --test test/foundation.test.js test/b02-auth.test.js test/b04b-output-projection.test.js test/b04b-reservation-projection.test.js test/inventory-balance.test.js test/oidc-bff.test.js test/recovery-catalog.test.js test/recovery-config.test.js test/recovery-crypto.test.js test/shipping-recovery.test.js"
   },
+  "overrides": {
+    "light-my-request": "6.6.0"
+  },
   "dependencies": {
     "fastify": "5.12.7",
     "jose": "6.1.3",
