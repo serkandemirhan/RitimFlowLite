@@ -13,5 +13,7 @@ function cloudConfig(env=process.env){
  if(env.AUTH_INVITATIONS_ENABLED==='true'&&!env.SUPABASE_SECRET_KEY)throw Error('Missing SUPABASE_SECRET_KEY');
  return {invitationsEnabled:env.AUTH_INVITATIONS_ENABLED==='true',secretKey:env.SUPABASE_SECRET_KEY,recoveryEnabled:env.AUTH_RECOVERY_ENABLED==='true',databaseUrl:env.DATABASE_URL,ssl:'verify',url:env.SUPABASE_URL,publishableKey:env.SUPABASE_PUBLISHABLE_KEY,appOrigin:env.APP_ORIGIN,recovery:{key:env.RECOVERY_ENCRYPTION_KEY,keyVersion:env.RECOVERY_KEY_VERSION}};
 }
-function createCloudApp(env=process.env){const config=cloudConfig(env),pool=createPool({...config,poolMax:2,sslCa:require('node:fs').readFileSync(require('node:path').join(__dirname,'../security/supabase-ca.crt'),'utf8')}),verifier=createSupabaseVerifier(config),bff=makeSupabaseBff({...config,pool,verifier});const app=buildApp({pool,verifier,bff,recovery:config.recovery,workflowEnabled:true,logger:false});app.addHook('onClose',()=>pool.end());return app}
+// Record server failures without request bodies, cookies, tokens or database values.
+const cloudLogger={level:'error',serializers:{err:error=>({type:error.name,code:error.code,frames:String(error.stack||'').split('\n').slice(1,7).map(x=>x.trim())})}};
+function createCloudApp(env=process.env){const config=cloudConfig(env),pool=createPool({...config,poolMax:2,sslCa:require('node:fs').readFileSync(require('node:path').join(__dirname,'../security/supabase-ca.crt'),'utf8')}),verifier=createSupabaseVerifier(config),bff=makeSupabaseBff({...config,pool,verifier});const app=buildApp({pool,verifier,bff,recovery:config.recovery,workflowEnabled:true,logger:cloudLogger});app.addHook('onClose',()=>pool.end());return app}
 module.exports={cloudConfig,createCloudApp};
