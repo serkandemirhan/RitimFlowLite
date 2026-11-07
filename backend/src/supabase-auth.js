@@ -27,7 +27,7 @@ function makeSupabaseBff({url,publishableKey,appOrigin,pool,verifier,recoveryEna
  async function routes(app){
   const invitationProvider=invitationsEnabled?require('./workspace-invitations').deliveryProvider({url,secretKey,appOrigin,authRequest,fetcher}):null;
   require('./workspace-admin-page').routes(app,{pool,verifier,tokenFor,origin,invitationsEnabled,invitationProvider});
-  require('./supabase-invitation').routes(app,{pool,verifier,authRequest,origin,acceptSession,invitationsEnabled,secretKey});
+  require('./supabase-invitation').routes(app,{pool,verifier,authRequest,origin,acceptSession,tokenFor,invitationsEnabled,secretKey});
   app.addContentTypeParser('application/x-www-form-urlencoded',{parseAs:'string',bodyLimit:4096},(_req,body,done)=>done(null,Object.fromEntries(new URLSearchParams(body))));
   app.addHook('onSend',async(req,reply,payload)=>{if(req.url.startsWith('/auth/')){reply.header('Cache-Control','no-store').header('Referrer-Policy','same-origin').header('X-Content-Type-Options','nosniff').header('Content-Security-Policy',"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'")}return payload});
   app.get('/auth/config',async()=>({enabled:true,provider:'supabase',manualTokenAllowed:false,refreshEnabled:true,recoveryEnabled}));

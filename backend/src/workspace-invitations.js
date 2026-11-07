@@ -16,13 +16,14 @@ async function send(req,id,provider){
  const s=data(req),p={id:identifier(id)},invite=await scoped(req.server.pgPool,s,'send',p);
  if(!invite)fail(409,'INVITATION_WAIT','Davet artık geçerli değil veya az önce gönderildi. Yeniden göndermek için iki dakika bekleyin.');
  let delivery='unknown';
- try{delivery=await provider(invite);}finally{await scoped(req.server.pgPool,s,'delivery',{...p,delivery});}
+ try{const w=await require('./workspace-administration').read(req.server.pgPool,s);delivery=await provider({...invite,companyName:w.name,siteName:w.sites.find(x=>x.id===invite.site_id)?.name});}finally{await scoped(req.server.pgPool,s,'delivery',{...p,delivery});}
  if(delivery!=='sent')fail(503,'INVITATION_DELIVERY','Davet kaydedildi ancak gönderim doğrulanamadı. Ekip ekranından durumu kontrol edip yeniden gönderebilirsiniz.');
 }
 async function accept(pool,{id,email,issuer,subject}){return inTransaction(pool,async c=>{try{return (await c.query('SELECT ritim_accept_invitation($1,$2,$3,$4) id',[identifier(id),email,issuer,subject])).rows[0].id;}catch(e){if(e.code==='42501')fail(403,'INVITATION_UNAVAILABLE','Davet geçersiz, iptal edilmiş veya süresi dolmuş. Firma yöneticinizden yeni bir davet isteyin.');throw e;}});}
 function deliveryProvider({url,secretKey,appOrigin,authRequest,fetcher=fetch}){
  return async invite=>{
-  const redirect=appOrigin+'/auth/join?id='+encodeURIComponent(invite.id);
+  const context=require('./invitation-presentation').contextCodec(secretKey).seal(invite);
+  const redirect=appOrigin+'/auth/join?id='+encodeURIComponent(invite.id)+(context?'&context='+encodeURIComponent(context):'');
   let response;try{response=await fetcher(url+'/auth/v1/invite?redirect_to='+encodeURIComponent(redirect),{method:'POST',headers:{apikey:secretKey,authorization:'Bearer '+secretKey,'content-type':'application/json'},body:JSON.stringify({email:invite.email,data:{display_name:invite.display_name}}),redirect:'error',signal:AbortSignal.timeout(10000)});}catch{return 'unknown';}
   if(response.ok)return 'sent';
   const body=await response.json().catch(()=>({}));
