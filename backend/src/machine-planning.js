@@ -30,7 +30,7 @@ function routes(api){const base='/sites/:tenantId/:siteId/machine-planning';
  api.post(base+'/move',async(req,reply)=>{const s=data(req),b=payload(req),p={workOrderId:identifier(b.workOrderId),machineId:b.machineId?identifier(b.machineId):null,beforeId:b.beforeId?identifier(b.beforeId):null,revision:str(b.revision,'revision'),reason:str(b.reason,'reason')};
  const r=await cmd(req,'machine_planning.move','planning.write',p,async c=>{
   await c.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',['machine-board:'+s.tenantId+':'+s.siteId]);
-  const first=await board(c,s),job=first.jobs.find(x=>x.id===p.workOrderId);if(!job)fail(404,'NOT_FOUND','İş emri panoda bulunamadı');
+  const first=await board(c,s),job=first.jobs.find(x=>x.id===p.workOrderId);if(!job)fail(409,'QUEUE_CHANGED','İş artık planlama panosunda değil. Güncel işleri görmek için panoyu yenileyin.');
   await lockedOrder(c,s,job.orderId);const current=await board(c,s);if(current.revision!==p.revision)fail(409,'VERSION_CONFLICT','Pano değişti; yenileyip tekrar deneyin');
   if(!['waiting','paused'].includes(job.status))fail(409,'INVALID_STATE','Çalışan işi taşımadan önce duraklatın');
   if(p.machineId&&!current.machines.some(x=>x.id===p.machineId))fail(409,'MACHINE_NOT_FOUND','Makine bu iş yerinde bulunamadı');
