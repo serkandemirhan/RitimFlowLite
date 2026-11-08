@@ -1549,3 +1549,21 @@
 .orders-compact .orders-columns-popover{position:relative}.orders-columns-popover>div{position:absolute;right:0;top:100%;width:220px;background:white;box-shadow:0 8px 28px #19334f26;border:1px solid #dce5ef;padding:12px;border-radius:10px;z-index:9}.orders-columns-popover label{display:flex;align-items:center;gap:8px;padding:5px}.orders-columns-popover input{width:auto;min-height:0!important}.orders-grid-help{color:#61758b;cursor:help}.orders-compact #orders-filter-notice:empty{display:none}
 .orders-compact .order-grid-section{margin-top:8px}.orders-compact .order-grid-scroll{max-height:none;border-radius:14px}.orders-compact .order-grid{width:100%;min-width:900px}.orders-compact .order-grid th{width:85px;min-width:60px}.orders-compact .order-grid th[data-column=number]{width:170px}.orders-compact .order-grid th[data-column=customer]{width:170px}.orders-compact .order-grid th[data-column=part]{width:210px}.orders-compact .order-grid th:last-child{width:64px}.orders-compact .workspace-pagination{margin:8px 0;padding:0}.orders-compact .workspace-pagination .btn{min-height:32px}
 @media(max-width:700px){.orders-compact .order-grid-scroll{max-height:65vh}.orders-compact .order-workspace-filters>.formfield:first-child{flex-basis:100%}.orders-compact .orders-filter-popover .formgrid{grid-template-columns:1fr}.orders-compact .order-workspace-filters input,.orders-compact .order-workspace-filters select,.orders-compact summary{min-height:44px}}
+/* Isolate the compact toolbar from the former five-column filter layout. */
+.api-shell .orders-compact{gap:8px}
+.api-shell .orders-compact .refine-order-toolbar{padding:10px 12px}
+.api-shell .orders-compact .refine-order-toolbar .order-workspace-filters{display:flex!important;align-items:center;gap:8px;flex-wrap:nowrap}
+.api-shell .orders-compact .order-workspace-filters>.formfield{flex:0 0 160px;min-width:0}
+.api-shell .orders-compact .order-workspace-filters>.formfield:first-child{flex:1 1 200px}
+.api-shell .orders-compact .order-workspace-filters>.btn,.api-shell .orders-compact .order-workspace-filters>details{flex:0 0 auto;width:auto;margin:0}
+.api-shell .orders-compact .order-workspace-filters>details>summary,.api-shell .orders-compact .order-workspace-filters>.btn{display:flex;align-items:center;justify-content:center;height:40px;min-height:40px;box-sizing:border-box;padding:8px 12px;font-size:12px;font-weight:500;line-height:20px}
+.api-shell .orders-compact .order-workspace-filters>details>summary::before{display:none}
+.api-shell .orders-compact .orders-grid-help{flex:0 0 24px;display:grid;place-items:center;height:40px}
+.api-shell .orders-compact #orders-filter-notice:not(:empty){position:absolute;top:100%;right:0;background:white;z-index:2;font-size:11px}
+.api-shell .orders-compact .order-workspace-filters>.orders-filter-popover[open]{width:min(620px,100%);padding:12px}
+.api-shell .orders-compact .workspace-pagination [hidden]{display:none!important}
+.api-shell[data-screen=orders] .workspace-header-tools{margin-left:auto;display:flex;align-items:center;gap:10px}
+.api-shell[data-screen=orders] .orders-create{margin:0;align-self:center;white-space:nowrap}
+.api-shell .orders-compact .order-grid-section{margin-top:0;min-height:0}
+.api-shell .orders-compact .order-grid-scroll{min-height:0;box-sizing:border-box}
+@media(max-width:700px){.api-shell .orders-compact .refine-order-toolbar .order-workspace-filters{flex-wrap:wrap}.api-shell .orders-compact .order-workspace-filters>.formfield:first-child{flex-basis:100%}.api-shell .orders-compact .order-workspace-filters>.formfield{flex:1 1 130px}.api-shell .orders-compact .order-workspace-filters>details>summary,.api-shell .orders-compact .order-workspace-filters>.btn{height:44px;min-height:44px}}

@@ -504,14 +504,16 @@
   const notice=el('orders-filter-notice'),p=notice?.parentElement;if(p){for(const node of [...p.childNodes])if(node!==notice)node.remove();p.classList.add('refine-filter-notice')}
   const workspace=root.closest('.workspace-orders'),heading=document.querySelector('main h1'),create=root.querySelector('.flow-heading > button'),options=workspace.querySelector('.order-grid-options'),columnForm=workspace.querySelector('.order-column-filters');
   workspace.classList.add('orders-compact');
-  if(heading){heading.textContent='Siparişler · '+ordersWorkspace.total;if(create){heading.parentElement.querySelector('.orders-create')?.remove();create.classList.add('orders-create');heading.parentElement.append(create)}}
+  if(heading){heading.textContent='Siparişler · '+ordersWorkspace.total;if(create){heading.parentElement.querySelector('.orders-create')?.remove();create.classList.add('orders-create');(heading.parentElement.querySelector('.workspace-header-tools')||heading.parentElement).append(create)}}
   root.querySelector('.flow-heading').hidden=true;
   summary.textContent='Filtreler';advanced.classList.add('orders-filter-popover');bar.append(advanced);
   if(columnForm){const fields=[...columnForm.querySelectorAll('input')];for(const field of fields){const label=document.createElement('label');label.className='formfield';label.textContent=field.getAttribute('aria-label');label.append(field);advanced.querySelector('.formgrid').prepend(label)}columnForm.remove()}
   if(options){const columns=options.querySelector('details');columns.classList.add('orders-columns-popover');bar.append(columns);const help=document.createElement('span');help.className='orders-grid-help';help.textContent='ⓘ';help.tabIndex=0;help.title='Başlığa tıklayarak sırala · Kolon kenarından genişlet. Liste sıralaması üretim önceliğini değiştirmez.';bar.append(help);options.remove()}
-  for(const label of bar.querySelectorAll(':scope > label')){const control=label.querySelector('input,select');if(control)control.setAttribute('aria-label',label.textContent.trim());for(const node of [...label.childNodes])if(node.nodeType===3)node.remove()}
+  for(const label of bar.querySelectorAll(':scope > label')){const control=label.querySelector('input,select');if(control)control.setAttribute('aria-label',control.id==='orders-status'?'Durum':'Sipariş ara');for(const node of [...label.childNodes])if(node.nodeType===3)node.remove()}
   const chipsRow=root.querySelector('.refine-order-chips');if(chipsRow)advanced.append(chipsRow);
   if(notice){bar.append(notice)}workspace.querySelector(':scope > p.tiny')?.remove();
+  if(ordersWorkspace.pages<=1)for(const button of workspace.querySelectorAll('.workspace-pagination button'))button.hidden=true;
+  if(!ordersWorkspace.items.length){const empty=workspace.querySelector('.workspace-empty');if(empty)empty.insertAdjacentHTML('beforeend',' <button class="btn sm" onclick="RitimPremiumAPI.resetOrders()">Filtreleri temizle</button>')}
  }
  function refineShipping(){
   const root=document.querySelector('.flow-shipping');if(!root||!shippingView)return;root.classList.add('refine-shipping');const header=root.querySelector(':scope > .flow-heading'),context=root.querySelector(':scope > .operations-order-context'),metrics=root.querySelector(':scope > .flow-metrics'),create=root.querySelector(':scope > button[onclick*="shippingAction"]'),selection=el('ship-shipping-order')?.closest('label'),operation=root.querySelector(':scope > .shipping-operation');
