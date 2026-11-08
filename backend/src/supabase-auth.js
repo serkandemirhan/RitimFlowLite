@@ -38,7 +38,7 @@ function makeSupabaseBff({url,publishableKey,appOrigin,pool,verifier,recoveryEna
    const r=await authRequest('/token?grant_type=password',{email,password});
    if(!r.ok){if(r.status>=500)throw new HttpError(503,'AUTH_UNAVAILABLE','Kimlik hizmeti kullanilamiyor.');return reply.code(303).redirect('/auth/login?failed=1')}
    try{await acceptSession(await r.json(),reply)}catch(e){if(e.statusCode===401)return reply.code(303).redirect('/auth/login?failed=1');throw e}
-   return reply.code(303).redirect('/?mode=api');
+   return reply.code(303).redirect('/');
   });
   app.post('/auth/refresh',async(req,reply)=>{
    origin(req);
@@ -58,7 +58,7 @@ function makeSupabaseBff({url,publishableKey,appOrigin,pool,verifier,recoveryEna
     if(!valid){const r=await authRequest('/token?grant_type=refresh_token',{refresh_token:refresh});if(r.ok)access=(await r.json()).access_token;else if(r.status>=500||r.status===429)throw new HttpError(503,'AUTH_UNAVAILABLE','Cikis tamamlanamadi; tekrar deneyin.');else access=null}
    }
    if(access){const r=await authRequest('/logout?scope=local',undefined,access);if(!r.ok&&![401,403,404].includes(r.status))throw new HttpError(503,'AUTH_UNAVAILABLE','Cikis tamamlanamadi; tekrar deneyin.')}
-   clear(reply);return {logoutUrl:'/?mode=api'};
+   clear(reply);return {logoutUrl:'/auth/login'};
   });
   require('./supabase-account').routes(app,{origin,authRequest,acceptSession,clear,tokenFor,pool,verifier,recoveryEnabled});
 
