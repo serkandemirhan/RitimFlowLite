@@ -14,9 +14,18 @@ async function check(name,fn){const start=Date.now();await fn();report.checks.pu
  await check('reload',async()=>{await page.reload({waitUntil:'networkidle'});await page.waitForFunction(()=>window.RitimPremiumAPI)});
  await check('active job',()=>page.evaluate(()=>RitimPremiumAPI.openAssigned('f916f68e-b516-4848-8085-a5772257cc96')));await page.evaluate(()=>scrollTo(0,0));await shot('01-active-job');
  const error=await page.locator('#api-alert').textContent().catch(()=>'');assert(!error?.includes('güvenle devam edemiyor'),error);
+ await check('identifiers, quality alignment and waiting help',async()=>{
+  await page.locator('.operator-identifiers summary').click();assert(await page.locator('.operator-identifiers dd').first().isVisible());await shot('10-job-identifiers');await page.locator('.operator-identifiers summary').click();
+  const ys=await page.locator('.operator-quality-counts strong').evaluateAll(es=>es.map(e=>e.getBoundingClientRect().top));assert(Math.max(...ys)-Math.min(...ys)<2,'Quality counts align');
+  await page.locator('.operator-quality-help summary').click();assert(await page.locator('.operator-quality-help p').isVisible());await shot('11-quality-help');await page.locator('.operator-quality-help summary').click();
+ });
  await check('pause reason keyboard without saving',async()=>{
   const originalHeight=await page.evaluate(()=>visualViewport.height);
   await page.locator('.operator-pause-trigger').click();
+  assert(await page.locator('[data-pause-submit]').isDisabled(),'No pause without a reason');
+  await page.locator('.operator-pause-reasons button').filter({hasText:'Malzeme bekleniyor'}).click();
+  assert.equal(await page.locator('.operator-pause-reasons [aria-pressed=true]').count(),1);assert(await page.locator('[data-pause-submit]').isEnabled());
+  await shot('12-pause-selected');
   const field=page.locator('#api-pause-reason');await field.scrollIntoViewIfNeeded();const rect=await field.boundingBox();assert(rect,'Pause reason field visible');
   const touch=await page.context().newCDPSession(page);await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:rect.x+rect.width/2,y:rect.y+rect.height/2,id:1}]});await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
   await field.fill('Telefon ekran testi');await page.waitForFunction(h=>visualViewport.height<h-100,originalHeight);await shot('09-pause-keyboard');

@@ -1,5 +1,12 @@
 # Test results — 2026-11-03
 
+## Operator detail polish — 2026-11-08
+
+- Added expandable full job/machine identifiers, accessible quality-waiting help, aligned quality counters, a visibly selected pause reason and a disabled pause submission until a reason is chosen.
+- PDF controls stay above the scrollable drawing; compact single-page controls and a predictable two-row multi-page toolbar retain 44px buttons.
+- Operator/browser/recovery suite: **27 passed**. Cloud build passed. Physical Android retest: **9 checks passed, 12 native screenshots**. Verified disabled pause before selection, selected reason, keyboard, full identifiers, quality help and number alignment, three-page PDF, native pinch, pan and refit. No horizontal overflow. No production quantities or job state were changed.
+- Phone measurements: active job 2.05s, drawing job 2.47s, PDF 0.89s. Device uses local UI overrides and read-only live API data; deployment verification is separate.
+
 ## Operator phases 1–3 — 2026-11-08 local verification
 
 - Backend: **216/216 passed**, no failures, skips or cancellations, on disposable PostgreSQL 18 with restricted runtime roles.
@@ -8,7 +15,7 @@
 - Cloud bundle built successfully (42 application assets and the local PDF renderer).
 - Correction scope: operator requests reduction/void of an uninspected production entry; manager approves or rejects with a reason. Original event and ledger remain immutable. Approved projections update consumed quantity and available input together. Quality-requested, previously corrected or closed work cannot be changed. Missing quantities use another production entry.
 - Physical Android UI verification: **PASS**, Samsung SM-A326B, 384px viewport. Nine native screenshots; no horizontal overflow. Pause-reason keyboard reduced the visible viewport from 721px to 411px while actions remained accessible. Three-page PDF, native two-finger pinch, pan and refit passed. Active-job read 2.16s; drawing-job read 2.15s; PDF render 0.93s. This used local UI files against read-only live API calls, not a deployed release or a production-write acceptance test.
-- Deployment is **pending**: apply the generated [Supabase 046 upgrade](../../artifacts/cloud-setup/supabase-upgrade-046.sql) and deploy the matching application, then run live acceptance. Do not publish the new API before its database upgrade.
+- Phase 1–3 deployment: **d9ee1b7 published** after the user applied [Supabase 046 upgrade](../../artifacts/cloud-setup/supabase-upgrade-046.sql). Readiness and live asset checks passed. The additional UI polish above is a separate pending release.
 
 Latest local screenshots: [operator verification gallery](../../artifacts/cloud-release/operator-refinement/index.html). Latest device evidence: [Android verification report](../../artifacts/cloud-release/android-operator-final/index.html).
 
