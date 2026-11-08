@@ -12,8 +12,7 @@
   for(const box of document.querySelectorAll('[data-grid-column]')){const name=box.dataset.gridColumn;const apply=()=>{for(const cell of table.querySelectorAll(`[data-column="${name}"]`))cell.hidden=!box.checked};box.checked=!(prefs.hidden??['allocated','delivered','priority']).includes(name);apply();box.onchange=()=>{prefs.hidden=[...document.querySelectorAll('[data-grid-column]:not(:checked)')].map(x=>x.dataset.gridColumn);apply();save()};}
   for(const th of table.querySelectorAll('th[data-column]')){const name=th.dataset.column,width=prefs.widths?.[name];if(Number.isFinite(width))th.style.width=Math.max(90,Math.min(480,width))+'px';const handle=th.querySelector('.grid-resize');handle.onpointerdown=e=>{e.preventDefault();const start=e.clientX,w=th.getBoundingClientRect().width;handle.setPointerCapture(e.pointerId);handle.onpointermove=event=>{const next=Math.max(90,Math.min(480,w+event.clientX-start));th.style.width=next+'px';prefs.widths={...prefs.widths,[name]:next}};handle.onpointerup=handle.onpointercancel=()=>{handle.onpointermove=null;save()}};}
   table.querySelector('tbody').onclick=e=>{if(e.target.closest('button,a,input,details,summary'))return;const id=e.target.closest('tr')?.dataset.orderId;if(id)root.RitimPremiumAPI.orderPeek(id)};
-  const fit=()=>{const area=document.querySelector('.orders-compact .order-grid-scroll');if(area)area.style.height=innerWidth>700?Math.max(180,innerHeight-area.getBoundingClientRect().top-70)+'px':''};
-  if(root.__orderGridResize)removeEventListener('resize',root.__orderGridResize);root.__orderGridObserver?.disconnect();root.__orderGridResize=fit;addEventListener('resize',fit);fit();root.__orderGridObserver=new ResizeObserver(fit);const toolbar=document.querySelector('.orders-compact .order-toolbar');if(toolbar)root.__orderGridObserver.observe(toolbar);
+
  }
  root.RitimOrderGrid={render,mount};
 })(globalThis);
