@@ -1,5 +1,7 @@
 # B04A — development-only production execution
 
+Historical milestone: the approval placeholder does not describe current quality capability. See [current quality API contract](QUALITY_API_CONTRACT.md) for supported semantics.
+
 This implementation is restricted to isolated development/test configuration. Production activation remains NO-GO. It implements only the first internal operation, using fictional data. See [frontend comparison](B04A_FRONTEND_RULES.md) and the B03A threat model: a compromised application process with arbitrary SQL remains outside the guarantees of transaction-scoped RLS context.
 
 ## Model and transaction boundary

@@ -17,7 +17,8 @@ test('operator states, aligned actions and rendered PDF zoom/pan',async()=>{
  assert(await p.locator('[data-pause-submit]').isDisabled(),'Reason selection required before pause');
  assert(await p.locator('.drawing-open').isVisible(),'Drawing remains accessible on running work');
  assert(await p.locator('.operator-quantity-complete').isVisible(),'Completed quantity is distinguished from running work');
- assert.equal((await p.locator('.operator-quality-help summary').innerText()).replace(/\s+/g,' '),'ⓘ Bekleyen kararları görüntüle');
+ assert.equal((await p.locator('.operator-quality-help summary').innerText()).replace(/\s+/g,' '),'ⓘ 1 adet kalite kararı bekliyor');
+ assert.equal(await p.getByText('1 adet kalite kararı bekliyor',{exact:false}).count(),1,'Waiting quantity is explained once');
  await p.locator('.operator-quality-help summary').click();assert(await p.locator('.operator-quality-help p').isVisible(),'Quality explanation accessible by touch');
  const counts=await p.locator('.operator-quality-counts strong').evaluateAll(es=>es.map(e=>e.getBoundingClientRect().top));assert(Math.max(...counts)-Math.min(...counts)<2,'All four numbers share a baseline');
  await p.locator('.operator-identifiers summary').click();assert.equal(await p.locator('.operator-identifiers dd').first().innerText(),'CNC-02');

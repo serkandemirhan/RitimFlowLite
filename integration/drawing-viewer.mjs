@@ -3,9 +3,14 @@ GlobalWorkerOptions.workerSrc=new URL('../assets/vendor/pdfjs/pdf.worker.mjs',im
 export async function mount(host,base64,onRendered){
  host.innerHTML='<div class="drawing-tools"><button type="button" data-action="prev" aria-label="Önceki sayfa">‹</button><output class="drawing-page"></output><button type="button" data-action="next" aria-label="Sonraki sayfa">›</button><button type="button" data-action="out" aria-label="Uzaklaştır">−</button><output class="drawing-zoom" role="button" tabindex="0" aria-label="Ekrana sığdır" title="Ekrana sığdır"></output><button type="button" data-action="in" aria-label="Yakınlaştır">+</button><button type="button" data-action="fit">Sığdır</button><button type="button" data-action="expand" aria-pressed="false">Tam ekran</button><button type="button" data-action="close" aria-label="Çizimi kapat">×</button></div><p class="drawing-message" role="status">Çizim hazırlanıyor…</p><div class="drawing-viewport" tabindex="0" aria-label="Çizim; sürükleyerek kaydırın"><canvas aria-label="Teknik çizim"></canvas></div>';
  const view=host.querySelector('.drawing-viewport'),canvas=host.querySelector('canvas'),message=host.querySelector('.drawing-message');
- let pageNumber=1,scale=1,disposed=false,chain=Promise.resolve(),renderTask;
+ let pageNumber=1,scale=1,disposed=false,chain=Promise.resolve(),renderTask,resizeObserver,resizeFrame;
+ const dialog=host.closest('dialog');
+ const sizeDialog=()=>dialog?.style.setProperty('--drawing-available-height',Math.floor(window.visualViewport?.height||window.innerHeight)+'px');
+ sizeDialog();
+ window.visualViewport?.addEventListener('resize',sizeDialog);
+ window.addEventListener('resize',sizeDialog);
  const task=getDocument({data:Uint8Array.from(atob(base64),c=>c.charCodeAt(0)),cMapUrl:new URL('../assets/vendor/pdfjs/cmaps/',import.meta.url).href,cMapPacked:true,standardFontDataUrl:new URL('../assets/vendor/pdfjs/standard_fonts/',import.meta.url).href,wasmUrl:new URL('../assets/vendor/pdfjs/wasm/',import.meta.url).href,isEvalSupported:false});
- host.closest('dialog')?.addEventListener('close',()=>{disposed=true;renderTask?.cancel();task.destroy()},{once:true});
+ dialog?.addEventListener('close',()=>{disposed=true;resizeObserver?.disconnect();cancelAnimationFrame(resizeFrame);window.visualViewport?.removeEventListener('resize',sizeDialog);window.removeEventListener('resize',sizeDialog);renderTask?.cancel();task.destroy()},{once:true});
  const pdf=await task.promise;if(disposed)return;
  if(pdf.numPages===1)for(const selector of ['[data-action=prev]','[data-action=next]','.drawing-page'])host.querySelector(selector).hidden=true;
  async function render(fit=false){if(disposed||!host.isConnected)return;canvas.dataset.rendered="false";const page=await pdf.getPage(pageNumber);if(fit){const natural=page.getViewport({scale:1});scale=Math.min(2,(view.clientWidth-24)/natural.width,(view.clientHeight-24)/natural.height);view.scrollTo(0,0);}const viewport=page.getViewport({scale});const ratio=Math.min(devicePixelRatio||1,2,Math.sqrt(16000000/(viewport.width*viewport.height)));canvas.width=Math.floor(viewport.width*ratio);canvas.height=Math.floor(viewport.height*ratio);canvas.style.width=viewport.width+'px';canvas.style.height=viewport.height+'px';renderTask=page.render({canvasContext:canvas.getContext('2d'),viewport,transform:[ratio,0,0,ratio,0,0]});await renderTask.promise;if(disposed)return;host.querySelector('.drawing-page').textContent=pageNumber+' / '+pdf.numPages;host.querySelector('.drawing-zoom').textContent=Math.round(scale*100)+'%';host.querySelector('[data-action=prev]').disabled=pageNumber===1;host.querySelector('[data-action=next]').disabled=pageNumber===pdf.numPages;message.textContent='Hareket ettir: sürükle · Yakınlaştır: iki parmak veya + / −';canvas.dataset.rendered='true';onRendered(canvas);}
@@ -17,5 +22,11 @@ export async function mount(host,base64,onRendered){
  view.onpointerdown=e=>{if(e.button!==0)return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(e.isTrusted)view.setPointerCapture(e.pointerId);if(pointers.size===2){pinch={distance:distance(),scale};drag=null;}else drag={x:e.clientX,y:e.clientY,left:view.scrollLeft,top:view.scrollTop};};
  view.onpointermove=e=>{if(!pointers.has(e.pointerId))return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pointers.size===2&&pinch){scale=Math.min(4,Math.max(.1,pinch.scale*distance()/Math.max(1,pinch.distance)));host.querySelector('.drawing-zoom').textContent=Math.round(scale*100)+'%';}else if(drag){view.scrollLeft=drag.left+drag.x-e.clientX;view.scrollTop=drag.top+drag.y-e.clientY;}};
  view.onpointerup=view.onpointercancel=e=>{pointers.delete(e.pointerId);if(pinch){pinch=null;queue();}drag=null;if(pointers.size===1){const p=[...pointers.values()][0];drag={...p,left:view.scrollLeft,top:view.scrollTop};}};
+ // Safari needs a definite modal height and a completed layout before fitting.
+ await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+ if(disposed)return;
  await queue(true);
+ let lastWidth=view.clientWidth,lastHeight=view.clientHeight;
+ resizeObserver=new ResizeObserver(()=>{const width=view.clientWidth,height=view.clientHeight;if(disposed||width<25||height<25||(width===lastWidth&&height===lastHeight))return;lastWidth=width;lastHeight=height;cancelAnimationFrame(resizeFrame);resizeFrame=requestAnimationFrame(()=>queue(true));});
+ resizeObserver.observe(view);
 }
