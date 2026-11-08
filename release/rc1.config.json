@@ -46,6 +46,9 @@
     "integration/server-pending-commands.js",
     "integration/server-wizard-workflow.js",
     "integration/legacy-recovery.js",
-    "integration/premium-api.js"
+    "integration/premium-api.js",
+    "integration/transient-panels.js",
+    "integration/operational-grid.js",
+    "integration/order-grid.js"
   ]
 }
