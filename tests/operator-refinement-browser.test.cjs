@@ -15,6 +15,9 @@ test('operator states, aligned actions and rendered PDF zoom/pan',async()=>{
  await p.evaluate(()=>{productionView.consumedQuantity=1;qualityView.outputs=[{approved:0,rejected:1,rework:0,unresolved:0}];drawState('complete')});assert.equal(await p.locator('.operator-completion').getAttribute('data-outcome'),'attention');assert.equal(await p.locator('[data-quality=scrap] strong').innerText(),'1');assert(await p.locator('[data-quality=scrap]').isVisible());await p.screenshot({path:path.join(out,'complete-scrap-390.png'),fullPage:true});
  await p.evaluate(()=>{qualityView.outputs=[{approved:0,unresolved:1}];productionView.attention.completion={ready:false,reasons:['Kalite kararı bekleniyor']};drawState('running')});assert(await p.getByRole('button',{name:'İş emrini bitir',exact:true}).isDisabled());assert.equal(await p.locator('[data-quality=pending] strong').innerText(),'1');
  assert(await p.locator('[data-pause-submit]').isDisabled(),'Reason selection required before pause');
+ assert(await p.locator('.drawing-open').isVisible(),'Drawing remains accessible on running work');
+ assert(await p.locator('.operator-quantity-complete').isVisible(),'Completed quantity is distinguished from running work');
+ assert.equal((await p.locator('.operator-quality-help summary').innerText()).replace(/\s+/g,' '),'ⓘ Bekleyen kararları görüntüle');
  await p.locator('.operator-quality-help summary').click();assert(await p.locator('.operator-quality-help p').isVisible(),'Quality explanation accessible by touch');
  const counts=await p.locator('.operator-quality-counts strong').evaluateAll(es=>es.map(e=>e.getBoundingClientRect().top));assert(Math.max(...counts)-Math.min(...counts)<2,'All four numbers share a baseline');
  await p.locator('.operator-identifiers summary').click();assert.equal(await p.locator('.operator-identifiers dd').first().innerText(),'CNC-02');

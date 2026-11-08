@@ -1,5 +1,13 @@
 # Test results — 2026-11-03
 
+## Operator feedback follow-up — 2026-11-08
+
+- Waiting quality quantity appears once; the quality section opens explanatory details. Quantity completion is distinguished from the unchanged running state.
+- New assignment notifications use blue, due-today amber and overdue red. Missing drawing is explicitly explained; attached drawings remain available while running.
+- Fullscreen PDF has a single-row toolbar. Tapping the zoom percentage refits the drawing; exit fullscreen and close remain separate controls.
+- Pause actions have a fixed footer sized to the visible keyboard viewport. Explanation remains optional. Job switching preserves the browser document and mobile bottom position.
+- 27 automated checks passed. Physical Samsung Android: 9 checks passed with 12 native screenshots; no production writes. PDF navigation, pinch, pan, fit, job switching without navigation, and pause keyboard verified with local UI and live API reads.
+
 ## Operator detail polish — 2026-11-08
 
 - Added expandable full job/machine identifiers, accessible quality-waiting help, aligned quality counters, a visibly selected pause reason and a disabled pause submission until a reason is chosen.
