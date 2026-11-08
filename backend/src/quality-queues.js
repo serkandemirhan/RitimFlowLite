@@ -9,7 +9,7 @@ async function cursor(c,s,table,id,extra=''){if(id&&!(await c.query(`SELECT id F
 async function quality(c,s,q={}){const f=filters(q),args=[s.tenantId,s.siteId,f.query,f.orderId];await cursor(c,s,'production_events',f.after,"AND kind IN ('good','pending')");
  const sql=`WITH disposed AS (SELECT production_event_id,SUM(quantity_pieces) quantity FROM output_dispositions WHERE tenant_id=$1 AND site_id=$2 GROUP BY production_event_id), candidates AS MATERIALIZED (
  SELECT e.id,e.work_order_id,w.order_id,e.kind,e.quantity_pieces,COALESCE(d.quantity,0) decided,ol.id output_lot_id,ol.input_lot_id,w.work_order_number,w.status,o.order_number,o.customer,o.part_name,op.name operation
- FROM production_events e JOIN work_orders w ON (w.tenant_id,w.site_id,w.id)=(e.tenant_id,e.site_id,e.work_order_id)
+ FROM effective_production_events e JOIN work_orders w ON (w.tenant_id,w.site_id,w.id)=(e.tenant_id,e.site_id,e.work_order_id)
  JOIN orders o ON (o.tenant_id,o.site_id,o.id)=(e.tenant_id,e.site_id,w.order_id)
  JOIN operations op ON (op.tenant_id,op.site_id,op.id)=(w.tenant_id,w.site_id,w.operation_id)
  LEFT JOIN disposed d ON d.production_event_id=e.id

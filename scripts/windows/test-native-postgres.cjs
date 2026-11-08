@@ -35,7 +35,7 @@ async function smoke(databaseUrl) {
     migration = new Pool({connectionString: roles.roleUrl('ritim_smoke_migration'), options: '-c search_path=ritim_smoke'});
     const applied = await migrate(migration);
     const repeat = await migrate(migration);
-    if (applied.length !== 45 || repeat.length !== 0) throw Error('Unexpected migration/repeat result');
+    if (applied.length !== 46 || repeat.length !== 0) throw Error('Unexpected migration/repeat result');
     const client = await migration.connect();
     try {
       await client.query('BEGIN');
@@ -44,6 +44,7 @@ async function smoke(databaseUrl) {
     } catch (error) { await client.query('ROLLBACK'); throw error; }
     finally { client.release(); }
     runtime = new Pool({connectionString: roles.roleUrl('ritim_smoke_runtime'), options: '-c search_path=ritim_smoke'});
+    await require('../../backend/src/readiness').checkReadiness(runtime,{isolatedDevelopment:true});
     app = buildApp({pool: runtime, isolatedDevelopment: true});
     const address = await app.listen({host:'127.0.0.1', port:0});
     const checks = {};
@@ -54,7 +55,7 @@ async function smoke(databaseUrl) {
     const version = (await admin.query('SHOW server_version')).rows[0].server_version;
     const result = {serverVersion:version, migrations:applied.length, repeatMigrations:repeat.length, restrictedRuntime:true, checks};
     fs.writeFileSync(path.join(evidence,'runtime-smoke.json'), JSON.stringify(result,null,2)+'\n');
-    console.log('Native API smoke: 45 migrations, repeat 0, restricted runtime readiness 200, unauthenticated session 401');
+    console.log('Native API smoke: 46 migrations, repeat 0, restricted runtime readiness 200, unauthenticated session 401');
   } finally {
     if (app) await app.close();
     if (runtime) await runtime.end();
@@ -76,7 +77,7 @@ async function operationsSmoke(databaseUrl, privateDirectory) {
   finally {await before.end();}
   await ops.initialize(config,adminIdentity);
   await assert.rejects(ops.initialize(config,adminIdentity),/already exist/);
-  assert.equal((await ops.upgrade(config)).length,45);
+  assert.equal((await ops.upgrade(config)).length,46);
   assert.deepEqual(await ops.upgrade(config),[]);
   await ops.provision(config);
   await ops.ready(config);
@@ -103,7 +104,7 @@ async function operationsSmoke(databaseUrl, privateDirectory) {
       assert.equal((await restoredPool.query('SELECT datdba FROM pg_database WHERE datname=$1',[original.datname])).rows[0].datdba,original.datdba);
     }
   }finally{await restoredPool.end();}
-  const report={status:'PASS',sourceDatabase:config.database,restoreDatabase:restored,migrations:45,repeatMigrations:0,restoredOrderQuantity:42,forcedRls:true,restrictedReadiness:true,existingDatabaseOwnershipPreserved:true,destructiveActionsRejected:true,backupSha256:crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')};
+  const report={status:'PASS',sourceDatabase:config.database,restoreDatabase:restored,migrations:46,repeatMigrations:0,restoredOrderQuantity:42,forcedRls:true,restrictedReadiness:true,existingDatabaseOwnershipPreserved:true,destructiveActionsRejected:true,backupSha256:crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')};
   fs.writeFileSync(path.join(evidence,'windows-operations.json'),JSON.stringify(report,null,2)+'\n');
   console.log('Windows database operations PASS: initialize, migrate, provision, restricted readiness, backup/restore, fictional quantity 42 and FORCE RLS preserved; destructive targets refused.');
 }

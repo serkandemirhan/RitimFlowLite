@@ -11,6 +11,52 @@ test('B04A reconciled production using restricted runtime',async t=>{
   await admin.query(`INSERT INTO "${schema}".tenants(id,name) VALUES($1,'A'),($2,'B')`,[ta,tb]);await admin.query(`INSERT INTO "${schema}".sites(tenant_id,id,code,name) VALUES($1,$2,'A','A'),($3,$4,'B','B')`,[ta,sa,tb,sb]);await admin.query(`INSERT INTO "${schema}".users(id,issuer,subject,display_name) VALUES($1,'https://id.example','actor','Actor'),($2,'https://id.example','other','Other')`,[actor,other]);await admin.query(`INSERT INTO "${schema}".site_memberships(tenant_id,site_id,user_id,role) VALUES($1,$2,$3,'manager'),($1,$2,$3,'operator'),($1,$2,$4,'operator')`,[ta,sa,actor,other]);
   const jose=await import('jose'),keys=await jose.generateKeyPair('RS256'),jwk=await jose.exportJWK(keys.publicKey);Object.assign(jwk,{kid:'k',alg:'RS256',use:'sig'});const verifier=makeOidcVerifier({issuer:'https://id.example',audience:'api',jwksUrl:'https://id.example/jwks',fetcher:async()=>new Response(JSON.stringify({keys:[jwk]}),{headers:{'content-type':'application/json'}})});const token=async sub=>new jose.SignJWT({}).setProtectedHeader({alg:'RS256',kid:'k',typ:'at+jwt'}).setIssuer('https://id.example').setAudience('api').setSubject(sub).setIssuedAt().setExpirationTime('10m').sign(keys.privateKey),mt=await token('actor'),ot=await token('other');pool=new Pool({connectionString:roleUrl(runtime),options:`-c search_path=${schema}`,max:6});app=buildApp({pool,verifier,isolatedDevelopment:true});const base=`/api/v1/sites/${ta}/${sa}`,call=(method,url,body,key,tk=mt)=>app.inject({method,url,headers:{authorization:'Bearer '+tk,...(key?{'idempotency-key':key}:{})},...(body?{payload:body}:{})});
   async function seed(label,{machine=true,assigned=true,assignedUser=actor,amount=10,receive=true}={}){const o=id(),op=id(),j=id(),lot=id(),reservation=id(),machineId=id(),assignment=id();await admin.query(`INSERT INTO "${schema}".orders(tenant_id,site_id,id,order_number,customer,part_number,ordered_qty) VALUES($1,$2,$3,$4,'F','P',$5)`,[ta,sa,o,label,amount]);await admin.query(`INSERT INTO "${schema}".operations(tenant_id,site_id,order_id,id,sequence,name,kind) VALUES($1,$2,$3,$4,0,'CNC','internal')`,[ta,sa,o,op]);await admin.query(`INSERT INTO "${schema}".work_orders(tenant_id,site_id,id,order_id,operation_id,work_order_number,planned_qty) VALUES($1,$2,$3,$4,$5,$6,$7)`,[ta,sa,j,o,op,label,amount]);await admin.query(`INSERT INTO "${schema}".machines(tenant_id,site_id,id,code) VALUES($1,$2,$3,$4)`,[ta,sa,machineId,label]);if(assigned)await admin.query(`INSERT INTO "${schema}".work_assignments(tenant_id,site_id,id,work_order_id,machine_id,user_id) VALUES($1,$2,$3,$4,$5,$6)`,[ta,sa,assignment,j,machine?machineId:null,assignedUser]);await admin.query(`INSERT INTO "${schema}".lots(tenant_id,site_id,id,order_id,lot_code,kind) VALUES($1,$2,$3,$4,$5,'material')`,[ta,sa,lot,o,label]);await admin.query(`INSERT INTO "${schema}".material_receipts(tenant_id,site_id,id,order_id,lot_id,supplier,document_ref,quantity_pieces,source_quantity,source_unit,conversion_factor) VALUES($1,$2,$3,$4,$5,'F',$6,$7::bigint,$7::numeric,'piece',1)`,[ta,sa,id(),o,lot,label,amount]);await admin.query(`INSERT INTO "${schema}".reservations(tenant_id,site_id,id,order_id,work_order_id,lot_id,quantity_pieces,status) VALUES($1,$2,$3,$4,$5,$6,$7,'active')`,[ta,sa,reservation,o,j,lot,amount]);const root=base+`/orders/${o}`,prod=root+`/work-orders/${j}/production`;if(receive){const r=await call('POST',root+'/physical-receipts',{reservationId:reservation,quantity:amount},label+'-receipt');assert.equal(r.statusCode,201,r.body)}return {o,j,lot,amount,machineId,assignment,root,prod,label}}
+  await t.test('corrections preserve raw history, require manager approval and reject inspected or stale entries',async()=>{
+   const x=await seed('CORRECTION',{assignedUser:other});
+   assert.equal((await call('POST',x.prod+'/start',{},'cor-start',ot)).statusCode,200);
+   const recorded=await call('POST',x.prod+'/results',{lotId:x.lot,kind:'pending',quantity:6,separateQualityRequest:true},'cor-record',ot);
+   assert.equal(recorded.statusCode,201,recorded.body);const eventId=recorded.json().eventId;
+   const body={eventId,quantity:2,reason:'Entered six instead of two'};
+   let r=await call('POST',x.prod+'/corrections',body,'cor-request',ot);assert.equal(r.statusCode,201,r.body);const requestId=r.json().id;
+   assert.equal((await call('POST',x.prod+'/corrections',body,'cor-request',ot)).json().id,requestId);
+   assert.equal((await call('POST',x.prod+'/corrections',body,'cor-duplicate',ot)).statusCode,409);
+   assert.equal((await call('GET',x.prod+'/balances')).json().consumedQuantity,6);
+   const decision={requestId,approved:true,reason:'Count verified at machine'};
+   assert.equal((await call('POST',x.prod+'/correction-decision',decision,'cor-denied',ot)).statusCode,403);
+   r=await call('POST',x.prod+'/correction-decision',decision,'cor-approve');assert.equal(r.statusCode,200,r.body);
+   assert.equal((await call('POST',x.prod+'/correction-decision',decision,'cor-approve')).statusCode,200);
+   assert.equal((await call('POST',x.prod+'/correction-decision',decision,'cor-second')).statusCode,409);
+   const balance=(await call('GET',x.prod+'/balances')).json();assert.equal(balance.consumedQuantity,2);assert.equal(balance.remainingUsableInput,8);
+   assert.equal((await call('GET',x.root+`/work-orders/${x.j}/quality`)).json().outputs[0].produced,2);
+   const raw=await admin.query(`SELECT quantity_pieces FROM "${schema}".production_events WHERE id=$1`,[eventId]);assert.equal(Number(raw.rows[0].quantity_pieces),6);
+   const hist=(await call('GET',x.prod+'/history')).json();assert.equal(hist.events[0].quantity,2);assert.equal(hist.corrections[0].originalQuantity,6);assert.equal(hist.corrections[0].status,'approved');
+   assert.equal((await call('POST',x.prod+'/corrections',{...body,quantity:1},'cor-again',ot)).statusCode,409);
+   const second=await call('POST',x.prod+'/results',{lotId:x.lot,kind:'pending',quantity:3,separateQualityRequest:true},'cor-next',ot);
+   const secondId=second.json().eventId;
+   const pending=await call('POST',x.prod+'/corrections',{eventId:secondId,quantity:0,reason:'Duplicate entry'},'cor-zero',ot);assert.equal(pending.statusCode,201,pending.body);
+   assert.equal((await call('POST',x.prod+'/request-quality',{eventIds:[secondId]},'cor-quality',ot)).statusCode,201);
+   const stale={requestId:pending.json().id,approved:true,reason:'Approve correction'};
+   assert.equal((await call('POST',x.prod+'/correction-decision',stale,'cor-stale')).statusCode,409);
+   assert.equal((await call('POST',x.prod+'/correction-decision',{...stale,approved:false,reason:'Already sent for inspection'},'cor-reject')).statusCode,200);
+   const third=await call('POST',x.prod+'/results',{lotId:x.lot,kind:'pending',quantity:1,separateQualityRequest:true},'cor-third',ot);
+   const zero=await call('POST',x.prod+'/corrections',{eventId:third.json().eventId,quantity:0,reason:'Duplicate entry'},'cor-void',ot);
+   assert.equal((await call('POST',x.prod+'/correction-decision',{requestId:zero.json().id,approved:true,reason:'Duplicate confirmed'},'cor-void-approve')).statusCode,200);
+   assert.equal((await call('GET',x.prod+'/balances')).json().consumedQuantity,5);
+   assert.equal((await pool.query('SELECT * FROM production_correction_requests')).rowCount,0);
+   await assert.rejects(pool.query('DELETE FROM production_correction_requests'),{code:'42501'});
+   await admin.query(`UPDATE "${schema}".work_assignments SET released_at=now() WHERE work_order_id=$1`,[x.j]);
+  });
+  await t.test('pause timeline retains reason and resumes across multiple assigned machines',async()=>{
+   const a=await seed('TIMELINE-A'),b=await seed('TIMELINE-B');
+   assert.equal((await call('POST',a.prod+'/start',{},'timeline-a-start')).statusCode,200);
+   assert.equal((await call('POST',b.prod+'/start',{},'timeline-b-start')).statusCode,200);
+   assert.equal((await call('POST',a.prod+'/pause',{reason:'Tool change'},'timeline-pause')).statusCode,200);
+   const history=await call('GET',a.prod+'/history');assert.equal(history.statusCode,200,history.body);
+   assert.deepEqual(history.json().transitions.map(x=>x.action),['start','pause']);assert.equal(history.json().transitions[1].reason,'Tool change');
+   assert.equal((await call('POST',a.prod+'/resume',{},'timeline-resume')).statusCode,200);
+   assert.equal((await call('GET',a.prod+'/history')).json().transitions.at(-1).action,'resume');
+   await admin.query(`UPDATE "${schema}".work_assignments SET released_at=now() WHERE id=ANY($1::uuid[])`,[[a.assignment,b.assignment]]);
+  });
   await t.test('assignment readiness is identical for manager and assigned operator without roster access',async()=>{
    const x=await seed('READINESS-ROLE',{assignedUser:other});
    const read=async tk=>{const r=await call('GET',x.prod+'/balances',null,null,tk);assert.equal(r.statusCode,200,r.body);return r.json().attention};

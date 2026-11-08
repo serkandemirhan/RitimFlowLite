@@ -1,6 +1,18 @@
 # Test results — 2026-11-03
 
-## Current native backend / Windows operations results
+## Operator phases 1–3 — 2026-11-08 local verification
+
+- Backend: **216/216 passed**, no failures, skips or cancellations, on disposable PostgreSQL 18 with restricted runtime roles.
+- Migration **046**: 46 migrations applied, repeat run applied zero. Restricted readiness returned 200; unauthenticated session returned 401. Backup/restore preserved FORCE RLS and fixture quantities.
+- Operator/browser/recovery checks: **27 passed**. Covers state layout, draft isolation, offline write guard, correction forms, recovery identity, PDF rendering, pan/zoom and three-page navigation.
+- Cloud bundle built successfully (42 application assets and the local PDF renderer).
+- Correction scope: operator requests reduction/void of an uninspected production entry; manager approves or rejects with a reason. Original event and ledger remain immutable. Approved projections update consumed quantity and available input together. Quality-requested, previously corrected or closed work cannot be changed. Missing quantities use another production entry.
+- Physical Android UI verification: **PASS**, Samsung SM-A326B, 384px viewport. Nine native screenshots; no horizontal overflow. Pause-reason keyboard reduced the visible viewport from 721px to 411px while actions remained accessible. Three-page PDF, native two-finger pinch, pan and refit passed. Active-job read 2.16s; drawing-job read 2.15s; PDF render 0.93s. This used local UI files against read-only live API calls, not a deployed release or a production-write acceptance test.
+- Deployment is **pending**: apply the generated [Supabase 046 upgrade](../../artifacts/cloud-setup/supabase-upgrade-046.sql) and deploy the matching application, then run live acceptance. Do not publish the new API before its database upgrade.
+
+Latest local screenshots: [operator verification gallery](../../artifacts/cloud-release/operator-refinement/index.html). Latest device evidence: [Android verification report](../../artifacts/cloud-release/android-operator-final/index.html).
+
+## Historical native backend / Windows operations results
 
 Installed-service continuation: database `ritim_local_dev` on 5432 has 65 tables/28 migrations. Real local Keycloak PKCE/BFF login, encrypted recovery-backed order creation, SQL read under restricted RLS scope, durable 201 receipt and browser reload all verified for test order **SIP-1793716581659**, quantity **10**. [Detailed proof/restart steps](17_LOCAL_RUN_VERIFICATION.md). This updates the earlier statement that existing-service provisioning and live local identity had not run. Broad premium browser, PDF, outage, cloud and sync acceptance remain open.
 

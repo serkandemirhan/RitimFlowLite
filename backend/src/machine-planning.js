@@ -4,7 +4,7 @@ const {data,payload,identifier,str,cmd,scoped,audit,lockedOrder,number,fail}=req
 async function board(c,s){
  const machines=(await c.query('SELECT id,code,calendar,calendar_version FROM machines WHERE tenant_id=$1 AND site_id=$2 ORDER BY code,id',[s.tenantId,s.siteId])).rows;
  const r=await c.query(`SELECT w.id,w.order_id,w.work_order_number,w.status,w.planned_qty,w.queue_position,w.setup_minutes,w.cycle_minutes,w.timing_version,w.production_order_id,op.name,op.sequence,p.number production_number,p.planning_state,p.planned_date::text planned_date,o.order_number,o.customer,o.part_name,a.id assignment_id,a.machine_id,a.user_id,
- COALESCE((SELECT SUM(e.quantity_pieces) FROM production_events e WHERE (e.tenant_id,e.site_id,e.work_order_id)=(w.tenant_id,w.site_id,w.id)),0) produced
+ COALESCE((SELECT SUM(e.quantity_pieces) FROM effective_production_events e WHERE (e.tenant_id,e.site_id,e.work_order_id)=(w.tenant_id,w.site_id,w.id)),0) produced
  FROM work_orders w JOIN operations op ON (op.tenant_id,op.site_id,op.id)=(w.tenant_id,w.site_id,w.operation_id) JOIN orders o ON (o.tenant_id,o.site_id,o.id)=(w.tenant_id,w.site_id,w.order_id)
  LEFT JOIN production_orders p ON (p.tenant_id,p.site_id,p.id)=(w.tenant_id,w.site_id,w.production_order_id)
  LEFT JOIN work_assignments a ON (a.tenant_id,a.site_id,a.work_order_id)=(w.tenant_id,w.site_id,w.id) AND a.released_at IS NULL

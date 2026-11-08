@@ -1,0 +1,12 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),{chromium}=require('playwright');
+test('operator drafts are isolated by user and work order; reconnect never submits',async()=>{
+ const src=fs.readFileSync('integration/premium-api.js','utf8'),a=src.indexOf(' function mountOperatorStudio()'),b=src.indexOf(' function p1OperatorDefaults()',a),code=src.slice(a,b);
+ const browser=await chromium.launch();try{const context=await browser.newContext(),p=await context.newPage();await p.route('https://operator.test/**',r=>r.fulfill({contentType:'text/html',body:'<main></main>'}));await p.goto('https://operator.test/');
+ await p.evaluate(code=>{Object.assign(window,{page:'operator',scope:{actorId:'u1',tenantId:'t1',siteId:'s1'},operatorJobId:'j1',productionView:{consumedQuantity:0,lots:[]},el:id=>document.getElementById(id),RitimPremiumAPI:{operatorFilter(){},operatorQuantityLabel(){}}});eval(code+';window.remount=()=>{document.querySelector("main").innerHTML=`<div class="operator-studio"><label><input id="api-production-qty"></label><label><select id="api-input-lot"><option value="l1">Lot</option></select></label><label><select id="api-production-kind"><option value="pending">Pending</option></select></label></div>`;mountOperatorStudio()};');window.remount();},code);
+ await p.locator('#api-production-qty').fill('7');await p.evaluate(()=>remount());assert.equal(await p.locator('#api-production-qty').inputValue(),'7');
+ await p.evaluate(()=>{scope.actorId='u2';remount()});assert.equal(await p.locator('#api-production-qty').inputValue(),'');
+ await p.evaluate(()=>{scope.actorId='u1';operatorJobId='j2';remount()});assert.equal(await p.locator('#api-production-qty').inputValue(),'');
+ await p.evaluate(()=>{operatorJobId='j1';productionView.consumedQuantity=7;remount()});assert.equal(await p.locator('#api-production-qty').inputValue(),'');
+ const writes=[];p.on('request',r=>{if(r.method()==='POST')writes.push(r.url())});await context.setOffline(true);await p.waitForFunction(()=>document.getElementById('operator-network-state').hidden===false);assert((await p.locator('#operator-network-state').innerText()).includes('kaydedilmiş sayılmaz'));await context.setOffline(false);await p.waitForFunction(()=>document.getElementById('operator-network-state').textContent.includes('otomatik kayıt yapılmadı'));assert.deepEqual(writes,[]);
+ }finally{await browser.close()}
+});

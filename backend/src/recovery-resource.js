@@ -32,7 +32,7 @@ async function authorizeRecoveryResource(client,scope,storedKind,command){
  }
  let job=null;
  if(command.kind==='production'||command.kind==='quality')job=b.workOrderId;
- if(command.kind==='operation'&&['drawingAck','operator','machine','handover','jobTiming','operatorHandoff'].includes(b.command))job=b.resourceId;
+ if(command.kind==='operation'&&['productionCorrection','productionCorrectionDecision','drawingAck','operator','machine','handover','jobTiming','operatorHandoff'].includes(b.command))job=b.resourceId;
  if(job){const result=await client.query('SELECT 1 FROM work_orders WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND id=$4',[scope.tenantId,scope.siteId,order,identifier(job)]);if(!result.rowCount)denied()}
  if(command.kind==='production'||(command.kind==='operation'&&['drawingAck','operatorHandoff'].includes(b.command))){
   const assignments=await client.query('SELECT * FROM ritim_lock_assignments($1,$2,$3)',[scope.tenantId,scope.siteId,job]);
