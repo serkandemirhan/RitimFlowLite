@@ -23,10 +23,20 @@
    const show=()=>{document.querySelector('#grid-text-tooltip')?.remove();if(!clipped(wrap))return;const tip=document.createElement('div');tip.id='grid-text-tooltip';tip.className='grid-text-tooltip';tip.setAttribute('role','tooltip');tip.textContent=full;document.body.append(tip);wrap.setAttribute('aria-describedby',tip.id);const r=wrap.getBoundingClientRect();tip.style.left=Math.max(8,Math.min(r.left,innerWidth-tip.offsetWidth-8))+'px';tip.style.top=Math.max(8,Math.min(r.bottom+6,innerHeight-tip.offsetHeight-8))+'px'};
    const hide=()=>{document.querySelector('#grid-text-tooltip')?.remove();wrap.removeAttribute('aria-describedby')};
    wrap.addEventListener('mouseenter',show);wrap.addEventListener('mouseleave',hide);wrap.addEventListener('focusin',show);wrap.addEventListener('focusout',hide);wrap.addEventListener('keydown',e=>{if(e.key==='Escape')hide()});
-   (()=>{if(!wrap.isConnected)return;
-    if(!wrap.querySelector('button,a,input'))wrap.tabIndex=0;
-    const more=document.createElement('button');more.type='button';more.className='grid-text-more';more.textContent='…';more.setAttribute('aria-label','Tam metni göster: '+full);more.onclick=()=>{hide();document.querySelector('#grid-text-dialog')?.remove();const dialog=document.createElement('dialog');dialog.id='grid-text-dialog';dialog.className='grid-text-dialog';dialog.setAttribute('aria-label','Tam metin');const text=document.createElement('p');text.textContent=full;const close=document.createElement('button');close.className='btn';close.textContent='Kapat';close.onclick=()=>dialog.close();dialog.append(text,close);dialog.addEventListener('close',()=>{dialog.remove();more.focus()});document.body.append(dialog);dialog.showModal()};td.append(more);const update=()=>{more.hidden=td.hidden||!clipped(wrap)};updates.push(update);update();
-   })();
+   if(!wrap.querySelector('button,a,input'))wrap.tabIndex=0;
+  }
+  for(const row of table.querySelectorAll('tbody tr')){
+   const cells=[...row.querySelectorAll('td[data-column]')].filter(td=>td.dataset.column!=='action');
+   if(!cells.length||row.querySelector('.grid-row-details'))continue;
+   const host=cells.find(td=>!td.hidden);if(!host)continue;
+   const more=document.createElement('button');more.type='button';more.className='grid-text-more grid-row-details';more.textContent='…';more.setAttribute('aria-label','Satır ayrıntıları');host.append(more);host.classList.add('grid-details-host');
+   more.onclick=e=>{e.stopPropagation();document.querySelector('#grid-text-tooltip')?.remove();document.querySelector('#grid-text-dialog')?.remove();
+    const dialog=document.createElement('dialog');dialog.id='grid-text-dialog';dialog.className='grid-text-dialog';dialog.setAttribute('aria-label','Satır ayrıntıları');
+    const title=document.createElement('h2');title.textContent='Satır ayrıntıları';const list=document.createElement('dl');
+    for(const td of cells){const dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=heads.find(th=>th.dataset.column===td.dataset.column)?.querySelector('.grid-sort')?.childNodes[0]?.textContent||heads.find(th=>th.dataset.column===td.dataset.column)?.textContent||td.dataset.column;dd.textContent=td.querySelector('.grid-cell-content')?.textContent.trim()||'—';list.append(dt,dd)}
+    const close=document.createElement('button');close.className='btn';close.textContent='Kapat';close.onclick=()=>dialog.close();dialog.append(title,list,close);dialog.addEventListener('close',()=>{dialog.remove();more.focus()});document.body.append(dialog);dialog.showModal();
+   };
+   const update=()=>{more.hidden=!cells.some(td=>td.hidden||clipped(td.querySelector('.grid-cell-content')||td))};updates.push(update);update();
   }
   resizeObserver=new ResizeObserver(()=>updates.forEach(fn=>fn()));resizeObserver.observe(table);table.querySelectorAll('.grid-cell-content').forEach(w=>resizeObserver.observe(w));
  }

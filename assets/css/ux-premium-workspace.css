@@ -1710,3 +1710,7 @@ button.workspace-filter-chip{cursor:pointer;min-height:32px}.workspace-filter-dr
 .ergonomic-workspace .po-summary-title,.ergonomic-workspace .flow-heading{align-items:flex-start;gap:16px}
 @media(max-width:700px){.ergonomic-workspace>.card,.ergonomic-workspace>.production-orders-page>.card{padding:14px}.ergonomic-workspace h2{font-size:19px}.ergonomic-workspace .formgrid{grid-template-columns:minmax(0,1fr)}.ergonomic-workspace :is(input.input,select.select,textarea.input){font-size:16px}.ergonomic-workspace .btn{min-height:44px}.ergonomic-workspace .ergonomic-actions{position:static;display:flex}.ergonomic-workspace .ergonomic-actions>.primary{flex:1}.detail-context-line{gap:10px 18px}.ergonomic-workspace .flow-heading{flex-wrap:wrap}}
 @media(max-width:700px){.api-shell .ergonomic-grid{min-width:650px}.api-shell .order-grid-scroll{overflow-x:auto}.grid-text-more{width:36px;height:32px}.api-shell .ergonomic-grid td{padding-right:28px}.grid-text-tooltip{display:none}}
+.api-shell .ergonomic-grid td.grid-details-host{padding-right:40px}
+.grid-text-dialog dl{display:grid;grid-template-columns:minmax(80px,1fr) minmax(0,2fr);gap:12px;margin:16px 0}
+.grid-text-dialog dt{font-weight:600;color:#526780}
+.grid-text-dialog dd{margin:0;overflow-wrap:anywhere;white-space:pre-line}
