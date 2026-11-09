@@ -1714,3 +1714,7 @@ button.workspace-filter-chip{cursor:pointer;min-height:32px}.workspace-filter-dr
 .grid-text-dialog dl{display:grid;grid-template-columns:minmax(80px,1fr) minmax(0,2fr);gap:12px;margin:16px 0}
 .grid-text-dialog dt{font-weight:600;color:#526780}
 .grid-text-dialog dd{margin:0;overflow-wrap:anywhere;white-space:pre-line}
+.grid-text-dialog>header{position:sticky;top:-20px;background:#fff;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:12px 0;z-index:1}
+.grid-text-dialog>header h2{margin:0;font-size:16px;line-height:1.4;overflow-wrap:anywhere;min-width:0}
+.grid-text-dialog>header .btn{flex-shrink:0;float:none}
+@media(max-width:480px){.grid-text-dialog dl{grid-template-columns:minmax(0,1fr);gap:4px}.grid-text-dialog dd{margin-bottom:12px}}

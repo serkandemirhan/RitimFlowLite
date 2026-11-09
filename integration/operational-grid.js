@@ -32,9 +32,9 @@
    const more=document.createElement('button');more.type='button';more.className='grid-text-more grid-row-details';more.textContent='…';more.setAttribute('aria-label','Satır ayrıntıları');host.append(more);host.classList.add('grid-details-host');
    more.onclick=e=>{e.stopPropagation();document.querySelector('#grid-text-tooltip')?.remove();document.querySelector('#grid-text-dialog')?.remove();
     const dialog=document.createElement('dialog');dialog.id='grid-text-dialog';dialog.className='grid-text-dialog';dialog.setAttribute('aria-label','Satır ayrıntıları');
-    const title=document.createElement('h2');title.textContent='Satır ayrıntıları';const list=document.createElement('dl');
+    const header=document.createElement('header'),title=document.createElement('h2');const identity=cells.find(td=>['number','orderNumber','label','name'].includes(td.dataset.column))||host;const identityText=(identity.querySelector('.grid-link')||identity.querySelector('.grid-cell-content'))?.textContent.trim()||'Kayıt';title.textContent=identityText;title.id='grid-detail-title';dialog.removeAttribute('aria-label');dialog.setAttribute('aria-labelledby',title.id);const list=document.createElement('dl');
     for(const td of cells){const dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=heads.find(th=>th.dataset.column===td.dataset.column)?.querySelector('.grid-sort')?.childNodes[0]?.textContent||heads.find(th=>th.dataset.column===td.dataset.column)?.textContent||td.dataset.column;dd.textContent=td.querySelector('.grid-cell-content')?.textContent.trim()||'—';list.append(dt,dd)}
-    const close=document.createElement('button');close.className='btn';close.textContent='Kapat';close.onclick=()=>dialog.close();dialog.append(title,list,close);dialog.addEventListener('close',()=>{dialog.remove();more.focus()});document.body.append(dialog);dialog.showModal();
+    const close=document.createElement('button');close.className='btn';close.textContent='Kapat';close.onclick=()=>dialog.close();header.append(title,close);dialog.append(header,list);dialog.addEventListener('close',()=>{dialog.remove();more.focus()});document.body.append(dialog);dialog.showModal();
    };
    const update=()=>{more.hidden=!cells.some(td=>td.hidden||clipped(td.querySelector('.grid-cell-content')||td))};updates.push(update);update();
   }
