@@ -1590,3 +1590,36 @@
 .warehouse-transfer .warehouse-job-context{padding:0;background:none;overflow-wrap:anywhere}
 .warehouse-transfer .warehouse-job-search{margin-bottom:0}
 @media(max-width:700px){.warehouse-transfer{grid-template-columns:minmax(0,1fr);gap:8px}.warehouse-transfer-arrow{transform:rotate(90deg);height:28px}.warehouse-transfer-source,.warehouse-transfer-target{padding:12px}}
+.api-shell:is([data-screen="quality-list"],[data-screen="shipping"],[data-screen="master"],[data-screen="overview"]) .main{width:100%;max-width:none;min-width:0}
+.compact-data-page{min-width:0}
+.compact-data-page.card,.compact-data-page>.card{padding:14px}
+.compact-data-page .order-grid-scroll{max-height:none;height:auto;overflow-y:visible}
+.compact-data-page .order-grid{width:100%;table-layout:auto;min-width:680px}
+.compact-data-page .order-grid td,.compact-data-page .order-grid th{padding:10px 12px}
+.compact-data-page .order-grid td{overflow-wrap:anywhere}
+.compact-data-page .order-grid td[data-column="unresolved"]{text-align:right;font-variant-numeric:tabular-nums}
+.compact-data-page .flow-queue-search,.compact-data-page .workspace-logistics-search{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+.compact-data-page .flow-queue-search .formfield,.compact-data-page .workspace-logistics-search .formfield{flex:1;min-width:200px;margin:0;font-size:0}
+.compact-data-page :is(.flow-queue-search,.workspace-logistics-search) .input{width:100%;height:40px;font-size:13px}
+.compact-data-page :is(.flow-queue-search,.workspace-logistics-search) .btn{height:40px;min-height:40px;width:auto;flex:none;white-space:nowrap}
+.compact-data-page .workspace-logistics-search .flow-filters{margin:0;gap:6px}
+.compact-data-count{font-size:12px;color:#617a96;margin:0 0 8px}
+.compact-data-page .master-list{padding:12px;max-width:none}
+.compact-data-page .master-toolbar{display:flex;gap:8px;align-items:center;margin:0}
+.compact-data-page .master-toolbar>.input{flex:1;width:auto}
+.compact-data-page .master-toolbar>.btn{width:auto;white-space:nowrap}
+.compact-data-page .master-record-actions{display:flex;gap:6px;align-items:center;justify-content:flex-end}
+.compact-data-page .master-columns{margin:8px 0;padding:0;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.compact-data-page .master-columns>button:nth-child(-n+2){display:none}
+.compact-data-page .master-notice:empty{display:none}
+.compact-data-page .guided-category-counts{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.compact-data-page .guided-category-counts .btn{display:flex;gap:6px;align-items:center;padding:8px 10px;min-height:36px;width:auto}
+.compact-data-page .guided-category-counts strong{font-size:14px}
+.compact-data-page .guidance-all-tasks>.card{border:0;padding:0;box-shadow:none;margin-top:10px}
+.compact-priority-table{width:100%;border-collapse:collapse;font-size:13px}
+.compact-priority-table th{text-align:left;background:#f3f6fb;color:#536d88;font-size:12px}
+.compact-priority-table th,.compact-priority-table td{padding:9px 12px;border-bottom:1px solid #e5ecf5}
+.compact-priority-table td:last-child{width:150px;text-align:right}
+.compact-priority-table p{margin:3px 0}.compact-priority-table small{color:#617a96}
+.priority-table-wrap{overflow-x:auto}.compact-priority-table{min-width:500px}
+@media(max-width:700px){.compact-data-page .workspace-logistics-search .flow-filters{width:100%}.compact-data-page .order-grid td{padding:9px}.compact-data-page .master-toolbar{flex-wrap:wrap}}
