@@ -1680,4 +1680,33 @@ button.workspace-filter-chip{cursor:pointer;min-height:32px}.workspace-filter-dr
 .api-shell .ergonomic-grid .master-record-actions{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}
 .api-shell .ergonomic-grid .master-record-actions>details{position:relative}.api-shell .ergonomic-grid .master-record-actions>details>summary{min-height:34px;box-sizing:border-box;padding:7px 9px}
 .api-shell .ergonomic-grid .master-record-actions>details[open]>button{display:block;margin:4px;white-space:nowrap}
+.ergonomic-workspace{--form-gap:14px}
+.ergonomic-workspace>.card,.ergonomic-workspace>.production-orders-page>.card{padding:18px;margin-bottom:14px}
+.ergonomic-workspace h2{font-size:21px;line-height:1.35;margin:0 0 10px;overflow-wrap:anywhere}
+.ergonomic-workspace h3{font-size:16px;line-height:1.4;margin:16px 0 10px}
+.detail-context-line{display:flex;flex-wrap:wrap;gap:12px 24px;margin:8px 0 12px}
+.detail-context-line>div{min-width:100px;max-width:100%}.detail-context-line dt{font-size:12px;color:#526b85}.detail-context-line dd{font-size:14px;font-weight:600;margin:3px 0 0;overflow-wrap:anywhere}
+.ergonomic-workspace .formgrid{gap:var(--form-gap);grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+.ergonomic-workspace :is(.formfield,.formgrid>label){min-width:0;line-height:1.45;font-size:13px}
+.ergonomic-workspace :is(input.input,select.select){min-height:42px;font-size:14px;width:100%;box-sizing:border-box}
+.ergonomic-workspace textarea{min-height:88px;resize:vertical}
+.ergonomic-workspace .btn{min-height:38px;line-height:1.3;padding:9px 12px}
+.ergonomic-workspace .ergonomic-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;border-top:1px solid #dfe7f2;padding-top:14px;margin-top:18px}
+.ergonomic-facts{gap:10px!important}.ergonomic-facts .flow-metric{padding:10px 12px!important}.ergonomic-facts .flow-metric strong{font-size:21px!important}
+.ergonomic-secondary{margin:12px 0!important}.ergonomic-secondary>summary{font-weight:600;padding:10px 0;cursor:pointer}
+.ergonomic-workspace .flow-details>summary{min-height:36px;box-sizing:border-box}
+.ergonomic-workspace .ergonomic-search{display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap}.ergonomic-search>label{flex:1;min-width:170px}.ergonomic-search>.btn{flex:0 0 auto}
+.ergonomic-workspace .ergonomic-secondary>section.card{border:0;box-shadow:none;padding:12px 0 0;margin:0}
+.ergonomic-workspace[data-ergonomic-screen="inventory"] [data-inventory-panel="receipt"]{max-width:860px}
+.ergonomic-workspace[data-ergonomic-screen="inventory"] [data-inventory-panel="receipt"]>.formfield{margin-bottom:12px}
+.required-marker{font-size:11px;color:#60738a;font-weight:400}.ergonomic-field-error{display:block;color:#a42b35;font-size:12px;margin-top:5px}.ergonomic-workspace [aria-invalid=true],.order-compose [aria-invalid=true]{border-color:#bd3442!important}
+.ergonomic-error{padding:12px 16px;border:1px solid #e6adb2;border-radius:8px;background:#fff3f4;color:#9b2530;margin-bottom:12px}.ergonomic-error:empty{display:none}
+.ergonomic-dialog{max-width:calc(100vw - 32px)!important;max-height:calc(100dvh - 32px)!important;overflow:auto;overscroll-behavior:contain;box-sizing:border-box}
+.ergonomic-dialog>header,.ergonomic-dialog>.modal-head{display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:1px solid #dfe7f2;padding-bottom:12px}
+.ergonomic-dialog>header h2,.ergonomic-dialog>.modal-head h2{font-size:19px;line-height:1.4;overflow-wrap:anywhere;margin:0}
+.ergonomic-dialog>header>.btn,.ergonomic-dialog>.modal-head>.btn{flex-shrink:0;min-width:40px;min-height:40px}
+.ergonomic-dialog :is(input.input,select.select,textarea.input){max-width:100%;box-sizing:border-box}
+@media(max-width:700px){.ergonomic-dialog :is(input.input,select.select,textarea.input){font-size:16px}.ergonomic-dialog .btn{min-height:44px}.ergonomic-dialog .formgrid{grid-template-columns:minmax(0,1fr)}.ergonomic-dialog .modal-foot{position:static;flex-wrap:wrap;gap:8px}}
+.ergonomic-workspace .po-summary-title,.ergonomic-workspace .flow-heading{align-items:flex-start;gap:16px}
+@media(max-width:700px){.ergonomic-workspace>.card,.ergonomic-workspace>.production-orders-page>.card{padding:14px}.ergonomic-workspace h2{font-size:19px}.ergonomic-workspace .formgrid{grid-template-columns:minmax(0,1fr)}.ergonomic-workspace :is(input.input,select.select,textarea.input){font-size:16px}.ergonomic-workspace .btn{min-height:44px}.ergonomic-workspace .ergonomic-actions{position:static;display:flex}.ergonomic-workspace .ergonomic-actions>.primary{flex:1}.detail-context-line{gap:10px 18px}.ergonomic-workspace .flow-heading{flex-wrap:wrap}}
 @media(max-width:700px){.api-shell .ergonomic-grid{min-width:650px}.api-shell .order-grid-scroll{overflow-x:auto}.grid-text-more{width:36px;height:32px}.api-shell .ergonomic-grid td{padding-right:28px}.grid-text-tooltip{display:none}}
