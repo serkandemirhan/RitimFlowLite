@@ -1673,4 +1673,8 @@ button.workspace-filter-chip{cursor:pointer;min-height:32px}.workspace-filter-dr
 .ergonomic-priorities>summary{cursor:pointer;font-size:15px;font-weight:700;padding:4px 0}.ergonomic-priorities .flow-heading{display:none}
 .ergonomic-context{font-size:12px;color:#536d88;margin:8px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .api-shell[data-screen="master"] .master-sortbar>button{display:none}
+.api-shell .ergonomic-grid td[data-column="action"] .btn,.api-shell .ergonomic-grid td:last-child>.btn{white-space:nowrap;min-height:34px;padding:7px 9px;font-size:12px}
+.api-shell .ergonomic-grid .master-record-actions{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}
+.api-shell .ergonomic-grid .master-record-actions>details{position:relative}.api-shell .ergonomic-grid .master-record-actions>details>summary{min-height:34px;box-sizing:border-box;padding:7px 9px}
+.api-shell .ergonomic-grid .master-record-actions>details[open]>button{display:block;margin:4px;white-space:nowrap}
 @media(max-width:700px){.api-shell .ergonomic-grid{min-width:650px}.api-shell .order-grid-scroll{overflow-x:auto}.grid-text-more{width:36px;height:32px}.api-shell .ergonomic-grid td{padding-right:28px}.grid-text-tooltip{display:none}}
