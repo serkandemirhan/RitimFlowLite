@@ -155,7 +155,7 @@ test('B03B isolated PostgreSQL order, route and planning API',async t=>{
    r=await call('GET',path);assert.equal(r.json().unallocatedQuantity,0);assert.equal(r.json().normalProductionQuantity,5);assert.equal(r.json().compensationQuantity,0);assert.equal(r.json().jobs.length,3);
    await admin.query(`UPDATE "${schema}".work_orders SET status='complete' WHERE id=$1`,[first.id]);r=await call('GET',base+'/production-orders/'+parent);assert.equal(r.json().status,'waiting');assert.equal(r.json().runningCount,0);
    await admin.query(`UPDATE "${schema}".work_orders SET status='running' WHERE id=$1`,[first.id]);r=await call('GET',base+'/production-orders/'+parent);assert.equal(r.json().status,'running');assert.equal(r.json().runningCount,1);
-   r=await call('GET',base+'/production-monitor');assert.equal(r.statusCode,200,r.body);assert(r.json().jobs.some(x=>x.orderId===id));assert.equal((await call('GET',base+'/production-monitor',undefined,undefined,ot)).statusCode,200);
+   r=await call('GET',base+'/production-monitor');assert.equal(r.statusCode,200,r.body);assert(r.json().jobs.some(x=>x.orderId===id));assert.match(r.json().jobs.find(x=>x.orderId===id).orderCreatedAt,/^\d{4}-\d{2}-\d{2}T/);assert.equal((await call('GET',base+'/production-monitor',undefined,undefined,ot)).statusCode,200);
    await admin.query(`UPDATE "${schema}".orders SET status='closed' WHERE id=$1`,[id]);r=await call('GET',path);assert.equal(r.json().status,'closed');assert.equal(r.json().next.target,'history');assert.equal((await call('GET',base+'/production-monitor')).json().jobs.some(x=>x.orderId===id),false);
   });
   await t.test('production status filters apply on the server before pagination and exclude closed orders from active work',async()=>{
