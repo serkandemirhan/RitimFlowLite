@@ -59,6 +59,12 @@
     "assets/vendor/ui/tabler.LICENSE",
     "assets/vendor/ui/tabulator.LICENSE",
     "assets/vendor/ui/daypilot.LICENSE",
-    "assets/vendor/ui/daypilot.NOTICE"
+    "assets/vendor/ui/daypilot.NOTICE",
+    "integration/calendar-model.js",
+    "integration/shift-editor.js",
+    "integration/inventory-source-picker.js",
+    "integration/inventory-documents.js",
+    "integration/consistency-ui.js",
+    "assets/css/workspace-navigation.css"
   ]
 }
