@@ -14,7 +14,7 @@ const {build,sha} = require('./build-rc1.cjs');
     const item=allowed.get(name);
     requests.push({path:name,status:item?200:404});
     if(!item) return res.writeHead(404).end();
-    res.setHeader('Content-Type',{'.html':'text/html; charset=utf-8','.js':'text/javascript','.css':'text/css','.pdf':'application/pdf'}[path.extname(item.target)]);
+    res.setHeader('Content-Type',{'.html':'text/html; charset=utf-8','.js':'text/javascript','.css':'text/css','.pdf':'application/pdf','.LICENSE':'text/plain; charset=utf-8','.NOTICE':'text/plain; charset=utf-8'}[path.extname(item.target)] || 'application/octet-stream');
     res.end(fs.readFileSync(path.join(built.publicRoot,item.target)));
   });
   let browser;

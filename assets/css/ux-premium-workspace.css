@@ -1,4 +1,3 @@
-@import url("workspace-navigation.css");
 /* API workspace: compact navigation, task hierarchy and readable mobile queues. */
 .api-shell{--workspace-ink:#17304d;--workspace-muted:#607089;--workspace-line:#dde6f0;color:var(--workspace-ink)}
 .api-shell .main{min-width:0;padding:24px 32px 48px}
