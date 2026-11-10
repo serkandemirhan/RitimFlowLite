@@ -35,7 +35,7 @@ async function smoke(databaseUrl) {
     migration = new Pool({connectionString: roles.roleUrl('ritim_smoke_migration'), options: '-c search_path=ritim_smoke'});
     const applied = await migrate(migration);
     const repeat = await migrate(migration);
-    if (applied.length !== 46 || repeat.length !== 0) throw Error('Unexpected migration/repeat result');
+    if (applied.length !== 51 || repeat.length !== 0) throw Error('Unexpected migration/repeat result');
     const client = await migration.connect();
     try {
       await client.query('BEGIN');
@@ -55,7 +55,7 @@ async function smoke(databaseUrl) {
     const version = (await admin.query('SHOW server_version')).rows[0].server_version;
     const result = {serverVersion:version, migrations:applied.length, repeatMigrations:repeat.length, restrictedRuntime:true, checks};
     fs.writeFileSync(path.join(evidence,'runtime-smoke.json'), JSON.stringify(result,null,2)+'\n');
-    console.log('Native API smoke: 46 migrations, repeat 0, restricted runtime readiness 200, unauthenticated session 401');
+    console.log('Native API smoke: 51 migrations, repeat 0, restricted runtime readiness 200, unauthenticated session 401');
   } finally {
     if (app) await app.close();
     if (runtime) await runtime.end();
@@ -77,7 +77,7 @@ async function operationsSmoke(databaseUrl, privateDirectory) {
   finally {await before.end();}
   await ops.initialize(config,adminIdentity);
   await assert.rejects(ops.initialize(config,adminIdentity),/already exist/);
-  assert.equal((await ops.upgrade(config)).length,46);
+  assert.equal((await ops.upgrade(config)).length,51);
   assert.deepEqual(await ops.upgrade(config),[]);
   await ops.provision(config);
   await ops.ready(config);
@@ -104,7 +104,7 @@ async function operationsSmoke(databaseUrl, privateDirectory) {
       assert.equal((await restoredPool.query('SELECT datdba FROM pg_database WHERE datname=$1',[original.datname])).rows[0].datdba,original.datdba);
     }
   }finally{await restoredPool.end();}
-  const report={status:'PASS',sourceDatabase:config.database,restoreDatabase:restored,migrations:46,repeatMigrations:0,restoredOrderQuantity:42,forcedRls:true,restrictedReadiness:true,existingDatabaseOwnershipPreserved:true,destructiveActionsRejected:true,backupSha256:crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')};
+  const report={status:'PASS',sourceDatabase:config.database,restoreDatabase:restored,migrations:51,repeatMigrations:0,restoredOrderQuantity:42,forcedRls:true,restrictedReadiness:true,existingDatabaseOwnershipPreserved:true,destructiveActionsRejected:true,backupSha256:crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')};
   fs.writeFileSync(path.join(evidence,'windows-operations.json'),JSON.stringify(report,null,2)+'\n');
   console.log('Windows database operations PASS: initialize, migrate, provision, restricted readiness, backup/restore, fictional quantity 42 and FORCE RLS preserved; destructive targets refused.');
 }
@@ -146,17 +146,20 @@ async function main() {
       await operationsSmoke(url.toString(),directory);
       return;
     }
-    const files = fs.readdirSync(path.join(root,'backend/test')).filter(x=>x.endsWith('.test.js')).sort().map(x=>'test/'+x);
+    if(process.argv.includes('--lifecycle-only')){await require('./local-lifecycle.cjs')(url.toString());return;}
+    const qualityOnly=process.argv.includes('--quality-only');
+    const files = qualityOnly?['test/b04b1a-quality.test.js']:fs.readdirSync(path.join(root,'backend/test')).filter(x=>x.endsWith('.test.js')).sort().map(x=>'test/'+x);
     const result = spawnSync(process.execPath,['--test','--test-reporter=tap',...files],{
       cwd:path.join(root,'backend'), encoding:'utf8', maxBuffer:32*1024*1024, timeout:300000, windowsHide:true,
       env:{...process.env, PATH:bin+path.delimiter+process.env.PATH, TEST_DATABASE_URL:url.toString()},
     });
     const redact = value => String(value||'').split(password).join('[REDACTED]').replace(/PASSWORD\s+'[^']*'/gi,"PASSWORD '[REDACTED]'");
-    fs.writeFileSync(path.join(evidence,'backend.tap'),redact(result.stdout)+redact(result.stderr));
+    fs.writeFileSync(path.join(evidence,qualityOnly?'quality-consistency.tap':'backend.tap'),redact(result.stdout)+redact(result.stderr));
     const totals = (result.stdout||'').split(/\r?\n/).filter(x=>/^# (tests|pass|fail|skipped|cancelled) /.test(x));
     totals.forEach(line=>console.log(line));
     const testCount=Number((result.stdout||'').match(/^# tests (\d+)$/m)?.[1]||0);
     if (result.error) console.log('Backend runner failed: '+result.error.code);
+    if(qualityOnly){if(result.status!==0||result.error||testCount<2||!/^# fail 0$/m.test(result.stdout||'')||!/^# skipped 0$/m.test(result.stdout||''))throw Error('Quality regression failed; inspect artifacts/native-postgres/quality-consistency.tap');return;}
     await smoke(url.toString());
     if (result.status !== 0 || result.error || testCount<142 || !/^# fail 0$/m.test(result.stdout||'') || !/^# skipped 0$/m.test(result.stdout||'') || !/^# cancelled 0$/m.test(result.stdout||'')) {
       throw Error('Backend regression failed; inspect redacted artifacts/native-postgres/backend.tap');

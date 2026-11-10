@@ -9,7 +9,7 @@ async function authorizeRecoveryResource(client,scope,storedKind,command){
  if(command.kind==='machineBatch'){for(const id of command.body.payload.workOrderIds){const q=await client.query('SELECT 1 FROM work_orders WHERE tenant_id=$1 AND site_id=$2 AND id=$3',[scope.tenantId,scope.siteId,identifier(id)]);if(!q.rowCount)denied()}return descriptor}
  if(command.kind==='workspacePreference')return descriptor;
  if(command.kind==='routeTemplate'){if(command.body.action!=='create'){const q=await client.query('SELECT 1 FROM route_templates WHERE tenant_id=$1 AND site_id=$2 AND id=$3',[scope.tenantId,scope.siteId,identifier(command.target)]);if(!q.rowCount)denied()}return descriptor}
- if(command.kind==='machineCreate')return descriptor;
+ if(command.kind==='machineCreate'||command.kind==='siteCalendar')return descriptor;
  if(command.kind==='machineCalendar'){const q=await client.query('SELECT 1 FROM machines WHERE tenant_id=$1 AND site_id=$2 AND id=$3',[scope.tenantId,scope.siteId,identifier(command.target)]);if(!q.rowCount)denied();return descriptor;}
  if(command.kind==='machinePlanning'){const q=await client.query('SELECT 1 FROM work_orders WHERE tenant_id=$1 AND site_id=$2 AND id=$3',[scope.tenantId,scope.siteId,identifier(command.body.payload.workOrderId)]);if(!q.rowCount)denied();return descriptor}
  if(command.kind==='productionSupplier'){const q=await client.query('SELECT 1 FROM work_orders WHERE tenant_id=$1 AND site_id=$2 AND production_order_id=$3 AND id=$4',[scope.tenantId,scope.siteId,identifier(command.target),identifier(command.body.workOrderId)]);if(!q.rowCount)denied();return descriptor}

@@ -1,6 +1,6 @@
 param(
   [switch]$Apply,
-  [string[]]$Keep = @('cloud-release/android-operator-final', 'cloud-release/operator-refinement', 'native-postgres')
+  [string[]]$Keep = @('cloud-release/order-grid', 'cloud-release/iphone-pilot', 'cloud-release/pilot-edge', 'cloud-release/pilot-functional', 'cloud-release/android-operator-final', 'cloud-release/operator-refinement', 'native-postgres')
 )
 $ErrorActionPreference = 'Stop'
 $artifactRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../artifacts'))
@@ -14,7 +14,7 @@ function Assert-ArtifactPath([string]$candidate) {
   if (-not $resolved.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) { throw "Outside artifacts: $resolved" }
   return $resolved
 }
-$preserved = @($Keep + @('native-postgres/temp', 'cloud-setup', 'dns') | ForEach-Object { Assert-ArtifactPath (Join-Path $artifactRoot $_) })
+$preserved = @($Keep + @('native-postgres/temp', 'scenario-checkpoints', 'cloud-setup', 'dns') | ForEach-Object { Assert-ArtifactPath (Join-Path $artifactRoot $_) })
 # Do not traverse database clusters, setup files, or filesystem links.
 function Get-OutputFiles([string]$directory) {
   foreach ($item in Get-ChildItem -LiteralPath $directory -Force) {

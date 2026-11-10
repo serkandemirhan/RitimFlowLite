@@ -1,9 +1,19 @@
 /* Only transient menus participate; inline history/details stay independent. */
 (()=>{'use strict';
- const selector='.workspace-search,.api-mobile-menu,.orders-filter-popover,.orders-columns-popover,.grid-actions details,.machine-column-chooser,.list-filter-panel';
+ const selector='.workspace-search,.api-mobile-menu,.orders-filter-popover,.orders-columns-popover,.grid-actions details,.machine-column-chooser,.list-filter-panel,.master-record-actions>details';
  const closeExcept=keep=>{for(const panel of document.querySelectorAll(selector))if(panel!==keep&&!panel.contains(keep))panel.open=false};
  document.addEventListener('click',event=>{const panel=event.target.closest(selector);closeExcept(panel)},true);
  document.addEventListener('toggle',event=>{if(event.target.matches?.(selector)&&event.target.open)closeExcept(event.target)},true);
+ document.addEventListener('toggle',event=>{
+  const panel=event.target;if(!panel.matches?.('.master-record-actions>details')||!panel.open)return;
+  let menu=panel.querySelector('.master-more-menu');if(!menu){menu=document.createElement('div');menu.className='master-more-menu';for(const child of [...panel.children])if(child.tagName!=='SUMMARY')menu.append(child);panel.append(menu)}
+  const anchor=panel.querySelector('summary').getBoundingClientRect();
+  menu.style.left=Math.max(8,Math.min(anchor.right-menu.offsetWidth,innerWidth-menu.offsetWidth-8))+'px';
+  menu.style.top=Math.max(8,Math.min(anchor.bottom+4,innerHeight-menu.offsetHeight-8))+'px';
+ },true);
+ const closeMasterMenus=()=>document.querySelectorAll('.master-record-actions>details[open]').forEach(panel=>panel.open=false);
+ window.addEventListener('resize',closeMasterMenus);
+ document.addEventListener('scroll',event=>{if(!event.target.closest?.('.master-more-menu'))closeMasterMenus()},true);
  document.addEventListener('keydown',event=>{if(event.key!=='Escape')return;const open=[...document.querySelectorAll(selector)].filter(x=>x.open);if(!open.length)return;event.preventDefault();event.stopPropagation();const panel=open.at(-1);closeExcept(null);panel.querySelector('summary')?.focus()},true);
  new MutationObserver(records=>{if(records.some(r=>r.target.matches?.('dialog[open]')||[...r.addedNodes].some(n=>n.nodeType===1&&(n.matches('dialog[open]')||n.querySelector('dialog[open]')))))closeExcept(null)}).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['open']});
 })();
@@ -30,7 +40,8 @@
    if(line.children.length&&heading){heading.after(line);heading.parentElement.classList.add('ergonomic-identity');const eyebrow=heading.parentElement.querySelector('.flow-eyebrow');if(eyebrow&&context.customer&&eyebrow.textContent.includes(context.customer))eyebrow.hidden=true;const p=heading.parentElement.querySelector(':scope>p');if(p&&context.customer&&p.textContent.includes(context.customer)){const link=[...p.querySelectorAll('button,a')].find(x=>x.textContent.trim()===context.orderNumber),target=[...line.children].find(x=>x.querySelector('dt').textContent==='Sipariş')?.querySelector('dd');if(link&&target)target.replaceChildren(link);if(!p.querySelector('button,a'))p.hidden=true}}
   }
   for(const input of root.querySelectorAll('input[type=number]')){if(!input.inputMode)input.inputMode=input.step&&input.step!=='1'?'decimal':'numeric'}
-  for(const input of root.querySelectorAll('[required]')){const label=input.closest('label');if(label&&!label.querySelector('.required-marker')){const mark=document.createElement('span');mark.className='required-marker';mark.textContent=' · Zorunlu';label.insertBefore(mark,input)}}
+  for(const input of root.querySelectorAll('[required]')){const label=input.closest('label');if(label&&!label.querySelector('.required-marker')){const caption=document.createElement('span');caption.className='required-caption';while(label.firstChild&&label.firstChild!==input)caption.append(label.firstChild);const mark=document.createElement('span');mark.className='required-marker';mark.textContent=' *';mark.setAttribute('aria-hidden','true');caption.append(mark);label.insertBefore(caption,input)}}
+  if(root.querySelector('.required-marker')&&!root.querySelector('.required-help')){const note=document.createElement('p');note.className='required-help';note.textContent='* Zorunlu alanlar';root.append(note)}
   for(const footer of root.querySelectorAll('.production-create-footer,.modal-foot,.order-actionbar'))footer.classList.add('ergonomic-actions');
   for(const box of root.querySelectorAll('.flow-metrics,.po-summary-facts'))box.classList.add('ergonomic-facts');
   for(const d of root.querySelectorAll('details')){const s=d.querySelector(':scope>summary');if(s&&/geçmiş|Ek bilgiler|belgeler/i.test(s.textContent))d.classList.add('ergonomic-secondary')}

@@ -1,0 +1,25 @@
+'use strict';
+const {data,payload,cmd,scoped,audit,fail}=require('./orders-planning');
+const DEFAULT={shifts:[{name:'Gündüz',weekdays:[1,2,3,4,5],startMinute:480,endMinute:1020,breaks:[{startMinute:720,endMinute:780}]}]};
+function normalize(value){
+ if(!value||!Array.isArray(value.shifts)||!value.shifts.length||value.shifts.length>12)fail(400,'INVALID_INPUT','1–12 vardiya tanımlayın.');
+ const shifts=value.shifts.map((s,i)=>{
+  if(!s||!Array.isArray(s.weekdays)||!s.weekdays.length||s.weekdays.some(d=>!Number.isInteger(d)||d<1||d>7)||new Set(s.weekdays).size!==s.weekdays.length)fail(400,'INVALID_INPUT','Vardiya günlerini seçin.');
+  if(!Number.isInteger(s.startMinute)||!Number.isInteger(s.endMinute)||s.startMinute<0||s.startMinute>=1440||s.endMinute<0||s.endMinute>1440||s.startMinute===s.endMinute)fail(400,'INVALID_INPUT','Geçerli vardiya saatleri girin.');
+  const end=s.endMinute<=s.startMinute?s.endMinute+1440:s.endMinute;
+  if(!Array.isArray(s.breaks)||s.breaks.length>12)fail(400,'INVALID_INPUT','Bir vardiyada en fazla 12 mola tanımlayın.');
+  const breaks=s.breaks.map(b=>{if(!b||![b.startMinute,b.endMinute].every(n=>Number.isInteger(n)&&n>=0&&n<=1440))fail(400,'INVALID_INPUT','Geçerli mola saatleri girin.');let a=b.startMinute,z=b.endMinute;if(a<s.startMinute)a+=1440;if(z<=s.startMinute)z+=1440;if(a<s.startMinute||z>end||a>=z)fail(400,'INVALID_INPUT','Mola vardiyanın içinde olmalı.');return {startMinute:a,endMinute:z}}).sort((a,b)=>a.startMinute-b.startMinute);
+  if(breaks.some((b,j)=>j&&b.startMinute<breaks[j-1].endMinute)||breaks.reduce((n,b)=>n+b.endMinute-b.startMinute,0)>=end-s.startMinute)fail(400,'INVALID_INPUT','Molalar çakışamaz veya tüm vardiyayı kaplayamaz.');
+  return {name:String(s.name||'Vardiya '+(i+1)).trim().slice(0,80),weekdays:[...s.weekdays].sort(),startMinute:s.startMinute,endMinute:s.endMinute,breaks:breaks.map(b=>({startMinute:b.startMinute%1440,endMinute:b.endMinute===1440?1440:b.endMinute%1440}))};
+ });
+ const spans=[];for(const s of shifts)for(const d of s.weekdays){const start=(d-1)*1440+s.startMinute,end=(d-1)*1440+(s.endMinute<=s.startMinute?s.endMinute+1440:s.endMinute);for(const offset of [-10080,0,10080])spans.push([start+offset,end+offset])}
+ spans.sort((a,b)=>a[0]-b[0]);if(spans.some((s,i)=>i&&s[0]<spans[i-1][1]))fail(400,'INVALID_INPUT','Vardiyalar birbiriyle çakışıyor.');
+ if(value.turkeyHolidays!==undefined&&typeof value.turkeyHolidays!=='boolean')fail(400,'INVALID_INPUT','Tatil ayarı geçersiz.');
+ const exceptions=value.exceptions||[];if(!Array.isArray(exceptions)||exceptions.length>366)fail(400,'INVALID_INPUT','En fazla 366 tarih istisnası ekleyin.');
+ const seen=new Set();const clean=exceptions.map(e=>{if(!e||typeof e.date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(e.date)||!Number.isFinite(Date.parse(e.date))||new Date(e.date).toISOString().slice(0,10)!==e.date||seen.has(e.date))fail(400,'INVALID_INPUT','İstisna tarihleri geçerli ve tekil olmalı.');seen.add(e.date);if(!Array.isArray(e.windows)||e.windows.length>12)fail(400,'INVALID_INPUT','Tarih için çalışma aralıklarını kontrol edin.');const windows=e.windows.map(w=>{if(!w||![w.startMinute,w.endMinute].every(Number.isInteger)||w.startMinute<0||w.endMinute>1440||w.startMinute>=w.endMinute)fail(400,'INVALID_INPUT','Geçerli çalışma aralığı girin.');return {startMinute:w.startMinute,endMinute:w.endMinute}}).sort((a,b)=>a.startMinute-b.startMinute);if(windows.some((w,i)=>i&&w.startMinute<windows[i-1].endMinute))fail(400,'INVALID_INPUT','Çalışma aralıkları çakışamaz.');return {date:e.date,windows}});
+ return {shifts,turkeyHolidays:value.turkeyHolidays!==false,exceptions:clean};
+}
+const windows=require('./calendar-model').windows;
+async function read(c,s){const row=(await c.query('SELECT calendar,version FROM site_work_calendars WHERE tenant_id=$1 AND site_id=$2',[s.tenantId,s.siteId])).rows[0];return row||{calendar:structuredClone(DEFAULT),version:0}}
+function routes(api){const base='/sites/:tenantId/:siteId/work-calendar';api.get(base,req=>scoped(req,(c,s)=>read(c,s)));api.post(base,async(req,reply)=>{const s=data(req),b=payload(req),p={calendar:normalize(b.calendar),version:b.version};if(!Number.isSafeInteger(p.version)||p.version<0)fail(400,'INVALID_INPUT','Takvim sürümü gerekli.');const result=await cmd(req,'site.calendar','planning.write',p,async c=>{await c.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',['machine-board:'+s.tenantId+':'+s.siteId]);const old=await read(c,s);if(old.version!==p.version)fail(409,'VERSION_CONFLICT','Takvim değişti. Yenileyip tekrar düzenleyin.');await c.query('INSERT INTO site_work_calendars(tenant_id,site_id,calendar,version) VALUES($1,$2,$3,$4) ON CONFLICT(tenant_id,site_id) DO UPDATE SET calendar=EXCLUDED.calendar,version=EXCLUDED.version',[s.tenantId,s.siteId,JSON.stringify(p.calendar),p.version+1]);await audit(c,s,'site.calendar','site',s.siteId,{before:old.calendar,after:p.calendar});return {status:200,body:{calendar:p.calendar,version:p.version+1}}});return reply.code(result.status).send(result.body)})}
+module.exports={normalize,windows,read,routes,DEFAULT};

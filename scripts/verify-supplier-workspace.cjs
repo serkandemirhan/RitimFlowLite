@@ -1,0 +1,22 @@
+const {chromium}=require('playwright'),assert=require('assert/strict');
+(async()=>{const browser=await chromium.launch();try{
+ const page=await browser.newPage({viewport:{width:1440,height:900}}),errors=[];
+ page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('http://127.0.0.1:62949/?mode=api&view=outsourcing');await page.waitForLoadState('networkidle');
+ const rows=()=>page.locator('.supplier-workspace tbody tr');
+ assert.equal(await rows().count(),5);
+ await page.getByRole('button',{name:'Fasonda bekleyen · 2',exact:true}).click();assert.equal(await rows().count(),2);
+ await page.getByRole('button',{name:'Kontrol bekleyen · 2',exact:true}).click();assert.equal(await rows().count(),2);
+ await page.getByRole('button',{name:'Tümü · 5',exact:true}).click();
+ await page.locator('.supplier-toolbar select').selectOption('supplier-heat');assert.equal(await rows().count(),2);
+ await page.getByLabel('Tedarikçiye göre grupla').check();assert.equal(await page.locator('.supplier-workspace>section>h3').count(),1);
+ await page.locator('.supplier-toolbar select').selectOption('');assert.equal(await page.locator('.supplier-workspace>section>h3').count(),3);
+ await page.getByLabel('Tedarikçiye göre grupla').uncheck();
+ await page.getByRole('button',{name:'Siparişten fason kaydı aç',exact:true}).click();assert.equal(await page.locator('#fason-order').count(),1);
+ await page.locator('.supplier-editor').getByRole('button',{name:'Kapat',exact:true}).click();assert.equal(await page.locator('#fason-order').count(),0);
+ await page.getByRole('textbox',{name:'Fason işlerinde ara'}).fill('SP-3');await page.locator('.supplier-toolbar form').getByRole('button',{name:'Ara',exact:true}).click();assert.equal(await rows().count(),1);
+ await page.getByRole('button',{name:'İşlemleri aç',exact:true}).click();await page.waitForLoadState('networkidle');assert.equal(await page.locator('#api-alert').innerText(),'');assert.match(await page.locator('body').innerText(),/Gönderilen 25 · Dönen 10 · Dışarıda 15/);
+ await page.evaluate(async()=>{const api=RitimApiAdapter.create(),original=api.productionSupplier;api.supplierWorklist=async after=>({items:[{id:after?'fason-job-2':'fason-job-1',orderId:after?'o2':'o1',productionOrderId:after?'p2':'p1',orderNumber:after?'SECOND-PAGE':'FIRST-PAGE',partName:'Test',operation:'Kaplama',kind:'external'}],nextAfter:after?null:'next'});api.productionSupplier=async(po,id)=>{const v=await original(po,id);if(id==='fason-job-2')v.dispatches=[{...v.dispatches[0],quantity:15,returned:5,outstanding:10,qualityPending:3,expectedReturnDate:'2020-01-01'},{...v.dispatches[0],id:'second-dispatch',supplierId:'supplier-heat',quantity:10,returned:5,outstanding:5,qualityPending:2,expectedReturnDate:'2020-01-02'}];return v};await RitimPremiumAPI.navigate('outsourcing');await RitimPremiumAPI.supplierFilter('q','SECOND-PAGE')});
+ assert.equal(await rows().count(),2);assert.deepEqual(await rows().locator('[data-column="quality"]').allTextContents(),['3','2']);await page.getByRole('button',{name:'Gecikenler · 2',exact:true}).click();assert.equal(await rows().count(),2);
+ assert.deepEqual(errors,[]);console.log('PASS supplier filters, grouping, editor, detail, all-page search, multi-supplier quality, overdue filter');
+}finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});

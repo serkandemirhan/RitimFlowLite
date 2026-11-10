@@ -10,4 +10,5 @@ const assets=new Set([...html.matchAll(/(?:src|href)="((?:assets|integration)\/[
 for(const asset of assets){if(asset.includes('..')||!['.js','.css','.svg','.png','.jpg','.woff2'].includes(path.extname(asset)))throw Error('Unexpected public asset');const target=path.join(out,asset);fs.mkdirSync(path.dirname(target),{recursive:true});fs.copyFileSync(path.join(root,asset),target)}
 fs.copyFileSync(path.join(root,'integration/drawing-viewer.mjs'),path.join(out,'integration/drawing-viewer.mjs'));
 fs.cpSync(path.join(root,'assets/vendor/pdfjs'),path.join(out,'assets/vendor/pdfjs'),{recursive:true});
+for(const name of ['tabler.LICENSE','tabulator.LICENSE','daypilot.LICENSE','daypilot.NOTICE'])fs.copyFileSync(path.join(root,'assets/vendor/ui',name),path.join(out,'assets/vendor/ui',name));
 fs.writeFileSync(path.join(out,'index.html'),html);console.log('Cloud UI packaged:',assets.size,'assets plus local PDF renderer');

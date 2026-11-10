@@ -1,0 +1,138 @@
+{
+  "checks": [
+    {
+      "view": "jobs",
+      "width": 1440,
+      "height": 900,
+      "overflow": false
+    },
+    {
+      "filter": "PASS",
+      "pagination": "20 of 45"
+    },
+    {
+      "view": "machine-planning",
+      "width": 1440,
+      "height": 900,
+      "overflow": false
+    },
+    {
+      "dateNavigation": "PASS",
+      "runningMoveBlocked": "PASS",
+      "waitingMoveCommand": "PASS"
+    },
+    {
+      "view": "production-monitor",
+      "width": 1440,
+      "height": 900,
+      "overflow": false
+    },
+    {
+      "monitorStatusFilter": "PASS",
+      "monitorLayoutToggle": "PASS"
+    },
+    {
+      "view": "jobs",
+      "width": 1280,
+      "height": 800,
+      "overflow": false
+    },
+    {
+      "view": "machine-planning",
+      "width": 1280,
+      "height": 800,
+      "overflow": false
+    },
+    {
+      "view": "production-monitor",
+      "width": 1280,
+      "height": 800,
+      "overflow": false
+    },
+    {
+      "view": "jobs",
+      "width": 768,
+      "height": 1024,
+      "overflow": false
+    },
+    {
+      "view": "machine-planning",
+      "width": 768,
+      "height": 1024,
+      "overflow": false
+    },
+    {
+      "view": "production-monitor",
+      "width": 768,
+      "height": 1024,
+      "overflow": false
+    },
+    {
+      "view": "jobs",
+      "width": 390,
+      "height": 844,
+      "overflow": false
+    },
+    {
+      "mobileNavigation": "PASS",
+      "view": "jobs"
+    },
+    {
+      "view": "machine-planning",
+      "width": 390,
+      "height": 844,
+      "overflow": false
+    },
+    {
+      "mobileNavigation": "PASS",
+      "view": "machine-planning"
+    },
+    {
+      "view": "production-monitor",
+      "width": 390,
+      "height": 844,
+      "overflow": false
+    },
+    {
+      "mobileNavigation": "PASS",
+      "view": "production-monitor"
+    },
+    {
+      "view": "jobs",
+      "width": 375,
+      "height": 667,
+      "overflow": false
+    },
+    {
+      "view": "machine-planning",
+      "width": 375,
+      "height": 667,
+      "overflow": false
+    },
+    {
+      "view": "production-monitor",
+      "width": 375,
+      "height": 667,
+      "overflow": false
+    },
+    {
+      "view": "jobs",
+      "width": 412,
+      "height": 915,
+      "overflow": false
+    },
+    {
+      "view": "machine-planning",
+      "width": 412,
+      "height": 915,
+      "overflow": false
+    },
+    {
+      "view": "production-monitor",
+      "width": 412,
+      "height": 915,
+      "overflow": false
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,23 @@
+const {chromium}=require('playwright');
+const assert=require('node:assert/strict');
+(async()=>{const browser=await chromium.launch();try{
+ const page=await browser.newPage({viewport:{width:1280,height:900}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('http://127.0.0.1:62949/?mode=api&view=inventory');
+ await page.waitForSelector('#receipt-documents');
+ const file={name:'irsaliye.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF-1.4 demo receipt')};
+ await page.locator('#receipt-documents input[type=file]').setInputFiles(Array.from({length:6},(_,i)=>({...file,name:i+'.pdf'})));
+ assert.match(await page.locator('#receipt-file-error').innerText(),/5/);assert.equal(await page.locator('#receipt-file-list li').count(),0);
+ await page.locator('#receipt-documents input[type=file]').setInputFiles(file);assert.equal(await page.locator('#receipt-file-list li').count(),1);
+ await page.locator('.receipt-dropzone').evaluate(zone=>{const transfer=new DataTransfer();for(let i=0;i<4;i++)transfer.items.add(new File(['%PDF-1.4 additional'],`extra-${i}.pdf`,{type:'application/pdf'}));zone.dispatchEvent(new DragEvent('drop',{bubbles:true,dataTransfer:transfer}))});assert.equal(await page.locator('#receipt-file-list li').count(),5);
+ await page.locator('#receipt-purpose').selectOption('order');await page.waitForFunction(()=>document.querySelector('#receipt-order-choice').options.length>1);await page.locator('#receipt-order-choice').selectOption('o0');
+ await page.locator('#inv-lot-code').fill('DOCUMENT-TEST');await page.locator('#inv-receipt-quantity').fill('20');
+ await page.locator('[onclick="RitimPremiumAPI.inventoryAction(\'receipt\')"]').click();await page.waitForFunction(()=>document.querySelector('#app').getAttribute('aria-busy')==='false');
+ await page.locator('[data-inventory-tab="history"]').click();await page.getByRole('button',{name:'irsaliye.pdf',exact:true}).waitFor();
+ const download=page.waitForEvent('download');await page.getByRole('button',{name:'irsaliye.pdf',exact:true}).click();assert.equal((await download).suggestedFilename(),'irsaliye.pdf');
+ assert.equal(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('ritim-ui-preview-inventory')).movements[0].orderId),'o0');
+ await page.reload();await page.locator('[data-inventory-tab="history"]').click();await page.getByRole('button',{name:'irsaliye.pdf',exact:true}).waitFor();
+ await page.evaluate(()=>{const inventory=JSON.parse(sessionStorage.getItem('ritim-ui-preview-inventory'));for(let i=0;i<28;i++)inventory.balances.push({lotId:'scale-'+i,lotCode:'SCALE-'+i,materialId:'mat-demo',materialCode:'HAM-001',locationId:'shelf-demo',quantity:100});sessionStorage.setItem('ritim-ui-preview-inventory',JSON.stringify(inventory))});await page.reload();
+ await page.locator('[data-inventory-tab="pick"]').click();await page.waitForSelector('.source-picker');if(!await page.locator('.source-picker').evaluate(x=>x.open))await page.locator('.source-picker summary').click();assert.equal(await page.locator('.source-result').count(),10);await page.locator('.source-picker input').fill('SCALE-27');assert.equal(await page.locator('.source-result').count(),1);await page.locator('.source-result').click();assert.equal(await page.locator('#inv-balance').inputValue(),'scale-27|shelf-demo');
+ await page.goto('http://127.0.0.1:62949/?mode=api&view=quality&order=o0&job=j0');await page.getByRole('button',{name:'Lot izini aç',exact:true}).click();await page.getByRole('button',{name:'Bağlı lot zincirini incele'}).click();await page.getByRole('heading',{name:'Kayıtlı lot bağlantıları'}).waitFor();
+ assert.deepEqual(errors,[]);console.log('PASS: file limit, receipt/order link, document download after reload, source picker and lot trace');
+}finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});

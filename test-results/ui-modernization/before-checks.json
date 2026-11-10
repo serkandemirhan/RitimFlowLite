@@ -1,0 +1,77 @@
+{
+  "checks": [
+    {
+      "view": "jobs",
+      "width": 1440,
+      "height": 900,
+      "overflow": false
+    },
+    {
+      "view": "machine-planning",
+      "width": 1440,
+      "height": 900,
+      "overflow": false
+    },
+    {
+      "view": "jobs",
+      "width": 1280,
+      "height": 800,
+      "overflow": false
+    },
+    {
+      "view": "machine-planning",
+      "width": 1280,
+      "height": 800,
+      "overflow": false
+    },
+    {
+      "view": "jobs",
+      "width": 768,
+      "height": 1024,
+      "overflow": false
+    },
+    {
+      "view": "machine-planning",
+      "width": 768,
+      "height": 1024,
+      "overflow": false
+    },
+    {
+      "view": "jobs",
+      "width": 390,
+      "height": 844,
+      "overflow": false
+    },
+    {
+      "view": "machine-planning",
+      "width": 390,
+      "height": 844,
+      "overflow": false
+    },
+    {
+      "view": "jobs",
+      "width": 375,
+      "height": 667,
+      "overflow": false
+    },
+    {
+      "view": "machine-planning",
+      "width": 375,
+      "height": 667,
+      "overflow": false
+    },
+    {
+      "view": "jobs",
+      "width": 412,
+      "height": 915,
+      "overflow": false
+    },
+    {
+      "view": "machine-planning",
+      "width": 412,
+      "height": 915,
+      "overflow": false
+    }
+  ],
+  "errors": []
+}

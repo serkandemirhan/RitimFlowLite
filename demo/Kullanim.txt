@@ -1,0 +1,21 @@
+RITIM FLOW — DEMO SUNUMU
+
+Başlatmak için bu klasördeki Baslat.cmd dosyasına çift tıklayın.
+Uygulamanın proje klasörü ve Node.js bu bilgisayarda bulunmalıdır.
+
+Sunum: http://127.0.0.1:62949/demo/index.html
+25 bölüm arasında sol menüden veya sağ / sol ok tuşlarıyla ilerleyin.
+Ekran görseline ya da Çalışma ekranını aç düğmesine basınca canlı uygulama açılır.
+Sunuma dön düğmesi veya Escape ile kaldığınız slayta dönün.
+Anlatım notları yalnız açtığınızda gösterilir.
+PDF / Yazdır ile tüm slaytları dışa aktarabilirsiniz.
+
+Bu adres yalnız sunucunun çalıştığı bilgisayarda açılır. Arkadaşınıza aynı
+bilgisayardan veya ekran paylaşımıyla sunabilirsiniz. İnternete yayın yapılmadı.
+demo klasörünü bütün olarak taşırsanız index.html ekran görüntüleriyle çevrimdışı
+okunabilir; canlı ekranlar yine çalışan yerel demo sunucusunu gerektirir.
+
+Kurgusal demo verileri kullanılır; canlı ekranda kayıt işlemleri demo verisini
+değiştirebilir. Görseller, oluşturuldukları andaki örnek ekranları gösterir.
+Bu yerel önizleme her backend komutunu simüle etmez. Özellikle fason, sevkiyat,
+iade ve tamir listeleri boş olabilir; sunumda bu bölümlerin akışı açıklanır.

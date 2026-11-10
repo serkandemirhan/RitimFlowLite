@@ -32,12 +32,21 @@ test('B03B isolated PostgreSQL order, route and planning API',async t=>{
    assert.equal((await call('POST',path+'/update',{...body,version:2,orderedQuantity:119},'premium-below')).statusCode,409);assert.equal((await call('POST',path+'/update',{...body,version:2,customerId:crypto.randomUUID()},'premium-identity')).statusCode,409);
    const unplanned=made.json().items[1],update={version:1,quantity:30,reason:'Define route',operations:[{name:'Freze',kind:'internal',setupMinutes:5,cycleMinutes:1}]};const updated=await call('POST',base+'/production-orders/'+unplanned.id+'/update',update,'premium-po-edit');assert.equal(updated.statusCode,200,updated.body);assert.equal(updated.json().version,2);assert.equal(updated.json().route.length,1);assert.equal((await call('POST',base+'/production-orders/'+unplanned.id+'/update',update,'premium-po-stale')).statusCode,409);
    const first=(await call('GET',base+'/production-orders/'+made.json().items[0].id)).json(),job=first.workOrders[0];const timing=await call('POST',path+'/work-orders/'+job.id+'/timing',{version:1,setupMinutes:20,cycleMinutes:3},'premium-time');assert.equal(timing.statusCode,200,timing.body);assert.equal((await call('POST',path+'/work-orders/'+job.id+'/timing',{version:1,setupMinutes:20,cycleMinutes:3},'premium-time-stale')).statusCode,409);
-   const machine=await call('POST',base+'/machine-planning/machines',{code:'PREMIUM-MACHINE'},'premium-machine'),calendar={weekdays:[1,2,3,4,5],startMinute:480,endMinute:1020,breakStartMinute:720,breakEndMinute:780};const cal=await call('POST',base+'/machine-planning/machines/'+machine.json().id+'/calendar',{version:1,calendar},'premium-calendar');assert.equal(cal.statusCode,200,cal.body);
+   const machine=await call('POST',base+'/machine-planning/machines',{code:'PREMIUM-MACHINE'},'premium-machine'),calendar={weekdays:[1,2,3,4,5],startMinute:480,endMinute:1020,breakStartMinute:720,breakEndMinute:780};const cal=await call('POST',base+'/work-calendar',{version:0,calendar:{shifts:[{name:'Gündüz',weekdays:calendar.weekdays,startMinute:calendar.startMinute,endMinute:calendar.endMinute,breaks:[{startMinute:calendar.breakStartMinute,endMinute:calendar.breakEndMinute}]}]}},'premium-calendar');assert.equal(cal.statusCode,200,cal.body);
    const board=await call('GET',base+'/machine-planning');assert.equal(board.statusCode,200,board.body);assert.equal(board.json().jobs.find(x=>x.id===job.id).timing.cycleMinutes,3);assert.equal((await call('POST',base+'/production-orders/'+first.id+'/update',{version:1,quantity:40,operations:[],reason:'Cannot rewrite planned route'},'premium-planned-lock')).statusCode,409);
    await admin.query(`INSERT INTO "${schema}".orders(tenant_id,site_id,id,order_number,customer,part_name,ordered_qty,status) SELECT $1,$2,gen_random_uuid(),'PREMIUM-PAGING-'||lpad(n::text,3,'0'),'Paging fixture','P',1,'closed' FROM generate_series(1,205)n`,[ta,sa]);const pages=[];for(let page=1;page<=3;page++){const r=await call('GET',base+'/order-workspace?q=PREMIUM-PAGING-&status=all&sort=number&limit=100&page='+page);assert.equal(r.statusCode,200,r.body);assert.equal(r.json().total,205);pages.push(...r.json().items)}assert.equal(pages.length,205);assert.equal(new Set(pages.map(x=>x.id)).size,205);assert.equal(pages[204].orderNumber,'PREMIUM-PAGING-205');
    for(const sort of ['part','allocated','remaining','delivered','status']){const r=await call('GET',base+'/order-workspace?customer=Paging&part=P&quantityFrom=1&quantityTo=1&status=all&limit=1&page=2&sort='+sort);assert.equal(r.statusCode,200,r.body);assert.equal(r.json().total,205);assert.equal(r.json().items.length,1);assert.equal(r.json().filters.customer,'Paging');}
    const exact=await call('GET',base+'/order-workspace?number=PREMIUM-PAGING-205&customer=Paging&status=all');assert.equal(exact.json().total,1);assert.equal(exact.json().items[0].orderNumber,'PREMIUM-PAGING-205');assert.equal((await call('GET',base+'/order-workspace?customer=Paging&quantityFrom=2&status=all')).json().total,0);assert.equal((await call('GET',base+'/order-workspace?quantityFrom=2&quantityTo=1')).statusCode,400);assert.equal((await call('GET',base+'/order-workspace?quantityFrom=NaN')).statusCode,400);
    const rollback=await call('POST',base+'/orders',{orderNumber:'PREMIUM-ROLLBACK',customer:'Fixture',partName:'P',orderedQuantity:10},'premium-rollback-order');const failed=await call('POST',base+'/orders/'+rollback.json().id+'/production-batches',{version:1,batches:[{quantity:5,number:'SAME-NUMBER',operations:[]},{quantity:5,number:'SAME-NUMBER',operations:[]}]},'premium-rollback');assert.equal(failed.statusCode,409,failed.body);assert.equal((await call('GET',base+'/production-orders?orderId='+rollback.json().id)).json().items.length,0);
+  });
+  await t.test('operation catalog preserves kind and rejects invalid types',async()=>{
+   const path=base+'/master-data/operations',created=await call('POST',path,{name:'Catalog coating',code:'CAT-COAT',kind:'external'},'catalog-create');
+   assert.equal(created.statusCode,201,created.body);const item=created.json();assert.equal(item.kind,'external');
+   const rows=await call('GET',path+'/page');assert.equal(rows.statusCode,200,rows.body);assert.ok(rows.json().items.some(x=>x.id===item.id&&x.kind==='external'));
+   const bad=await call('POST',path,{name:'Invalid operation',kind:'unknown'},'catalog-invalid');assert.equal(bad.statusCode,400);
+   const changed=await call('POST',path+'/'+item.id+'/update',{version:1,name:item.name,code:item.code,kind:'internal'},'catalog-update');assert.equal(changed.statusCode,200,changed.body);assert.equal(changed.json().kind,'internal');
+   assert.equal((await call('POST',path+'/'+item.id+'/delete',{version:2},'catalog-delete')).statusCode,200);
+   assert.equal((await call('GET',path+'/'+item.id)).statusCode,404);
   });
   await t.test('master data CRUD is scoped, permission checked, audited and idempotent',async()=>{
    const path=base+'/master-data/customers',body={name:'Atlas % Fixture',code:'CUS-1'};
@@ -146,6 +155,34 @@ test('B03B isolated PostgreSQL order, route and planning API',async t=>{
    assert.equal((await call('POST',base+'/orders/'+o.id+'/compensations',{sourceKind:'production_event',sourceId:id(),quantity:1,reason:'No evidence'},'queue-no-loss')).json().error.code,'COMPENSATION_EXCEEDED');
    const unlinked=id();await admin.query(`INSERT INTO "${schema}".production_events(tenant_id,site_id,id,work_order_id,kind,quantity_pieces,actor_id) VALUES($1,$2,$3,$4,'scrap',1,$5)`,[ta,sa,unlinked,children[1],manager]);assert.equal((await call('POST',base+'/orders/'+o.id+'/compensations',{sourceKind:'production_event',sourceId:unlinked,quantity:1,reason:'Unreconciled history'},'queue-unlinked-loss')).json().error.code,'COMPENSATION_EXCEEDED');
   });
+  await t.test('timeline start persists, conflicts roll back and scope/idempotency remain enforced',async()=>{
+   const o=id(),op=id(),j=id(),m=id(),lot=id(),reservation=id(),endpoint=base+'/machine-planning';
+   await admin.query(`INSERT INTO "${schema}".orders(tenant_id,site_id,id,order_number,customer,part_number,ordered_qty) VALUES($1,$2,$3,'PIN-ORDER','Fixture','P',1)`,[ta,sa,o]);
+   await admin.query(`INSERT INTO "${schema}".operations(tenant_id,site_id,order_id,id,sequence,name,kind) VALUES($1,$2,$3,$4,0,'Pinned CNC','internal')`,[ta,sa,o,op]);
+   await admin.query(`INSERT INTO "${schema}".work_orders(tenant_id,site_id,id,order_id,operation_id,work_order_number,planned_qty,setup_minutes,cycle_minutes) VALUES($1,$2,$3,$4,$5,'PIN-JOB',1,0,60)`,[ta,sa,j,o,op]);
+   await admin.query(`INSERT INTO "${schema}".machines(tenant_id,site_id,id,code) VALUES($1,$2,$3,'PIN-CNC')`,[ta,sa,m]);
+   await admin.query(`INSERT INTO "${schema}".work_assignments(tenant_id,site_id,id,work_order_id,machine_id,user_id) VALUES($1,$2,$3,$4,$5,$6)`,[ta,sa,id(),j,m,operator]);
+   await admin.query(`INSERT INTO "${schema}".lots(tenant_id,site_id,id,order_id,lot_code,kind) VALUES($1,$2,$3,$4,'PIN-LOT','material')`,[ta,sa,lot,o]);
+   await admin.query(`INSERT INTO "${schema}".material_receipts(tenant_id,site_id,id,order_id,lot_id,supplier,document_ref,quantity_pieces,source_quantity,source_unit,conversion_factor) VALUES($1,$2,$3,$4,$5,'F','PIN',1,1,'piece',1)`,[ta,sa,id(),o,lot]);
+   await admin.query(`INSERT INTO "${schema}".reservations(tenant_id,site_id,id,order_id,work_order_id,lot_id,quantity_pieces,status) VALUES($1,$2,$3,$4,$5,$6,1,'active')`,[ta,sa,reservation,o,j,lot]);
+   const receipt=await call('POST',base+'/orders/'+o+'/physical-receipts',{reservationId:reservation,quantity:1},'pin-receipt');assert.equal(receipt.statusCode,201,receipt.body);
+   let date=new Date(Date.now()+2*86400000);while([0,6].includes(date.getUTCDay()))date=new Date(date.getTime()+86400000);const day=date.toISOString().slice(0,10),plannedStartAt=new Date(day+'T10:15:00+03:00').toISOString();
+   let b=(await call('GET',endpoint)).json();const body={workOrderId:j,machineId:m,revision:b.revision,reason:'Pin fixture',plannedStartAt};
+   assert.equal((await call('POST',endpoint+'/move',body,'pin-denied',ot)).statusCode,403);
+   let r=await call('POST',endpoint+'/move',body,'pin-save');assert.equal(r.statusCode,200,r.body);assert.equal(r.json().jobs.find(x=>x.id===j).schedule.start,plannedStartAt);
+   assert.deepEqual((await call('POST',endpoint+'/move',body,'pin-save')).json(),r.json());
+   b=(await call('GET',endpoint)).json();assert.equal(b.jobs.find(x=>x.id===j).plannedStartAt,plannedStartAt);assert.equal(b.jobs.find(x=>x.id===j).schedule.start,plannedStartAt);
+   const stored=(await admin.query(`SELECT planned_start_at FROM "${schema}".work_orders WHERE id=$1`,[j])).rows[0].planned_start_at;assert.equal(stored.toISOString(),plannedStartAt);
+   r=await call('POST',endpoint+'/move',{...body,revision:b.revision,plannedStartAt:day+'T12:30:00+03:00'},'pin-lunch');assert.equal(r.statusCode,409,r.body);assert.equal(r.json().error.code,'PLANNING_CONFLICT');assert.equal((await call('GET',endpoint)).json().revision,b.revision);
+   assert.equal((await call('POST',endpoint+'/move',{...body,revision:b.revision,plannedStartAt:day+'T10:00:00'},'pin-no-zone')).statusCode,400);
+   const overtime={...body,revision:b.revision,plannedStartAt:day+'T12:30:00+03:00',plannedOvertime:true};
+   await admin.query(`UPDATE "${schema}".site_memberships SET role='planner' WHERE user_id=$1`,[operator]);
+   try{const denied=await call('POST',endpoint+'/move',overtime,'overtime-planner-denied',ot);assert.equal(denied.statusCode,403,denied.body)}finally{await admin.query(`UPDATE "${schema}".site_memberships SET role='operator' WHERE user_id=$1`,[operator])}
+   const calendarBefore=JSON.stringify(b.workCalendar);
+   r=await call('POST',endpoint+'/move',overtime,'overtime-manager');assert.equal(r.statusCode,200,r.body);
+   b=(await call('GET',endpoint)).json();assert.equal(b.jobs.find(x=>x.id===j).plannedOvertime,true);assert.equal(b.jobs.find(x=>x.id===j).schedule.start,new Date(overtime.plannedStartAt).toISOString());assert.equal(JSON.stringify(b.workCalendar),calendarBefore);
+   r=await call('POST',endpoint+'/move',{...body,revision:b.revision,plannedStartAt:null},'pin-clear');assert.equal(r.statusCode,200,r.body);assert.equal(r.json().jobs.find(x=>x.id===j).plannedStartAt,null);assert.equal(r.json().jobs.find(x=>x.id===j).plannedOvertime,false);
+  });
   await t.test('workflow summaries separate allocation, actual running state, waiting reasons and closed history',async()=>{
    let r=await call('POST',base+'/orders',{orderNumber:'WORKFLOW-SUMMARY',customer:'Fixture',partName:'Flange',orderedQuantity:5},'summary-order');const id=r.json().id,path=base+'/orders/'+id+'/summary';
    assert.equal((await app.inject({method:'GET',url:path})).statusCode,401);assert.equal((await call('GET',`/api/v1/sites/${tb}/${sb}/orders/${id}/summary`)).statusCode,403);
@@ -202,6 +239,17 @@ test('B03B isolated PostgreSQL order, route and planning API',async t=>{
    assert.equal((await app.inject(base+'/inventory/materials')).statusCode,401);assert.equal((await call('GET',`/api/v1/sites/${tb}/${sb}/inventory/materials`)).statusCode,403);
    const plant=id(),warehouse=id(),region=id(),container=id(),lot=id();
    await admin.query(`INSERT INTO "${schema}".inventory_locations(tenant_id,site_id,id,kind,code,parent_id,parent_kind) VALUES($1,$2,$3,'plant','PAGE-P',NULL,NULL),($1,$2,$4,'warehouse','PAGE-W',$3,'plant'),($1,$2,$5,'region','PAGE-R',$4,'warehouse'),($1,$2,$6,'container','PAGE-C',$5,'region')`,[ta,sa,plant,warehouse,region,container]);
+
+   const docs=[];for(let n=0;n<5;n++){const d=await call('POST',base+'/inventory/documents',{filename:'receipt-'+n+'.pdf',contentBase64:Buffer.from('%PDF-1.4 test '+n).toString('base64')},'receipt-document-'+n);assert.equal(d.statusCode,201,d.body);docs.push(d.json().id)}
+   const receiptBody={materialId:rows[0].id,locationId:container,lotCode:'DOCUMENTED',supplierRef:'fixture',documentRef:'RECEIPT-DOC',quantity:10,documentIds:docs,orderId:order};
+   let receipt=await call('POST',base+'/inventory/receipts',{...receiptBody,documentIds:[...docs,id()]},'receipt-too-many');assert.equal(receipt.statusCode,400,receipt.body);
+   receipt=await call('POST',base+'/inventory/receipts',receiptBody,'receipt-with-documents');assert.equal(receipt.statusCode,201,receipt.body);
+   const again=await call('POST',base+'/inventory/receipts',receiptBody,'receipt-with-documents');assert.deepEqual(again.json(),receipt.json());
+   const found=(await read('movements','q=RECEIPT-DOC')).movements[0];assert.equal(found.documents.length,5);assert.equal(found.orderId,order);
+   const file=await call('GET',base+'/inventory/documents/'+docs[0]);assert.equal(file.statusCode,200,file.body);assert.equal(Buffer.from(file.json().contentBase64,'base64').toString(),'%PDF-1.4 test 0');
+   const reused=await call('POST',base+'/inventory/receipts',{...receiptBody,lotCode:'REUSE'},'receipt-reuse');assert.equal(reused.statusCode,409,reused.body);
+   assert.equal((await call('POST',base+'/inventory/documents',{filename:'bad.pdf',contentBase64:Buffer.from('not pdf').toString('base64')},'receipt-invalid')).statusCode,400);
+   assert.equal((await call('GET',`/api/v1/sites/${tb}/${sb}/inventory/documents/${docs[0]}`)).statusCode,403);
    await admin.query(`INSERT INTO "${schema}".inventory_lots(tenant_id,site_id,id,material_id,lot_code,supplier_ref) VALUES($1,$2,$3,$4,'PAGE-LOT','fixture')`,[ta,sa,lot,rows[0].id]);
    await admin.query(`INSERT INTO "${schema}".idempotency_records(tenant_id,site_id,actor_id,key,request_hash,status) SELECT $1,$2,$3,'page-movement-'||n,repeat('a',64),'pending' FROM generate_series(1,507)n`,[ta,sa,manager]);
    await admin.query(`INSERT INTO "${schema}".inventory_movements(tenant_id,site_id,id,lot_id,kind,destination_location_id,quantity_pieces,actor_id,idempotency_key,document_ref,occurred_at) SELECT $1,$2,gen_random_uuid(),$3,'receipt',$4,1,$5,'page-movement-'||n,'PAGE-DOC-'||lpad(n::text,4,'0'),'2026-01-01'::timestamptz+n*interval '1 second' FROM generate_series(1,507)n`,[ta,sa,lot,container,manager]);

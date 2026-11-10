@@ -1,5 +1,35 @@
 # Test results — 2026-11-03
 
+## Safari PDF follow-up and cross-API consistency — 2026-11-08
+
+- Pending local PDF fix gives the normal dialog a definite visual-viewport height, zero minimum flex sizes, and a layout-aware refit. Expanded-mode status text no longer changes layout on each render (which otherwise reset zoom). Operator visual redesign is out of scope.
+- Local Chromium regression passed at 390, 402 and 1280 px: normal first page, fullscreen, second page, zoom/programmatic scrolling and return to normal. Normal renderer height 578 px; drawing viewport 459/459/507 px. [Measurements](../../artifacts/cloud-release/iphone-pilot/pdf-local-regression.json). These are local fixture results, NOT Safari or physical touch evidence.
+- Physical Safari follow-up timed out. The PDF correction is not deployed or accepted on iPhone yet. Native keyboard/touch, background/resume, lock/unlock and separate first-card/data-ready timings remain pending.
+- Focused native PostgreSQL quality suite: 21 passed, zero failed/skipped. Added cross-endpoint assertions through pending, approve, reject and completion: 3 produced = 2 approved + 1 scrap; shippable quantity becomes 2 only after completion. Early completion is rejected.
+- `outputs.pending` is the original production event classification; current unresolved quality is projected from disposition events. `approvedGoodQuantity: null` / `qualityApproval: "not_implemented"` are legacy balance response fields, not evidence that current quality approval is missing. API contract cleanup is separate from this regression.
+- Authentication presentation was revised separately at user request; no authentication tests were run, as requested. No deployment is claimed.
+
+## Operator edge acceptance — 2026-11-08
+
+- Frozen deployed UI tested on physical Samsung SM-A326B / Android 13. Current [edge report](../../artifacts/cloud-release/pilot-edge/index.html) separates 7 passed checks, synthetic PDF coverage, unavailable iPhone and the in-progress two-hour soak.
+- Production replay: two concurrent requests with the same idempotency key returned one event ID and added only one piece. Keyboard-open production and pause submissions used native CDP touch events and were verified against server state.
+- Controlled request failure before commit recovered 0 → 1; discarded response after server commit recovered 1 → 1 via the existing retry UI. These were HTTP fault injections, not a physical Wi-Fi outage.
+- Live conflicting quality decisions produced 201 / 409. Strengthened the PostgreSQL race regression to run manager approval against a distinct quality user's rejection; all 216 backend tests passed with no skips, plus restricted-runtime readiness and backup/restore checks.
+- Five separately assigned machines started and remained consistent across navigation. Operator quality decisions and assignment changes returned 403. Quality-role and manager permissions were tested separately in local PostgreSQL fixtures.
+- Original and rework output lots each rejected an over-allocation of 2 where only 1 was available. Total approved shipping availability remained 3. A draft shipping order was created solely for this boundary check; allocated/dispatched/delivered all remain 0.
+- Three-page technical fixture tested using the live PDF viewer: navigation, fullscreen, native pinch, pan and fit. Real customer multi-page drawing and physical iPhone remain unavailable.
+- Two-hour read-only phone observation completed: 2026-11-08T09:59:40Z–11:59:45Z, 121 samples, 9 native screenshots, no recorded errors; five work states/quantities unchanged. Maximum sample gap 60.422 seconds. JS heap first/last approximately 12.6/13.0 MB; this does not establish absence of memory leaks. See [soak data](../../artifacts/cloud-release/pilot-edge/soak.json). Earlier interrupted run was excluded and preserved separately. This is passive two-hour observation, not active full-shift certification.
+
+## Frozen operator UI — functional pilot acceptance, 2026-11-08
+
+- Six requested online scenarios passed on real Samsung SM-A326B / Android 13 / Chrome, with quality decisions in the authenticated manager browser. No UI deployment or local asset overrides during this run.
+- Start, report, quality request; approve/scrap/rework; complete rework; compensate scrap; close and switch; pause and operate another machine; new notification without reload while preserving current work were exercised.
+- Order A: 3 initial pieces classified 1 approved / 1 scrap / 1 rework. Rework yielded 1 approved; compensation yielded 1 approved. Server shipping availability is exactly 3, quality/rework pending both 0. All three related jobs closed; no shipment created.
+- Real keyboard screenshots cover numeric production input and pause explanation. Input and primary actions remained visible, horizontal overflow assertions passed. Submissions followed keyboard dismissal; direct submission with keyboard open was not separately tested.
+- Evidence: [current functional report](../../artifacts/cloud-release/pilot-functional/index.html). Dedicated PDF verification remains in the latest Android report; PDF, iPhone, offline recovery and concurrent-write cases were not rerun here.
+- Test data prefix PILOT-20261108-01; A/RW/compensation/B closed, C/D waiting. No role changes. Existing unrelated work remained untouched.
+- Local UI edits from preceding feedback remain unpublished under the user's design freeze.
+
 ## Operator feedback follow-up — 2026-11-08
 
 - Waiting quality quantity appears once; the quality section opens explanatory details. Quantity completion is distinguished from the unchanged running state.

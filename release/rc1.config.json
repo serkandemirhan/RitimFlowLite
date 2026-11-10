@@ -49,6 +49,16 @@
     "integration/premium-api.js",
     "integration/transient-panels.js",
     "integration/operational-grid.js",
-    "integration/order-grid.js"
+    "integration/order-grid.js",
+    "assets/vendor/ui/tabler.scoped.css",
+    "assets/vendor/ui/tabulator.min.css",
+    "assets/css/modern-ui.css",
+    "assets/vendor/ui/tabulator.min.js",
+    "assets/vendor/ui/daypilot.min.js",
+    "integration/modern-ui.js",
+    "assets/vendor/ui/tabler.LICENSE",
+    "assets/vendor/ui/tabulator.LICENSE",
+    "assets/vendor/ui/daypilot.LICENSE",
+    "assets/vendor/ui/daypilot.NOTICE"
   ]
 }

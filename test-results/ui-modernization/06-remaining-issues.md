@@ -1,0 +1,11 @@
+# Remaining issues / release gates
+
+1. **Authenticated browser E2E remains open.** Save/reload job editing, scheduling persistence and complete operator production/quality/stock flow must be exercised against a controlled real backend through the new UI.
+2. **Legacy shell test harness requires maintenance.** Missing UI module imports and outdated heading/fixture assumptions prevent this suite from providing a useful passing baseline. Do not ignore its timeout in release status.
+3. **Migration is staged.** The new data grid is integrated into work orders. Orders, quality, inventory, returns, shipping and other specialized grids retain their existing implementations, with shared Tabler presentation. They are not claimed as fully migrated components.
+4. **Large-tenant worklist loading.** Current adapter drains the cursor within the current server-filtered scope before applying local library filters. Replace with a server-pagination/data-provider contract for very large result sets; measure production-size load performance before rollout.
+5. **Planning horizon.** Date navigation outside backend-calculated segments may be empty. No arbitrary fixed-start scheduling was added. Resource movement uses queue ordering and server recalculation; resize is disabled.
+6. **Timeline density/accessibility.** Very short events in three-day view use compact blocks and tooltips; daily zoom and existing queue/detail paths remain. Physical drag, keyboard event navigation and screen-reader acceptance require further validation.
+7. **Operator and auth are preserved, not redesigned here.** Real-device screenshots, keyboard behavior and complete operator acceptance remain required by the mission. No invented setup transition, reporting KPI or missing priority field was added.
+8. **Tabler provenance.** npm package declares MIT and upstream license is retained; the exact version tag license URL did not resolve. Upstream dev license source is documented. Review pinned artifact provenance before production promotion.
+9. **No production deployment of modernization yet.** Keep the existing live workflow until the above functional gates are completed. Do not infer customer pilot readiness from screenshots or backend-only tests.

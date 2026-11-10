@@ -26,6 +26,12 @@
   },
   "devDependencies": {
     "pdfjs-dist": "6.5.438",
-    "playwright": "1.64.1"
+    "playwright": "1.64.1",
+    "postcss": "8.5.32"
+  },
+  "dependencies": {
+    "@daypilot/daypilot-lite-javascript": "6.2.0",
+    "@tabler/core": "1.7.4",
+    "tabulator-tables": "6.7.1"
   }
 }

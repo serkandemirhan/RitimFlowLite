@@ -17,6 +17,7 @@ function project(board,p){
  // Source queues retain their relative order; the target uses selection order.
  copy.jobs=copy.jobs.filter(j=>j.machineId!==p.machineId);copy.jobs.push(...destination);
  const after=estimate(copy,Date.parse(board.generatedAt));
+ for(const j of after.jobs)if(j.schedule.conflict&&(!map.get(j.id).schedule.conflict||map.get(j.id).schedule.start!==j.schedule.start))fail(409,'PLANNING_CONFLICT',`${j.number}: ${j.schedule.conflictReason}`);
  const affectedMachines=new Set([p.machineId,...selected.map(j=>j.machineId)]),changes=after.jobs.filter(j=>affectedMachines.has(j.machineId)).map(j=>({id:j.id,orderId:j.orderId,orderNumber:j.orderNumber,dueDate:j.dueDate,number:j.number,partName:j.partName,selected:ids.has(j.id),fromMachineId:map.get(j.id).machineId,toMachineId:j.machineId,before:map.get(j.id).schedule,after:j.schedule}));
  return {after,preview:{impact:require('./work-guidance').moveImpact(changes),revision:board.revision,workOrderIds:p.workOrderIds,machineId:p.machineId,beforeId:p.beforeId,changes,destinationQueue:destination.map(j=>({id:j.id,number:j.number,partName:j.partName,selected:ids.has(j.id),status:j.status})),capacities:after.machines.filter(m=>affectedMachines.has(m.id)).map(m=>({id:m.id,code:m.code,capacity:m.capacity})),estimatedAt:board.generatedAt}};
 }
