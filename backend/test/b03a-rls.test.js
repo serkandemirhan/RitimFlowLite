@@ -9,7 +9,7 @@ test('B03A isolation on real PostgreSQL with actual restricted login',async t=>{
   await createRole(admin,owner);
   await createRole(admin,runtime);
   await admin.query(`CREATE SCHEMA "${schema}" AUTHORIZATION "${owner}"`);
-  migrations=new Pool({connectionString:roleUrl(owner),options:`-c search_path=${schema}`});assert.deepEqual(await migrate(migrations),['001','002','003','004','005','006','007','008','009','010','011','012','013','014','015','016','017','018','019','020','021','022','023','024','025','026','027','028','029','030','031','032','033','034','035','036','037','038','039','040','041','042','043','044','045','046','047','048','049','050','051']);
+  migrations=new Pool({connectionString:roleUrl(owner),options:`-c search_path=${schema}`});assert.deepEqual(await migrate(migrations),['001','002','003','004','005','006','007','008','009','010','011','012','013','014','015','016','017','018','019','020','021','022','023','024','025','026','027','028','029','030','031','032','033','034','035','036','037','038','039','040','041','042','043','044','045','046','047','048','049','050','051','052','053','054','055']);
   const c=await migrations.connect();try{await c.query('BEGIN');await provisionRuntime(c,schema,runtime);await c.query('COMMIT')}finally{c.release()}
   const seed=new Pool({connectionString:db,options:`-c search_path=${schema}`});try{
    await seed.query("INSERT INTO tenants(id,name) VALUES($1,'A'),($2,'B')",[ta,tb]);
@@ -49,6 +49,20 @@ test('B03A isolation on real PostgreSQL with actual restricted login',async t=>{
    const deleted=await migrations.query("DELETE FROM schema_migrations WHERE version='004' RETURNING version,checksum");try{assert.equal((await app.inject('/health/ready')).statusCode,503)}finally{await migrations.query('INSERT INTO schema_migrations(version,checksum) VALUES($1,$2)',[deleted.rows[0].version,deleted.rows[0].checksum])}
    await migrations.query("UPDATE schema_migrations SET checksum=$1 WHERE version='004'",['f'.repeat(64)]);try{assert.equal((await app.inject('/health/ready')).statusCode,503)}finally{await migrations.query("UPDATE schema_migrations SET checksum=$1 WHERE version='004'",[deleted.rows[0].checksum])}
    assert.equal((await app.inject('/health/ready')).statusCode,200);
+  });
+  await t.test('workflow readiness rejects missing document and execution grants and disabled document RLS',async()=>{
+   const c=await migrations.connect();try{await provisionRuntime(c,schema,runtime,{isolatedDevelopment:true})}finally{c.release()}
+   const workflow=buildApp({pool:appPool,workflowEnabled:true});
+   try{
+    assert.equal((await workflow.inject('/health/ready')).statusCode,200);
+    for(const [revoke,restore] of [
+     [`REVOKE INSERT ON quality_document_links FROM "${runtime}"`,`GRANT INSERT ON quality_document_links TO "${runtime}"`],
+     [`REVOKE EXECUTE ON FUNCTION ritim_audit_actor_name(uuid,uuid,uuid) FROM "${runtime}"`,`GRANT EXECUTE ON FUNCTION ritim_audit_actor_name(uuid,uuid,uuid) TO "${runtime}"`],
+     [`REVOKE UPDATE(execution_hold) ON orders FROM "${runtime}"`,`GRANT UPDATE(execution_hold) ON orders TO "${runtime}"`],
+     ['ALTER TABLE quality_document_links NO FORCE ROW LEVEL SECURITY','ALTER TABLE quality_document_links FORCE ROW LEVEL SECURITY']
+    ]){await migrations.query(revoke);try{assert.equal((await workflow.inject('/health/ready')).statusCode,503)}finally{await migrations.query(restore)}}
+    assert.equal((await workflow.inject('/health/ready')).statusCode,200);
+   }finally{await workflow.close();const c=await migrations.connect();try{await provisionRuntime(c,schema,runtime)}finally{c.release()}}
   });
   await t.test('RLS filters accidental missing tenant filters in a scoped transaction',async()=>{
    const c=await appPool.connect();try{await c.query('BEGIN');await c.query('SELECT ritim_open_scope($1,$2,$3)',[u,ta,sa]);const rows=await c.query('SELECT id FROM orders');assert.deepEqual(rows.rows.map(x=>x.id),[orderA]);await c.query('COMMIT');assert.equal((await c.query('SELECT * FROM orders')).rowCount,0);}finally{c.release()}

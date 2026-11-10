@@ -2,6 +2,18 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const {calendar,advance,estimate}=require('../src/capacity-planning');
 const cal={weekdays:[1,2,3,4,5],startMinute:480,endMinute:1020,breakStartMinute:720,breakEndMinute:780};
+test('duration edits shift following jobs both ways without reordering or changing other machines',()=>{
+ const job=(id,machineId,minutes)=>({id,machineId,quantity:1,produced:0,status:'waiting',timing:{setupMinutes:0,cycleMinutes:minutes},attention:{blockers:[]}});
+ const input={machines:[{id:'m',calendar:cal},{id:'other',calendar:cal}],jobs:[job('before','m',60),job('edit','m',60),job('after','m',60),job('unrelated','other',60)]},now=Date.parse('2026-11-09T10:00:00+03:00');
+ const initial=estimate(structuredClone(input),now),longer=structuredClone(input);longer.jobs[1].timing.cycleMinutes=120;
+ const changed=estimate(longer,now);
+ assert.equal(changed.jobs[0].schedule.end,initial.jobs[0].schedule.end);
+ assert.equal(changed.jobs[2].schedule.start,'2026-11-09T11:00:00.000Z');
+ assert.equal(changed.jobs[3].schedule.end,initial.jobs[3].schedule.end);
+ assert.deepEqual(changed.jobs.map(j=>j.schedule.position),initial.jobs.map(j=>j.schedule.position));
+ changed.jobs[1].timing.cycleMinutes=30;const shorter=estimate(changed,now);
+ assert.equal(shorter.jobs[2].schedule.start,'2026-11-09T08:30:00.000Z');
+});
 test('capacity skips lunch, overnight and weekends using Istanbul workdays',()=>{
  assert.equal(new Date(advance(Date.parse('2026-11-06T11:30:00+03:00'),90,cal).end).toISOString(),'2026-11-06T11:00:00.000Z');
  assert.equal(new Date(advance(Date.parse('2026-11-06T16:30:00+03:00'),90,cal).end).toISOString(),'2026-11-09T06:00:00.000Z');

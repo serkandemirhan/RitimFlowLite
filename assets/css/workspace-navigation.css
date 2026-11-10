@@ -1,0 +1,47 @@
+.api-shell .premium-sidebar{display:flex;flex-direction:column;width:248px;padding:22px 16px 14px;background:linear-gradient(165deg,#172c48,#102139 65%);border-right:1px solid #253b56;color:#a9bbd1;gap:20px;box-shadow:5px 0 20px #11223b05}
+.api-shell .nav-brand{display:flex;align-items:center;gap:10px;min-height:40px;flex:none}
+.api-shell .nav-brand-mark{display:grid;place-items:center;width:34px;height:36px;flex:none;background:#284c72;border:1px solid #426a91;border-radius:10px;color:#cde7ff;box-shadow:inset 0 1px #ffffff18}
+.api-shell .nav-brand-mark svg{width:24px;height:24px}
+.api-shell .nav-brand-name{font-size:17px;font-weight:700;letter-spacing:-.4px;color:#f0f5fc;white-space:nowrap;line-height:23px}
+.api-shell .nav-brand-name small{display:block;font-size:7px;font-weight:500;color:#8da8c6;letter-spacing:1.3px;line-height:15px}
+.api-shell .nav-collapse{display:grid;place-items:center;border:0;border-radius:6px;background:transparent;color:#8fa8c5;width:26px;height:30px;padding:4px;flex:none;margin-left:auto;cursor:pointer}
+.api-shell .nav-collapse:hover{background:#ffffff0c;color:white}
+.api-shell .nav-icon{width:19px;height:19px;flex:none;color:inherit}
+.api-shell .nav-workspace{display:flex;gap:10px;align-items:center;padding:12px 10px;background:#ffffff04;border:1px solid #ffffff0e;border-radius:9px;flex:none;min-width:0}
+.api-shell .nav-workspace>.nav-icon{color:#829bb8;width:17px;height:17px}
+.api-shell .nav-workspace>div{display:grid;gap:3px;min-width:0;flex:1}
+.api-shell .nav-workspace strong{font-size:11px;font-weight:550;color:#d1ddec;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+.api-shell .nav-workspace span{font-size:10px;color:#8ea4be;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+.api-shell .nav-workspace>i,.api-shell .nav-environment>i{width:5px;height:5px;flex:none;background:#6bb9a3;border-radius:50%}
+.api-shell .premium-sidebar>nav{display:flex;flex:1;flex-direction:column;gap:20px;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:#3d526c transparent;padding:2px 0}
+.api-shell .nav-group{display:grid;gap:4px;flex:none}
+.api-shell .nav-group-label{font-size:9px;letter-spacing:1.5px;color:#738ba8;font-weight:600;padding:0 12px 7px;white-space:nowrap}
+.api-shell .premium-sidebar .side-btn{display:flex;align-items:center;gap:12px;position:relative;font-size:12px;font-weight:500;color:#a9bcd3;min-height:42px;padding:10px 12px;border-radius:8px;margin:0;box-shadow:none;border:1px solid transparent}
+.api-shell .premium-sidebar .side-btn:hover{color:#eef5ff;background:#ffffff06}
+.api-shell .premium-sidebar .side-btn.active{background:#274767;border-color:#395b7e;color:#eef7ff;box-shadow:0 2px 6px #07142910}
+.api-shell .premium-sidebar .side-btn.active .nav-icon{color:#97c9fa}
+.api-shell .nav-active-dot{margin-left:auto;width:5px;height:5px;flex:none;border-radius:50%;background:#a4d0ff}
+.api-shell .nav-footer{border-top:1px solid #ffffff0e;padding-top:12px;display:grid;gap:12px;flex:none}
+.api-shell .nav-environment{display:flex;align-items:center;gap:6px;color:#7c93ae;font-size:9px;padding-left:8px;white-space:nowrap}
+.api-shell .nav-account{position:relative}
+.api-shell .nav-account>summary{display:flex;align-items:center;gap:9px;cursor:pointer;list-style:none;padding:7px;border-radius:8px;color:#a8bbd2}
+.api-shell .nav-account>summary::-webkit-details-marker{display:none}
+.api-shell .nav-account>summary:hover,.api-shell .nav-account[open]>summary{background:#ffffff07}
+.api-shell .nav-avatar{display:grid;place-items:center;flex:none;width:32px;height:32px;border:1px solid #48617f;border-radius:9px;background:#2a405d;color:#d5e5f7;font-size:10px;font-weight:600}
+.api-shell .nav-user{display:grid;gap:3px;min-width:0;flex:1}
+.api-shell .nav-user strong{font-size:11px;font-weight:550;color:#d6e2ef;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.api-shell .nav-user small{font-size:9px;color:#7e95b0;white-space:nowrap}
+.api-shell .nav-account-more{font-size:18px;letter-spacing:1px}
+.api-shell .nav-account-actions{position:absolute;bottom:calc(100% + 6px);left:0;width:214px;z-index:12;padding:7px;background:#213852;border:1px solid #3b526c;box-shadow:0 8px 28px #07142344;border-radius:10px;display:grid;gap:3px}
+.api-shell .nav-account-actions button,.api-shell .nav-account-actions a{border:0;background:transparent;text-align:left;padding:10px;color:#c7d8ed;font-size:11px;text-decoration:none;border-radius:6px;cursor:pointer}
+.api-shell .nav-account-actions button:hover,.api-shell .nav-account-actions a:hover{background:#ffffff09}
+.api-shell.sidebar-collapsed .premium-sidebar{width:80px;padding:18px 12px 12px;gap:18px}
+.api-shell.sidebar-collapsed .nav-brand{flex-direction:column;gap:8px}
+.api-shell.sidebar-collapsed .nav-collapse{margin:0;transform:rotate(180deg)}
+.api-shell.sidebar-collapsed .nav-brand-name,.api-shell.sidebar-collapsed .nav-label,.api-shell.sidebar-collapsed .nav-active-dot,.api-shell.sidebar-collapsed .nav-workspace>div,.api-shell.sidebar-collapsed .nav-workspace>i,.api-shell.sidebar-collapsed .nav-environment,.api-shell.sidebar-collapsed .nav-user,.api-shell.sidebar-collapsed .nav-account-more{display:none}
+.api-shell.sidebar-collapsed .nav-workspace{justify-content:center;padding:10px 4px}
+.api-shell.sidebar-collapsed .premium-sidebar>nav{gap:14px}
+.api-shell.sidebar-collapsed .nav-group-label{height:1px;padding:0;margin:0 10px 8px;background:#ffffff0c;font-size:0;overflow:hidden}
+.api-shell.sidebar-collapsed .premium-sidebar .side-btn{justify-content:center;padding:10px;min-height:44px}
+.api-shell.sidebar-collapsed .nav-account>summary{justify-content:center;padding:4px}
+.api-shell.sidebar-collapsed .nav-account-actions{left:0;width:180px}

@@ -164,6 +164,36 @@ test('B04B-1A quality disposition using restricted runtime',async t=>{
    assert.equal((await call('POST',x.prod+'/complete',{},'q-still-pending')).json().error.code,'COMPLETION_BLOCKED');
    const y=await seed('QUALITY-RACE',{amount:20});await call('POST',y.prod+'/start',{},'qr-start');const made=await call('POST',y.prod+'/results',{lotId:y.lot,kind:'pending',quantity:20},'qr-result');const path=y.root+`/work-orders/${y.j}/quality/decisions`,v={eventId:made.json().eventId,lotId:y.lot,outcome:'approved',quantity:12,evidence:'inspection'};const race=await Promise.all([call('POST',path,v,'qr-a'),call('POST',path,{...v,outcome:'rejected'},'qr-b',qt)]);assert.deepEqual(race.map(z=>z.statusCode).sort(),[201,409]);
   });
+  await t.test('mixed quality decisions commit atomically and replay once',async()=>{
+   const x=await seed('QUALITY-MIXED',{amount:5});await call('POST',x.prod+'/start',{},'mixed-start');
+   const made=await call('POST',x.prod+'/results',{lotId:x.lot,kind:'pending',quantity:5},'mixed-output');assert.equal(made.statusCode,201,made.body);
+   const path=x.root+`/work-orders/${x.j}/quality`,body={eventId:made.json().eventId,lotId:x.lot,evidence:'Mixed inspection',decisions:[{outcome:'approved',quantity:3},{outcome:'rejected',quantity:1},{outcome:'rework',quantity:1}]};
+   const bad=await call('POST',path+'/decisions',{...body,decisions:[{outcome:'approved',quantity:3},{outcome:'rejected',quantity:3}]},'mixed-over');assert.equal(bad.statusCode,409,bad.body);assert.equal((await call('GET',path)).json().outputs[0].unresolved,5);
+   assert.equal((await call('POST',path+'/decisions',body,'mixed-denied',ot)).statusCode,403);
+   const upload=await call('POST',x.root+'/work-orders/'+x.j+'/documents',{context:'quality',filename:'inspection.pdf',contentBase64:Buffer.from('%PDF-1.4 inspection fixture').toString('base64')},'mixed-doc',qt);assert.equal(upload.statusCode,201,upload.body);body.documentIds=[upload.json().id];
+   const foreign=await seed('QUALITY-FOREIGN',{amount:1});const doc=await call('POST',foreign.root+'/work-orders/'+foreign.j+'/documents',{context:'quality',filename:'foreign.pdf',contentBase64:Buffer.from('%PDF-1.4 other job').toString('base64')},'foreign-doc',qt);assert.equal(doc.statusCode,201,doc.body);
+   assert.equal((await call('POST',path+'/decisions',{...body,documentIds:[doc.json().id]},'mixed-wrong-doc',qt)).statusCode,409);assert.equal((await call('GET',path)).json().outputs[0].unresolved,5);
+   const saved=await call('POST',path+'/decisions',body,'mixed-save',qt);assert.equal(saved.statusCode,201,saved.body);assert.equal(saved.json().decisions.length,3);
+   assert.deepEqual((await call('POST',path+'/decisions',body,'mixed-save',qt)).json(),saved.json());
+   const out=(await call('GET',path)).json().outputs[0];assert.equal(out.approved,3);assert.equal(out.rejected,1);assert.equal(out.reworkPending,1);assert.equal(out.unresolved,0);
+   const history=(await call('GET',path+'/history')).json();assert.equal(history.decisions.length,3);assert(history.decisions.every(d=>d.documents[0].id===upload.json().id));
+   const facts=(await call('GET',base+'/job-worklist?orderId='+x.o)).json().items[0];assert.equal(facts.approved,3);assert.equal(facts.rejected,1);assert.equal(facts.productionScrap,0);assert.equal(facts.repairPending,1);
+  });
+  await t.test('order emergency hold blocks execution and cancellation preserves production history',async()=>{
+   const x=await seed('EXECUTION-CONTROL',{amount:5});assert.equal((await call('POST',x.prod+'/start',{},'control-start')).statusCode,200);
+   assert.equal((await call('POST',x.prod+'/results',{lotId:x.lot,kind:'pending',quantity:1},'control-output')).statusCode,201);
+   const path=x.root+'/execution-control',state=(await call('GET',path)).json(),body={action:'hold',reason:'Equipment problem',token:state.token};
+   assert.equal((await call('POST',path,body,'control-denied',ot)).statusCode,403);
+   const held=await call('POST',path,body,'control-hold');assert.equal(held.statusCode,200,held.body);assert.equal(held.json().running,0);assert.equal(held.json().status,'held');assert.equal(held.json().history[0].actor_name,'Actor');assert.equal(held.json().followUp.remainingInput,4);
+   const jobFacts=(await call('GET',base+'/job-worklist?orderId='+x.o)).json().items[0];assert.equal(jobFacts.executionHeld,true);assert.equal(jobFacts.ready,false);assert.equal(jobFacts.completion.ready,false);assert.equal(jobFacts.executionControl.actor,'Actor');
+   assert.deepEqual((await call('POST',path,body,'control-hold')).json(),held.json());
+   assert.equal((await call('POST',x.prod+'/resume',{},'control-forbidden-resume')).statusCode,409);
+   assert.equal((await call('POST',path,{...body,action:'cancel'},'control-stale')).statusCode,409);
+   const resumed=await call('POST',path,{action:'resume',reason:'Resolved',token:held.json().token},'control-resume');assert.equal(resumed.statusCode,200,resumed.body);assert.equal(resumed.json().jobs[0].status,'paused');
+   const cancelled=await call('POST',path,{action:'cancel',reason:'Customer cancelled',token:resumed.json().token},'control-cancel');assert.equal(cancelled.statusCode,200,cancelled.body);assert.equal(cancelled.json().jobs[0].status,'cancelled');
+   assert.equal((await call('POST',x.prod+'/resume',{},'control-cancelled-resume')).statusCode,409);
+   const events=await admin.query(`SELECT count(*)::int n FROM "${schema}".production_events WHERE work_order_id=$1`,[x.j]);assert(events.rows[0].n>0);
+  });
   await t.test('good output requires a recorded decision and history is immutable',async()=>{
    const x=await seed('QUALITY-GOOD',{amount:2});await call('POST',x.prod+'/start',{},'qg-start');const r=await call('POST',x.prod+'/results',{lotId:x.lot,kind:'good',quantity:2},'qg-result');const path=x.root+`/work-orders/${x.j}/quality`,before=(await call('GET',path)).json();assert.equal(before.outputs[0].approved,0);assert.equal(before.outputs[0].unresolved,2);const p={eventId:r.json().eventId,lotId:x.lot,outcome:'approved',quantity:2,evidence:'documented inspection'};const created=await call('POST',path+'/decisions',p,'qg-decision',qt);assert.equal(created.statusCode,201,created.body);await assert.rejects(admin.query(`UPDATE "${schema}".output_dispositions SET quantity_pieces=1 WHERE id=$1`,[created.json().id]),{code:'55000'});const after=(await call('GET',path)).json();assert.equal(after.outputs[0].approved,2);assert.equal(after.downstreamReleaseSupported,false);
   });

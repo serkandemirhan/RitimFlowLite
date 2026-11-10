@@ -1,0 +1,41 @@
+const {chromium}=require('playwright');
+const assert=require('node:assert/strict');
+(async()=>{
+ const browser=await chromium.launch();
+ try{
+  const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  const go=async query=>{await page.goto('http://127.0.0.1:62949/?mode=api&'+query);await page.waitForLoadState('networkidle')};
+  await go('view=quality&order=o3&job=j3&demoRole=quality');
+  await page.getByRole('button',{name:'Karar ver',exact:true}).click();
+  await page.locator('.quality-decision-documents summary').click();
+  await page.locator('#quality-document-file').setInputFiles({name:'kontrol-raporu.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF-1.4\n% fictional quality fixture\n%%EOF')});
+  await page.waitForFunction(()=>document.querySelector('#quality-document-options input:checked'));
+  for(const [kind,value] of [['approved','3'],['rejected','1'],['rework','1']])await page.locator('#quality-qty-'+kind).fill(value);
+  await page.locator('#quality-dialog-evidence').fill('Ölçüm belgesiyle doğrulandı.');
+  await page.screenshot({path:'artifacts/native-postgres/workspace-ui/quality-mobile-document.png'});
+  await page.getByRole('button',{name:'Kaydet',exact:true}).click();
+  await page.waitForFunction(()=>!document.querySelector('#api-quality-dialog')?.open);
+  await page.reload();await page.waitForLoadState('networkidle');
+  await page.getByText('Tamamlanan kontroller ve geçmiş',{exact:true}).click();
+  assert.equal(await page.getByRole('button',{name:'kontrol-raporu.pdf',exact:true}).count(),3);
+  await go('view=operator&demoRole=operator');
+  await page.locator('.operator-job-choice').first().click();
+  await page.locator('#api-production-qty').fill('2');
+  await page.getByRole('button',{name:'Üretim gir',exact:true}).click();
+  await page.waitForFunction(()=>Object.values(JSON.parse(sessionStorage.getItem('ritim-preview-production-events')||'{}')).flat().some(x=>x.quantity===2));
+  await page.reload();await page.waitForLoadState('networkidle');
+  if(await page.locator('.operator-job-choice').count())await page.locator('.operator-job-choice').first().click();
+  await page.locator('.quantity-breakdown').waitFor();
+  assert.equal(await page.locator('[data-quantity=produced] strong').innerText(),'7');
+  assert.equal(await page.locator('[data-quantity=qualityPending] strong').innerText(),'2');
+  assert.equal(await page.locator('.operator-quality-overview,.operator-state-history').count(),0);
+  const quantities=await page.locator('.job-history tbody tr').evaluateAll(rows=>rows.filter(r=>r.cells[2].textContent==='Üretim bildirildi').map(r=>Number(r.cells[3].textContent)));
+  assert.deepEqual(quantities,[5,2]);
+  assert(await page.locator('.job-history').innerText().then(t=>t.includes('Test Operatörü')));
+  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  await page.screenshot({path:'artifacts/native-postgres/workspace-ui/operator-mobile-consistency.png',fullPage:true});
+  assert.deepEqual(errors,[]);
+  console.log('PASS: mobile quality document linked to all 3 decisions, refresh persistence, operator quantities and unified history');
+ }finally{await browser.close()}
+})().catch(e=>{console.error(e);process.exitCode=1});

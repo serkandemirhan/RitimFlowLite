@@ -6,6 +6,23 @@ async function checkReadiness(pool,{isolatedDevelopment=false}={}){
  const actual=await pool.query('SELECT version,checksum FROM ritim_schema_versions() ORDER BY version');
  const files=fs.readdirSync(directory).filter(f=>/^\d+_[a-z0-9_]+\.sql$/.test(f)).sort();
  if(actual.rows.length!==files.length||files.some((f,i)=>actual.rows[i].version!==f.split('_')[0]||!require('./migration-checksum').checksums(fs.readFileSync(path.join(directory,f),'utf8')).includes(actual.rows[i].checksum)))throw Error('Migration version mismatch');
+ if(isolatedDevelopment){
+  const checks=await pool.query(`SELECT
+   has_table_privilege(current_user,'work_documents','SELECT') AND
+   has_table_privilege(current_user,'work_documents','INSERT') AND
+   has_table_privilege(current_user,'work_documents','DELETE') AND
+   has_table_privilege(current_user,'quality_document_links','SELECT') AND
+   has_table_privilege(current_user,'quality_document_links','INSERT') AND
+   NOT has_table_privilege(current_user,'quality_document_links','UPDATE,DELETE') AND
+   has_function_privilege(current_user,'ritim_audit_actor_name(uuid,uuid,uuid)','EXECUTE') AND
+   has_column_privilege(current_user,'orders','execution_hold','UPDATE') AND
+   has_column_privilege(current_user,'orders','execution_hold_reason','UPDATE') AND
+   has_column_privilege(current_user,'production_orders','cancelled_at','UPDATE') AS grants_ok,
+   (SELECT count(*)=2 AND bool_and(c.relrowsecurity AND c.relforcerowsecurity AND c.relowner<>(SELECT oid FROM pg_roles WHERE rolname=current_user))
+    FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+    WHERE n.nspname=current_schema() AND c.relname IN ('work_documents','quality_document_links')) AS rls_ok`);
+  if(checks.rows[0]?.grants_ok!==true||checks.rows[0]?.rls_ok!==true)throw Error('Quality document or execution control privileges invalid');
+ }
  if(isolatedDevelopment){const grants=await pool.query("SELECT has_table_privilege(current_user,'workspace_preferences','SELECT,INSERT') AND has_column_privilege(current_user,'workspace_preferences','settings','UPDATE') AND NOT has_table_privilege(current_user,'workspace_preferences','DELETE') AND has_table_privilege(current_user,'route_templates','SELECT,INSERT') AND has_column_privilege(current_user,'route_templates','operations','UPDATE') AND NOT has_table_privilege(current_user,'route_templates','DELETE') ok");if(grants.rows[0]?.ok!==true)throw Error('Workspace tool privileges invalid')}
  const result=await pool.query(`SELECT
   NOT (r.rolsuper OR r.rolbypassrls OR r.rolcreaterole OR r.rolcreatedb OR r.rolreplication OR r.rolinherit) AS role_safe,
