@@ -6,6 +6,12 @@
 .admin-navigation .admin-account{display:flex;align-items:center;gap:9px;padding:7px}
 .admin-navigation .nav-brand{gap:8px}
 .admin-navigation .nav-brand-name{font-size:16px}
+.settings-grid>section[hidden],.password-change[hidden]{display:none!important}
+.settings-grid>#company,.settings-grid>#sites{grid-column:1/-1}
+main>nav a[aria-current=page]{background:#e8efff;color:#234fc9;border-color:#cbd9ff}
+.person{flex-wrap:wrap}.person>strong{margin-right:auto}.person>.pill{margin-left:0}
+.password-editor form{display:grid;gap:14px}.password-editor label{font-size:13px}.password-editor footer{margin-top:0}
+.role-badge:hover{background:#dce8ff;color:#204c9d}
 body:has(.admin-navigation)>main{margin-left:208px}
 .admin-navigation.sidebar-collapsed .premium-sidebar{width:64px;padding:12px 6px}
 body.admin-collapsed>main{margin-left:64px}

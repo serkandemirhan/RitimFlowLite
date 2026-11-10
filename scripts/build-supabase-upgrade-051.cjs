@@ -4,9 +4,9 @@ const fs=require('node:fs'),path=require('node:path');
 const {checksums}=require('../backend/src/migration-checksum');
 const {provisionRuntime}=require('../backend/security/provision-runtime');
 (async()=>{
- // Current runtime grants depend on all objects through 055.
- const target=Number(process.argv[2]||55);
- if(target!==55)throw Error('Current runtime provisioning requires target 55');
+ // Current runtime grants depend on all objects through 056.
+ const target=Number(process.argv[2]||56);
+ if(target!==56)throw Error('Current runtime provisioning requires target 56');
  const statements=["BEGIN; SELECT pg_advisory_xact_lock(hashtext('ritim-mes-migrations-v1')); SET LOCAL search_path TO ritim,pg_catalog;"];
  for(let n=47;n<=target;n++){
   const version=String(n).padStart(3,'0');

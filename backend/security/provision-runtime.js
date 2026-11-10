@@ -15,6 +15,7 @@ async function provisionRuntime(client,schema,role,{isolatedDevelopment=false}={
  await client.query(`REVOKE ALL ON ALL FUNCTIONS IN SCHEMA ${s} FROM PUBLIC, ${u}`);
  await client.query(`GRANT USAGE ON SCHEMA ${s} TO ${u}`);
  if(isolatedDevelopment)await client.query(`GRANT EXECUTE ON FUNCTION ${s}.ritim_admin_workspace(text,jsonb) TO ${u}`);
+ if(isolatedDevelopment)await client.query(`GRANT EXECUTE ON FUNCTION ${s}.ritim_password_target(uuid) TO ${u}`);
  if(isolatedDevelopment)await client.query(`GRANT EXECUTE ON FUNCTION ${s}.ritim_manage_invitation(text,jsonb),${s}.ritim_accept_invitation(uuid,text,text,text) TO ${u}`);
  if(isolatedDevelopment)await client.query(`GRANT SELECT,INSERT ON ${s}.workspace_preferences,${s}.route_templates TO ${u}; GRANT UPDATE(settings,version,updated_at) ON ${s}.workspace_preferences TO ${u}; GRANT UPDATE(name,operations,version,deleted_at,updated_at) ON ${s}.route_templates TO ${u}`);
  await client.query(`GRANT EXECUTE ON FUNCTION ${s}.ritim_identity(text,text),${s}.ritim_memberships(uuid),${s}.ritim_open_scope(uuid,uuid,uuid),${s}.ritim_scope_matches(uuid,uuid),${s}.ritim_schema_versions(),${s}.ritim_lock_assignments(uuid,uuid,uuid),${s}.ritim_lock_active_operator(uuid,uuid,uuid),${s}.ritim_eligible_operators(uuid,uuid),${s}.ritim_assigned_operator(uuid,uuid,uuid),${s}.ritim_quality_actor_name(uuid,uuid,uuid),${s}.ritim_order_creator_name(uuid,uuid,uuid),${s}.ritim_job_history_actor_name(uuid,uuid,uuid,uuid) TO ${u}`);
