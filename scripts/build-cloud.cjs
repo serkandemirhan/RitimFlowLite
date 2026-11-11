@@ -13,4 +13,6 @@ for(const asset of assets){if(asset.includes('..')||!['.js','.css','.svg','.png'
 fs.copyFileSync(path.join(root,'integration/drawing-viewer.mjs'),path.join(out,'integration/drawing-viewer.mjs'));
 fs.cpSync(path.join(root,'assets/vendor/pdfjs'),path.join(out,'assets/vendor/pdfjs'),{recursive:true});
 for(const name of ['tabler.LICENSE','tabulator.LICENSE','daypilot.LICENSE','daypilot.NOTICE'])fs.copyFileSync(path.join(root,'assets/vendor/ui',name),path.join(out,'assets/vendor/ui',name));
+fs.mkdirSync(path.join(out,'customers'),{recursive:true});
+fs.copyFileSync(path.join(root,'customers/hasmaksan.html'),path.join(out,'customers/hasmaksan.html'));
 fs.writeFileSync(path.join(out,'index.html'),html);console.log('Cloud UI packaged:',assets.size,'assets plus local PDF renderer');
