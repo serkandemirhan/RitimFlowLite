@@ -142,6 +142,7 @@ async function main() {
     // Assert the target before fictional fixtures: new loopback cluster and dedicated database only.
     if (url.hostname !== '127.0.0.1' || url.pathname !== '/ritim_native_test') throw Error('Invalid disposable target');
     if(process.argv.includes('--cloud-upgrade')){await require('./verify-cloud-upgrade-sql.cjs')(url.toString());return;}
+    if(process.argv.includes('--header-toolbar')){await require('./verify-header-toolbar.cjs')(url.toString());return;}
     if(process.argv.includes('--material-pages')){await require('./verify-material-stock-pages.cjs')(url.toString());return;}
     if (process.argv.includes('--queue-benchmark-only')) { await require('./benchmark-queues.cjs')(url.toString()); return; }
     if (process.argv.includes('--operations-only')) {

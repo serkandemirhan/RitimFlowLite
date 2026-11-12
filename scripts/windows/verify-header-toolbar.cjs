@@ -1,0 +1,102 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),crypto=require('node:crypto'),assert=require('node:assert/strict');
+const root=path.resolve(__dirname,'../..'),{Pool}=require('../../backend/node_modules/pg'),{chromium}=require('playwright');
+module.exports=async function(databaseUrl){
+ const dir=path.join(root,'artifacts/header-toolbar');fs.mkdirSync(dir,{recursive:true});
+ const admin=new Pool({connectionString:databaseUrl}),schema='header_toolbar',owner='header_toolbar_owner',runtime='header_toolbar_runtime',id=()=>crypto.randomUUID(),ta=id(),sa=id(),tb=id(),sb=id(),manager=id(),operator=id();
+ const roles=require('../../backend/test-support/roles.cjs').roleConnections(databaseUrl);let migration,pool,app,server,browser;
+ try{
+  await roles.createRole(admin,owner);await roles.createRole(admin,runtime);await admin.query(`CREATE SCHEMA ${schema} AUTHORIZATION ${owner}`);
+  migration=new Pool({connectionString:roles.roleUrl(owner),options:'-c search_path='+schema});await require('../../backend/src/migrate').migrate(migration);const client=await migration.connect();try{await client.query('BEGIN');await require('../../backend/security/provision-runtime').provisionRuntime(client,schema,runtime,{isolatedDevelopment:true});await client.query('COMMIT')}finally{client.release()}
+  await admin.query(`INSERT INTO ${schema}.tenants(id,name) VALUES($1,'Ekran Testi'),($2,'İzolasyon')`,[ta,tb]);await admin.query(`INSERT INTO ${schema}.sites(tenant_id,id,code,name) VALUES($1,$2,'TEST','Malzeme Akışı Test Atölyesi'),($3,$4,'OTHER','İzolasyon')`,[ta,sa,tb,sb]);await admin.query(`INSERT INTO ${schema}.users(id,issuer,subject,display_name) VALUES($1,'pages-fixture','manager','Test Yöneticisi'),($2,'pages-fixture','operator','Test Operatörü')`,[manager,operator]);await admin.query(`INSERT INTO ${schema}.site_memberships(tenant_id,site_id,user_id,role) VALUES($1,$2,$3,'manager'),($1,$2,$4,'operator')`,[ta,sa,manager,operator]);
+  await admin.query(`INSERT INTO ${schema}.tenant_memberships(tenant_id,user_id,role) VALUES($1,$2,'tenant_admin')`,[ta,manager]);
+  pool=new Pool({connectionString:roles.roleUrl(runtime),options:'-c search_path='+schema,max:8});
+  const session=crypto.randomBytes(24).toString('hex'),managerToken='pages.manager.token',operatorToken='pages.operator.token';
+  const verifier={verify:async token=>{if(![managerToken,operatorToken].includes(token))throw Error('Invalid fixture session');return {issuer:'pages-fixture',subject:token===managerToken?'manager':'operator'}}};
+  const tokenFor=req=>String(req.headers.cookie||'').includes('pages_session='+session)?managerToken:null;const bff={routes:a=>{a.get('/auth/config',async()=>({enabled:true}));require('../../backend/src/workspace-admin-page').routes(a,{pool,verifier,tokenFor,origin:()=>{}})},tokenFor};
+  app=require('../../backend/src/app').buildApp({pool,verifier,bff,recovery:{key:crypto.randomBytes(32).toString('base64'),keyVersion:'pages'},isolatedDevelopment:true});app.addHook('onError',async(req,reply,e)=>{if(!e.statusCode||e.statusCode>=500)console.log('Fixture backend error:',e.code,e.message)});await app.ready();
+  const base=`/api/v1/sites/${ta}/${sa}`,call=async(method,url,payload,key,token=managerToken)=>{for(const op of payload?.operations||[])await admin.query(`INSERT INTO ${schema}.master_operations(tenant_id,site_id,id,name,kind) VALUES($1,$2,$3,$4,$5) ON CONFLICT DO NOTHING`,[ta,sa,id(),op.name,op.kind]);return app.inject({method,url,headers:{authorization:'Bearer '+token,...key?{'idempotency-key':key}:{}},...payload?{payload}:{}})};
+  const scenario=await require('../../backend/test-support/material-stock-scenario.cjs')({call,base,admin,schema,ta,sa,tb,sb,operator,ot:operatorToken,id});
+  const material=(await admin.query(`SELECT id FROM ${schema}.inventory_materials WHERE code='15'`)).rows[0];const location=(await admin.query(`SELECT id FROM ${schema}.inventory_locations WHERE kind='container'`)).rows[0];const pendingReceipt=await call('POST',base+'/inventory/receipts',{materialId:material.id,locationId:location.id,quantity:3,ownership:'general'},'pages-pending-receipt');assert.equal(pendingReceipt.statusCode,201,pendingReceipt.body);
+  const locationChecks=await require('../../backend/test-support/location-management-scenario.cjs')({call,base,materialId:material.id,destinationId:location.id,operatorToken});
+  const record=(await admin.query(`SELECT p.id,p.order_id FROM ${schema}.production_orders p JOIN ${schema}.orders o ON (o.tenant_id,o.site_id,o.id)=(p.tenant_id,p.site_id,p.order_id) JOIN ${schema}.master_customers c ON (c.tenant_id,c.site_id,c.id)=(o.tenant_id,o.site_id,o.customer_id) WHERE c.code='42' AND p.quantity=20`)).rows[0];
+  const supplier=(await admin.query(`SELECT w.id FROM ${schema}.work_orders w JOIN ${schema}.operations o ON (o.tenant_id,o.site_id,o.id)=(w.tenant_id,w.site_id,w.operation_id) WHERE w.production_order_id=$1 AND o.kind='external'`,[record.id])).rows[0];
+  const supplierTypesChecks=await require('../../backend/test-support/supplier-types-scenario.cjs')({call,base,productionId:record.id,workOrderId:supplier.id});
+  const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.woff2':'font/woff2','.pdf':'application/pdf','.wasm':'application/wasm'};
+  server=http.createServer(async(req,res)=>{try{const url=new URL(req.url,'http://127.0.0.1');if(/^\/(api|auth|health)\//.test(url.pathname)){const chunks=[];for await(const chunk of req)chunks.push(chunk);const headers={...req.headers};delete headers['content-length'];const response=await app.inject({method:req.method,url:req.url,headers,...chunks.length?{payload:Buffer.concat(chunks)}:{}});res.writeHead(response.statusCode,response.headers);res.end(response.rawPayload);return}const relative=url.pathname==='/'?'index.html':decodeURIComponent(url.pathname).slice(1),file=path.resolve(root,relative);if(!file.startsWith(root+path.sep)||!fs.existsSync(file)){res.writeHead(404);return res.end()}let body=fs.readFileSync(file);if(relative==='index.html')body=Buffer.from(body.toString('utf8').replace("const API_MODE=new URL(location.href).searchParams.get('mode')==='api';",'const API_MODE=true;window.RITIM_CLOUD=true;'));if(relative==='index.html'&&url.searchParams.get('toolbarBaseline')==='1')body=Buffer.from(body.toString('utf8').replace(/<link rel="stylesheet" href="assets\/css\/compact-workspace.css">/,'').replace(/<script src="integration\/compact-workspace.js"><\/script>/,''));res.writeHead(200,{'content-type':types[path.extname(file)]||'application/octet-stream','cache-control':'no-store'});res.end(body)}catch(e){res.writeHead(500);res.end('Fixture failed')}});await new Promise(r=>server.listen(0,'127.0.0.1',r));
+  const origin='http://127.0.0.1:'+server.address().port;browser=await chromium.launch();const context=await browser.newContext();await context.addCookies([{name:'pages_session',value:session,url:origin,httpOnly:true,sameSite:'Lax'}]);const page=await context.newPage(),errors=[],responses=[];page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.url().includes('/api/')&&r.status()>=400)responses.push({path:new URL(r.url()).pathname,status:r.status()})});
+  async function ready(){await page.waitForFunction(()=>document.querySelector('.api-shell')&&document.querySelector('#page')&&document.getElementById('app')?.getAttribute('aria-busy')!=='true'&&!document.querySelector('#page')?.textContent.includes('Yükleniyor'));await page.waitForTimeout(300);const alert=await page.locator('#api-alert').innerText();assert.equal(alert,'',alert);assert(!/güvenle devam edemiyor/.test(await page.locator('body').innerText()))}
+  const screens=[
+   ['orders','Siparişler','view=orders','.order-grid tbody tr'],
+   ['production-orders','Üretim Emirleri','view=production-orders&productionStatus=all','.order-grid tbody tr'],
+   ['jobs','İş Emirleri','view=jobs','.tabulator-row'],
+   ['tracking','Üretim Takibi','view=production-monitor','.tracking-order-row'],
+   ['compensations','Telafi Takibi','view=compensations','.compensation-card'],
+   ['shipping','Sevkiyat','view=shipping','.order-grid tbody tr'],
+   ['outsourcing','Fason','view=outsourcing','.order-grid tbody tr'],
+   ['returns','Müşteri İadeleri','view=returns','.order-grid tbody tr'],
+   ['receipt','Mal Kabul','view=inventory',null],
+   ['move','Konumlar Arası Transfer','view=inventory','[data-balance-search]'],
+   ['pick','Üretime Malzeme Teslimi','view=inventory',null],
+   ['stock','Stok Durumu','view=inventory','.stock-product'],
+   ['scrap','Hurda','view=inventory','[data-balance-search]'],
+   ['history','Hareket Geçmişi','view=inventory','.inventory-movement'],
+   ['quality','Bekleyen Kontroller','view=quality-list','.order-grid tbody tr'],
+   ['quality-history','Geçmiş Kontroller','view=quality-list&tab=history','.order-grid tbody tr'],
+   ['rework','Tamir','view=rework','.operations-rework-row']
+  ];
+  const phase=process.env.HEADER_TOOLBAR_PHASE||'after',saved=phase==='after'&&fs.existsSync(path.join(dir,'measurements.json'))?JSON.parse(fs.readFileSync(path.join(dir,'measurements.json'),'utf8')):null;
+  const measures=saved?saved.measures.filter(m=>!m.key.endsWith('-long')&&(process.env.HEADER_TOOLBAR_SKIP_CAPTURES||m.stage==='before')):[],checks=[];
+  async function capture(stage){
+   for(const [key,label,query,rowSelector]of screens){
+    await page.goto(origin+'/?'+query);await ready();
+    if(['move','pick','stock','scrap','history'].includes(key)){await page.evaluate(k=>RitimPremiumAPI.inventorySelectTask(k),key);await ready()}
+    if(key==='jobs')await page.locator('.tabulator').waitFor();
+    for(const [width,height]of [[1920,1080],[1366,768],[390,844],[375,667]]){
+     await page.setViewportSize({width,height});await page.waitForTimeout(100);
+     const m=await page.evaluate(({rowSelector})=>{
+      const visible=e=>!!e&&e.getClientRects().length>0&&getComputedStyle(e).visibility!=='hidden';
+      const header=document.querySelector('.workspace-header'),tabs=document.querySelector('.api-secondary-nav,.api-inventory-tasks');
+      const toolbar=[...document.querySelectorAll('.contextual-toolbar,.order-workspace-filters,.production-list-toolbar,.worklist-filters,.tracking-search,.compensation-filters,.workspace-logistics-search,.supplier-toolbar,.stock-filter-row,.flow-queue-search,.quality-history-workspace>form')].find(visible);
+      const rows=rowSelector?[...document.querySelectorAll(rowSelector)].filter(visible):[];
+      const r=rows[0]?.getBoundingClientRect();
+      return {headerPx:Math.round(header?.getBoundingClientRect().height||0),tabsPx:Math.round(tabs?.getBoundingClientRect().height||0),toolbarPx:Math.round(toolbar?.getBoundingClientRect().height||0),firstRowY:r?Math.round(r.top):null,visibleRows:rows.filter(e=>{const b=e.getBoundingClientRect();return b.top>=0&&b.bottom<=innerHeight}).length,overflow:document.documentElement.scrollWidth>innerWidth};
+     },{rowSelector});
+     const file=stage+'/'+key+'-'+width+'x'+height+'.png';fs.mkdirSync(path.join(dir,stage),{recursive:true});await page.screenshot({path:path.join(dir,file),fullPage:false});
+     measures.push({stage,key,label,width,height,file,...m});
+     fs.writeFileSync(path.join(dir,'measurements.json'),JSON.stringify({scope:'Actual application, isolated PostgreSQL, fixture data; no cloud writes',measures,checks,errors,responses},null,2));
+    }
+    console.log(stage+': '+label);
+   }
+  }
+  if(!process.env.HEADER_TOOLBAR_SKIP_CAPTURES)await capture(phase==='after'?'after':'before');
+  if(phase==='before'){
+   console.log('BASELINE_READY');
+   while(!fs.existsSync(path.join(dir,'continue-after'))){await new Promise(r=>setTimeout(r,500))}
+   await capture('after');
+  }
+  try{
+   await require('../../tests/header-toolbar-behaviors.cjs')({page,origin,ready,checks,recordLongComparison:async()=>{
+    for(const [key,label,query,rows]of [['orders-long','Siparişler — uzun liste','view=orders','tbody tr[data-order-id]'],['jobs-long','İş Emirleri — uzun liste','view=jobs&status=all','.tabulator-row']]){
+     for(const stage of ['before','after']){
+      await page.goto(origin+'/?'+query+(stage==='before'?'&toolbarBaseline=1':''));await ready();if(key==='jobs-long')await page.locator('.tabulator-row').first().waitFor();
+      for(const [width,height]of [[1920,1080],[1366,768],[390,844],[375,667]]){
+       await page.setViewportSize({width,height});await page.waitForTimeout(100);
+       const metric=await page.evaluate(rows=>{const visible=e=>e.getClientRects().length>0,list=[...document.querySelectorAll(rows)].filter(visible),header=document.querySelector('.workspace-header'),tabs=document.querySelector('.api-secondary-nav'),bar=document.querySelector('.contextual-toolbar,.order-workspace-filters,.worklist-filters');return {headerPx:Math.round(header.getBoundingClientRect().height),tabsPx:Math.round(tabs?.getBoundingClientRect().height||0),toolbarPx:Math.round(bar?.getBoundingClientRect().height||0),firstRowY:list.length?Math.round(list[0].getBoundingClientRect().top):null,visibleRows:list.filter(e=>{const b=e.getBoundingClientRect();return b.top>=0&&b.bottom<=innerHeight}).length,overflow:document.documentElement.scrollWidth>innerWidth}},rows);
+       const file=stage+'/'+key+'-'+width+'x'+height+'.png';await page.screenshot({path:path.join(dir,file)});measures.push({stage,key,label,width,height,file,...metric});
+      }
+     }
+    }
+   },seedLongLists:async()=>{
+    const c=(await admin.query(`SELECT id FROM ${schema}.master_customers WHERE code='42'`)).rows[0],part=(await admin.query(`SELECT id FROM ${schema}.master_parts WHERE code='16'`)).rows[0];
+    for(let i=0;i<24;i++){const response=await call('POST',base+'/orders',{customerId:c.id,items:[{partId:part.id,quantity:2,dueDate:'2026-12-20'}]},'toolbar-page-'+i);assert.equal(response.statusCode,201,response.body)}
+    const order=(await call('POST',base+'/orders',{customerId:c.id,items:[{partId:part.id,quantity:30,dueDate:'2026-12-20'}]},'toolbar-long-order')).json();
+    const response=await call('POST',base+'/orders/'+order.id+'/production-orders',{orderItemId:order.items[0].id,quantity:30,operations:Array.from({length:24},(_,i)=>({name:'Toolbar operation '+i,kind:'internal'}))},'toolbar-long-production');assert.equal(response.statusCode,201,response.body);const production=response.json();
+    const planned=await call('POST',base+'/production-orders/'+production.id+'/state',{action:'plan',version:production.version,plannedDate:'2026-11-12'},'toolbar-long-plan');assert.equal(planned.statusCode,200,planned.body);
+   }});
+  }finally{if(checks.some(c=>!c.pass)){await page.screenshot({path:path.join(dir,'functional-failure.png')});fs.writeFileSync(path.join(dir,'functional-failure.html'),await page.content())}fs.writeFileSync(path.join(dir,'measurements.json'),JSON.stringify({scope:'Actual application, isolated PostgreSQL, fixture data; no cloud writes',measures,checks,errors,responses},null,2))}
+  assert.deepEqual(errors,[]);assert.deepEqual(responses,[]);
+  const after=measures.filter(m=>m.stage==='after');for(const m of after)assert.equal(m.overflow,false,m.key+' '+m.width+' horizontal overflow');
+  console.log('Header toolbar captures complete: '+measures.length);
+ }finally{if(browser)await browser.close();if(server)await new Promise(r=>server.close(r));if(app)await app.close();if(pool)await pool.end();if(migration)await migration.end();await admin.end()}
+};
