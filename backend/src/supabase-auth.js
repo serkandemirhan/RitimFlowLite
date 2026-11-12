@@ -27,7 +27,8 @@ function makeSupabaseBff({url,publishableKey,appOrigin,pool,verifier,recoveryEna
  async function routes(app){
   const invitationProvider=invitationsEnabled?require('./workspace-invitations').deliveryProvider({url,secretKey,appOrigin,authRequest,fetcher}):null;
   const passwordProvider=secretKey?require('./workspace-password').provider({url,secretKey,fetcher}):null;
-  require('./workspace-admin-page').routes(app,{pool,verifier,tokenFor,origin,invitationsEnabled,invitationProvider,passwordProvider});
+  const userProvider=secretKey?require('./workspace-users').provider({url,secretKey,fetcher}):null;
+  require('./workspace-admin-page').routes(app,{pool,verifier,tokenFor,origin,invitationsEnabled,invitationProvider,passwordProvider,userProvider});
   require('./supabase-invitation').routes(app,{pool,verifier,authRequest,origin,acceptSession,tokenFor,invitationsEnabled,secretKey});
   app.addContentTypeParser('application/x-www-form-urlencoded',{parseAs:'string',bodyLimit:4096},(_req,body,done)=>done(null,Object.fromEntries(new URLSearchParams(body))));
   app.addHook('onSend',async(req,reply,payload)=>{if(req.url.startsWith('/auth/')){
@@ -38,8 +39,15 @@ function makeSupabaseBff({url,publishableKey,appOrigin,pool,verifier,recoveryEna
   app.get('/auth/config',async()=>({enabled:true,provider:'supabase',manualTokenAllowed:false,refreshEnabled:true,recoveryEnabled}));
   app.get('/auth/login',async(req,reply)=>reply.type('text/html').send(loginPage(req.query?.failed==='1')));
   app.post('/auth/login',{bodyLimit:4096},async(req,reply)=>{
-   origin(req);const {email,password}=req.body||{};
-   if(typeof email!=='string'||typeof password!=='string'||!email||!password||email.length>254||password.length>1024)throw new HttpError(400,'INVALID_INPUT','E-posta ve şifre gerekli.');
+   origin(req);const {email:login,password}=req.body||{};
+   if(typeof login!=='string'||typeof password!=='string'||!login.trim()||!password||login.length>254||password.length>1024)throw new HttpError(400,'INVALID_INPUT','Kullanıcı adı veya e-posta ve şifre gerekli.');
+   let email=login.trim();
+   if(!email.includes('@')){
+    if(!/^[a-z0-9][a-z0-9._-]{2,39}$/i.test(email))return reply.code(303).redirect('/auth/login?failed=1');
+    const found=await pool.query('SELECT ritim_username_identity($1) AS subject',[email.toLowerCase()]);
+    if(!found.rows[0]?.subject)return reply.code(303).redirect('/auth/login?failed=1');
+    email=require('./workspace-users').email(found.rows[0].subject);
+   }
    const r=await authRequest('/token?grant_type=password',{email,password});
    if(!r.ok){if(r.status>=500)throw new HttpError(503,'AUTH_UNAVAILABLE','Kimlik hizmeti kullanilamiyor.');return reply.code(303).redirect('/auth/login?failed=1')}
    try{await acceptSession(await r.json(),reply)}catch(e){if(e.statusCode===401)return reply.code(303).redirect('/auth/login?failed=1');throw e}
@@ -50,7 +58,7 @@ function makeSupabaseBff({url,publishableKey,appOrigin,pool,verifier,recoveryEna
    const refresh=readCookie(req,refreshName);
    if(!refresh||!/^[A-Za-z0-9._~-]{1,3000}$/.test(refresh))throw new HttpError(401,'UNAUTHENTICATED','Oturum gerekli.');
    const current=readCookie(req,cookieName);
-   if(current){try{await verifier.verify(current);const claims=JSON.parse(Buffer.from(current.split('.')[1],'base64url').toString());if(claims.exp>Date.now()/1000+60)return {renewed:false}}catch{}}
+   if(current){try{await authenticate({headers:{authorization:'Bearer '+current}},pool,verifier);const claims=JSON.parse(Buffer.from(current.split('.')[1],'base64url').toString());if(claims.exp>Date.now()/1000+60)return {renewed:false}}catch{}}
    const r=await authRequest('/token?grant_type=refresh_token',{refresh_token:refresh});
    if(!r.ok){if(r.status>=500||r.status===429)throw new HttpError(503,'AUTH_UNAVAILABLE','Oturum yenilenemedi; tekrar deneyin.');clear(reply);throw new HttpError(401,'UNAUTHENTICATED','Oturum sona erdi.')}
    try{await acceptSession(await r.json(),reply)}catch(e){if(e.statusCode===401)clear(reply);throw e}

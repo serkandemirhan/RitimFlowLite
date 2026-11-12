@@ -6,6 +6,17 @@ document.addEventListener('DOMContentLoaded',()=>{
  const tabs=[...document.querySelectorAll('main>nav a')],sections=[...document.querySelectorAll('.settings-grid>section')];
  const showSection=()=>{const selected=['#company','#sites','#team'].includes(location.hash)?location.hash:'#team';sections.forEach(s=>s.hidden='#'+s.id!==selected);tabs.forEach(a=>{if(a.hash===selected)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});};
  window.addEventListener('hashchange',showSection);showSection();
+ const people=[...document.querySelectorAll('.team-person')],query=document.getElementById('team-query'),status=document.getElementById('team-status');
+ const filter=()=>{let count=0;for(const person of people){person.hidden=!(person.dataset.search.includes((query?.value||'').trim().toLocaleLowerCase('tr-TR'))&&(!status||status.value==='all'||person.dataset.state===status.value));if(!person.hidden)count++;}const total=document.getElementById('team-count');if(total)total.textContent=count+' / '+people.length+' kullanıcı';const empty=document.getElementById('team-empty');if(empty)empty.hidden=count>0;};
+ query?.addEventListener('input',filter);status?.addEventListener('change',filter);filter();
+ for(const form of document.querySelectorAll('.team-actions form'))form.addEventListener('submit',event=>{const action=form.querySelector('[name="action"]')?.value;if(!['suspend','activate'].includes(action))return;const name=form.closest('.person').querySelector('strong').textContent.trim();if(!confirm(action==='suspend'?name+' dondurulsun mu? Açık oturumları dahil sistem erişimi engellenecek.':name+' yeniden etkinleştirilsin mi?'))event.preventDefault();});
+ const create=document.querySelector('.managed-create'),open=document.getElementById('open-create-user');
+ if(create&&open){
+  create.hidden=true;const form=create.querySelector('form'),password=form.querySelector('[name="password"]'),confirmation=form.querySelector('[name="confirmation"]');
+  const validate=()=>confirmation.setCustomValidity(password.value===confirmation.value?'':'Şifreler aynı olmalı.');password.addEventListener('input',validate);confirmation.addEventListener('input',validate);
+  open.onclick=()=>{const dialog=document.createElement('dialog');dialog.className='role-editor user-create-editor';dialog.setAttribute('aria-labelledby','create-user-title');const title=document.createElement('h2');title.id='create-user-title';title.textContent='Kullanıcı ekle';const cancel=document.createElement('button');cancel.type='button';cancel.className='role-cancel';cancel.textContent='Vazgeç';cancel.onclick=()=>dialog.close();form.querySelector('footer').prepend(cancel);dialog.append(title,form);document.body.append(dialog);dialog.onclose=()=>{form.reset();confirmation.setCustomValidity('');form.querySelector('button[type="submit"]').disabled=false;cancel.remove();create.append(form);dialog.remove();};dialog.showModal();};
+  form.addEventListener('submit',()=>form.querySelector('button[type="submit"]').disabled=true);
+ }
  for(const details of document.querySelectorAll('.password-change')){
   const form=details.querySelector('form'),name=details.dataset.name;
   const button=document.createElement('button');button.type='button';button.className='role-badge';button.textContent='Şifre değiştir';button.setAttribute('aria-label',name+' · Şifre değiştir');details.hidden=true;details.before(button);
