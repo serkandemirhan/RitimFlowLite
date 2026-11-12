@@ -66,7 +66,8 @@
   const ready=jobs.find(x=>x.id!==j.id&&x.status!=='complete'&&x.attention?.ready===true),complete=panel.querySelector('.operator-completion');
   if(ready){const b=document.createElement('button');b.className='btn primary polish-next-job';b.textContent='Sonraki hazır işi aç';b.onclick=()=>root.RitimPremiumAPI.openAssigned(ready.id);complete?.append(b)}
   if(!jobs.some(x=>!['complete','cancelled'].includes(x.status))){const empty=document.createElement('p');empty.className='polish-empty-jobs';empty.textContent='Açık işiniz yok. Tamamlanan işleri geçmişten inceleyebilirsiniz.';document.querySelector('.operator-jobs-panel,.operator-job-list')?.prepend(empty)}
-  if(j.purpose==='compensation'||j.compensationId){const title=complete?.querySelector('strong');if(title)title.textContent='Telafi işi tamamlandı';}
+  const outputs=v.qualityView?.outputs||[],approved=outputs.reduce((n,o)=>n+(o.approved||0),0),pending=outputs.reduce((n,o)=>n+(o.unresolved||0),0),scrap=v.productionView?.attention?.productionScrap||0,repair=outputs.reduce((n,o)=>n+(o.reworkPending??o.rework??0),0),text=complete?.querySelector('p');if(text&&v.qualityView)text.textContent=approved+' onaylı'+(scrap?' · '+scrap+' hurda':'')+(repair?' · '+repair+' tamir bekliyor':'')+(pending?' · '+pending+' kalite bekliyor':'');
+  if(j.purpose==='compensation'||j.compensationId||j.compensation){const title=complete?.querySelector('strong');if(title)title.textContent='Telafi işi tamamlandı';}
  }
  function shipping(v){if(v.page!=='shipping')return;const card=document.querySelector('.flow-shipping .refine-state-card.is-complete');if(card&&v.selected){const link=document.createElement('button');link.className='btn polish-order-link';link.textContent='Siparişi görüntüle';link.onclick=()=>root.RitimPremiumAPI.openOrder(v.selected);card.append(link)}}
  function quality(v){
