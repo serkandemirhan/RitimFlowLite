@@ -76,6 +76,7 @@
 .api-shell.standard-workspace .compact-table-tools .btn{height:30px;min-height:30px;padding:4px 8px;font-size:11px}
 .api-shell.standard-workspace .tracking-density{display:flex!important}
 .api-shell.standard-workspace .compact-view-content .tracking-density{display:grid!important;gap:4px}
+.api-shell.standard-workspace .compact-view-content .tracking-density>select[hidden]{display:none!important}
 .api-shell.standard-workspace .compact-view-content:has(.tracking-density){width:min(220px,100%)}
 .api-shell.standard-workspace .compact-view-content input[type=radio]{width:16px;height:16px;min-height:16px;padding:0;margin:0;flex:none}
 .api-shell.standard-workspace .compact-incoming-history{border:1px solid var(--compact-border);border-radius:8px;background:#fff;margin:0 0 8px}
