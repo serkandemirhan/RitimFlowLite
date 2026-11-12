@@ -39,7 +39,7 @@ async function facts(c,s,{orderId=null,ids=null,orderIds=null}={}){
   if(x.execution_hold)add('order_held',x.execution_hold_reason||'Sipariş durduruldu','order');
   if(x.order_status!=='open'&&!x.after_sales)add('closed','Sipariş kapalı','order');
   if(x.planning_state==='held')add('held',x.hold_reason||'Üretim emri beklemede','production-order');else if(x.production_order_id&&x.planning_state!=='planned')add('unplanned','Üretim emri planlanmalı','production-order');
-  if(qualityPending)add('quality',qualityPending+' adet kalite kararı bekliyor','quality');if(repairPending)add('repair',repairPending+' adet tamir tamamlanmalı','rework');
+  if(qualityPending&&!x.final_control)add('quality',qualityPending+' adet kalite kararı bekliyor','quality');if(repairPending)add('repair',repairPending+' adet tamir tamamlanmalı','rework');
   if(x.kind==='external'){if(supplierOutstanding)add('supplier',supplierOutstanding+' adet fason firmasında','supplier');else if(x.status!=='complete'&&!qualityPending)add('supplier_dispatch','Fason sevk / tamamlama işlemini açın','supplier')}
   else if(!['complete','cancelled'].includes(x.status)){
    if(consumed>received||produced>quantity||x.historical_unreconciled)add('reconciliation','Miktar mutabakatı gerekli','job');

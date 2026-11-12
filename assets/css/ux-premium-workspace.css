@@ -1842,3 +1842,22 @@ button.workspace-filter-chip{cursor:pointer;min-height:32px}.workspace-filter-dr
 .shipping-compose{padding:18px}.shipping-compose-help,.shipping-compose-hint{color:#526b82;font-size:13px;line-height:1.5}.shipping-compose .context-search{display:flex;align-items:end;gap:8px;margin:14px 0}.shipping-compose .context-search label{flex:1;min-width:0}.shipping-product-list{display:grid;gap:10px;margin-top:14px}.shipping-product-row{display:grid;grid-template-columns:minmax(0,1fr) 130px;gap:16px;align-items:center;border:1px solid #dce5f0;border-radius:9px;padding:12px;background:white}.shipping-product-row strong,.shipping-product-row small{display:block;overflow-wrap:anywhere}.shipping-product-row small,.shipping-product-row p{font-size:12px;color:#667b91;margin:4px 0}.shipping-product-row label{display:grid;gap:6px;font-size:12px;min-width:0}.shipping-ready-amount{font-size:12px;color:#216c4d;background:#eaf6ee;display:inline-block;padding:4px 7px;border-radius:5px}.shipping-product-row.is-unavailable{background:#f6f8fb}.shipping-product-row.is-unavailable .shipping-ready-amount{background:#edf0f5;color:#6a7c91}.shipping-physical-confirm{display:flex;gap:10px;align-items:start;margin:18px 0 8px;font-size:13px}.shipping-physical-confirm input{width:18px;height:18px;flex:0 0 18px;margin-top:2px}.shipping-products-form>button{width:100%;margin-top:8px}.shipping-no-ready{padding:16px;background:#f4f7fb;border-radius:8px}.shipping-order-identity{padding:10px;background:#f4f7fb;border-radius:8px}.shipping-compose #shipping-products-error{color:#a32935;font-size:13px}@media(max-width:480px){.shipping-compose{padding:12px}.shipping-product-row{grid-template-columns:minmax(0,1fr);gap:10px}.shipping-product-row label{grid-template-columns:1fr 110px;align-items:center}.shipping-compose .context-search{align-items:end}.shipping-compose h3{overflow-wrap:anywhere}}
 
 .shipping-deliver-all{white-space:normal;max-width:100%;margin:12px 0}
+
+/* Keep the daily operator action visible and dialogs usable above the keyboard. */
+.api-shell[data-screen=operator] .operator-focus .quantity-breakdown{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:8px 0}
+.api-shell[data-screen=operator] .operator-focus .quantity-breakdown>div{padding:8px;gap:4px}
+.api-shell[data-screen=operator] .operator-focus .quantity-breakdown small{font-size:11px;line-height:1.3}
+.api-shell[data-screen=operator] .operator-focus .quantity-breakdown strong{font-size:20px}
+.operator-pause-dialog[open]:has(.operator-pause-body){display:flex;flex-direction:column;overflow:hidden;max-height:calc(var(--operator-visible-height,100dvh) - 24px)}
+.operator-pause-body .formfield{margin-top:12px}
+.api-shell[data-screen=operator] .operator-report-form input{scroll-margin-block:20px}
+@media(max-width:600px){
+ .api-shell[data-screen=operator]:has(.operator-focus-heading) .operator-new-work-banner{padding:6px 10px;gap:8px;min-height:52px}
+ .api-shell[data-screen=operator]:has(.operator-focus-heading) .operator-new-work-banner>div>span{display:none}
+ .api-shell[data-screen=operator]:has(.operator-focus-heading) .operator-new-work-banner>svg{width:20px;height:20px}
+ .api-shell[data-screen=operator] .operator-focus .quantity-breakdown>div{padding:7px 5px}
+ .api-shell[data-screen=operator] .operator-focus .quantity-breakdown small{font-size:10px;min-height:26px}
+ .api-shell[data-screen=operator] .operator-focus .quantity-breakdown strong{font-size:19px}
+ .operator-pause-dialog[open]:has(.operator-pause-body){position:fixed;top:calc(var(--operator-visible-top,0px) + 12px);bottom:auto;margin:0 auto;width:calc(100vw - 24px)}
+ .operator-pause-footer .btn{white-space:normal}
+}
