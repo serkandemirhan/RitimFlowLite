@@ -571,7 +571,7 @@ section[data-inventory-panel="receipt"]{display:grid;grid-template-columns:repea
 .api-shell .quality-source{display:block;color:#52677d;font-size:11px;line-height:1.5;margin-top:4px;white-space:normal}
 .api-shell .quality-controls-count{font-size:12px;color:#52677d;margin:10px 0}
 .api-shell .quality-controls-empty{padding:20px;color:#52677d;text-align:center}
-@media(max-width:700px){.api-shell .quality-controls-toolbar>input,.api-shell .quality-type-filter{width:100%;min-width:0}.api-shell .quality-type-filter select{flex:1;min-width:0}.api-shell .quality-controls-workspace{padding:12px!important}}
+@media(max-width:700px){.api-shell .quality-controls-toolbar>input,.api-shell .quality-type-filter{width:100%;min-width:0}.api-shell .quality-type-filter select{flex:1;min-width:0}}
 .api-shell .operations-quality .refine-state-card{display:block}
 .api-shell .quality-state-content>small{display:block;font-size:11px;letter-spacing:.04em;margin-bottom:5px}
 .api-shell .quality-state-content>strong{display:block;font-size:18px}

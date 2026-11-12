@@ -10,7 +10,7 @@
  let lifecycle;
  function CompactPageHeader(ctx,shell){
   const heading=$('.workspace-header h1',shell);if(!heading)return;
-  const count=ctx.page==='orders'?ctx.ordersTotal:ctx.page==='jobs'?ctx.jobsTotal:ctx.page==='production-orders'?ctx.productionTotal:null;
+  const count=ctx.page==='orders'?ctx.ordersTotal:ctx.page==='jobs'?ctx.jobsTotal:ctx.page==='production-orders'?ctx.productionTotal:ctx.page==='quality-list'?ctx.qualityControlsTotal:null;
   heading.textContent=ctx.page==='inventory'?inventoryTitles[ctx.inventoryTask]||'Malzeme ve Depo':titles[ctx.page];
   if(Number.isFinite(count))heading.append(node('span','compact-page-count',String(count)));
   $('.workspace-header',shell)?.classList.add('compact-page-header');
@@ -154,9 +154,13 @@
   const apply=()=>{localSearches.set(key,search.value);const q=search.value.toLocaleLowerCase('tr-TR');for(const row of $$('tbody tr',section))row.hidden=!!q&&!row.textContent.toLocaleLowerCase('tr-TR').includes(q)};
   search.oninput=apply;bar.prepend(search);apply();
   bar.append(button('Temizle',()=>{search.value='';apply();search.focus()}));ContextualToolbar(bar);
-  const tabs=$('.api-secondary-nav');
-  if(tabs){const row=node('div','compact-navigation-row');tabs.before(row);row.append(tabs,bar)}
+  navigationToolbar(bar);
   sticky(section,bar);
+ }
+ function navigationToolbar(bar){
+  const tabs=$('.api-secondary-nav');if(!tabs||!bar)return;
+  tabs.style.flexBasis=(tabs.querySelectorAll(':scope>button').length*105)+'px';
+  const row=node('div','compact-navigation-row');tabs.before(row);row.append(tabs,bar);
  }
  function jobs(ctx,area){
   const bar=$('.worklist-filters',area);if(!bar)return;
@@ -216,7 +220,7 @@
   sticky(section,bar);
  }
  function quality(ctx,area){
-  const unified=$('.quality-controls-toolbar',area);if(unified){ContextualToolbar(unified);const section=unified.closest('section');columns(unified,section);const input=$('input',unified),select=$('select',unified);filterChips(unified,[{field:input,label:'Arama',clear:()=>{input.value='';root.RitimPremiumAPI.qualityControlsSearch()}},{field:select,label:'Kontrol türü',empty:'all',clear:()=>root.RitimPremiumAPI.qualityControlsType('all')}]);sticky(section,unified);return}
+  const unified=$('.quality-controls-toolbar',area);if(unified){ContextualToolbar(unified);const section=unified.closest('section');columns(unified,section);const input=$('input',unified),select=$('select',unified);unified.append(button('Temizle',()=>root.RitimPremiumAPI.qualityControlsReset()));const chips=filterChips(unified,[{field:input,label:'Arama',clear:()=>{input.value='';root.RitimPremiumAPI.qualityControlsSearch()}},{field:select,label:'Kontrol türü',empty:'all',clear:()=>root.RitimPremiumAPI.qualityControlsType('all')}]);navigationToolbar(unified);if(chips?.isConnected)section.prepend(chips);sticky(section,unified);return}
   if(ctx.qualityHistoryMode){
    const history=$('.audit-incoming-history',area);if(history){
     const heading=$(':scope>h2,:scope>h3',history),details=node('details','compact-incoming-history'),summary=node('summary','',heading?.textContent||'Mal kabul kalite geçmişi');
