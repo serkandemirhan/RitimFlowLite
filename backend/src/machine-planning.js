@@ -9,7 +9,7 @@ async function board(c,s){
  FROM work_orders w JOIN operations op ON (op.tenant_id,op.site_id,op.id)=(w.tenant_id,w.site_id,w.operation_id) JOIN orders o ON (o.tenant_id,o.site_id,o.id)=(w.tenant_id,w.site_id,w.order_id)
  LEFT JOIN production_orders p ON (p.tenant_id,p.site_id,p.id)=(w.tenant_id,w.site_id,w.production_order_id)
  LEFT JOIN work_assignments a ON (a.tenant_id,a.site_id,a.work_order_id)=(w.tenant_id,w.site_id,w.id) AND a.released_at IS NULL
- WHERE w.tenant_id=$1 AND w.site_id=$2 AND op.kind='internal' AND o.status='open' AND w.status NOT IN ('complete','cancelled') ORDER BY w.queue_position,w.id LIMIT 2001`,[s.tenantId,s.siteId]);
+ WHERE w.tenant_id=$1 AND w.site_id=$2 AND op.kind='internal' AND (o.status='open' OR o.status='closed' AND ${require('./after-sales').jobPredicate('w')}) AND w.status NOT IN ('complete','cancelled') ORDER BY w.queue_position,w.id LIMIT 2001`,[s.tenantId,s.siteId]);
  if(r.rowCount>2000)fail(409,'BOARD_LIMIT','Planlama panosu 2000 açık iş sınırını aşıyor');
  const attention=r.rowCount?await require('./workflow-summary').facts(c,s,{ids:r.rows.map(x=>x.id)}):[];
  const facts=new Map(attention.map(x=>[x.id,x]));const revision=crypto.createHash('sha256').update(JSON.stringify({machines,rows:r.rows})).digest('hex');

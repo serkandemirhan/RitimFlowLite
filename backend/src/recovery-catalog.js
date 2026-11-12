@@ -4,7 +4,7 @@
 const {identifier}=require('./orders-planning');
 const {HttpError}=require('./auth');
 const reject=()=>{throw new HttpError(400,'INVALID_COMMAND','Unsupported recovery command')};
-const inventory=Object.freeze({material:{path:'materials'},location:{path:'locations'},locationUpdate:{path:'locations/update'},locationDelete:{path:'locations/delete'},receipt:{path:'receipts'},move:{path:'move'},scrap:{path:'scrap'},pick:{path:'pick'}});
+const inventory=Object.freeze({supplierReturn:{path:'supplier-returns'},material:{path:'materials'},location:{path:'locations'},locationUpdate:{path:'locations/update'},locationDelete:{path:'locations/delete'},receipt:{path:'receipts'},move:{path:'move'},scrap:{path:'scrap'},pick:{path:'pick'}});
 const operations=Object.freeze({
  productionCorrection:{capability:'production.write',suffix:(o,r)=>`/orders/${o}/work-orders/${r}/production/corrections`,resource:true},
  productionCorrectionDecision:{capability:'planning.write',suffix:(o,r)=>`/orders/${o}/work-orders/${r}/production/correction-decision`,resource:true},
@@ -12,6 +12,7 @@ const operations=Object.freeze({
  orderUpdate:{capability:'orders.write',suffix:o=>`/orders/${o}/update`},
  productionBatches:{capability:'planning.write',suffix:o=>`/orders/${o}/production-batches`},
  jobTiming:{capability:'planning.write',suffix:(o,r)=>`/orders/${o}/work-orders/${r}/timing`,resource:true},
+ shippingCancelAllocation:{capability:'shipment.write',suffix:(o,r)=>`/orders/${o}/shipping/allocations/${r}/cancel`,resource:true},
  compensationApprove:{capability:'quality.write',suffix:o=>'/orders/'+o+'/compensations'},
  orderClose:{capability:'orders.write',suffix:o=>'/orders/'+o+'/close'},
  rmaAuthorize:{capability:'shipment.write',suffix:o=>`/orders/${o}/rma`},
@@ -56,6 +57,7 @@ function describe({kind,target,body}){
  if(kind==='masterData'){if(!['customers','parts','scrap-reasons','operations'].includes(body.entity)||!['create','update','delete'].includes(body.action)||!body.payload||typeof body.payload!=='object'||Array.isArray(body.payload))reject();const id=body.action==='create'?'':identifier(target);if(body.action==='create'&&target!=='')reject();return {capability:'master.write',suffix:'/master-data/'+body.entity+(id?'/'+id+'/'+body.action:''),payload:body.payload}}
  if(kind==='outsourcing'){if(!['supplier','supplierUpdate'].includes(body.command)||!body.payload||typeof body.payload!=='object'||Array.isArray(body.payload))reject();if(body.command==='supplier'&&target!=='')reject();return {capability:'stock.write',suffix:'/outsourcing/suppliers'+(body.command==='supplierUpdate'?'/'+identifier(target)+'/update':''),payload:body.payload}}
  if(kind==='shipping'){const o=identifier(body.orderId);if(target!==o||!['order','allocate','dispatch','deliver'].includes(body.command)||!body.payload||typeof body.payload!=='object'||Array.isArray(body.payload))reject();const suffix=body.command==='order'?'/orders':`/orders/${identifier(body.shippingOrderId)}/${body.command}`;return {capability:'shipment.write',suffix:`/orders/${o}/shipping${suffix}`,payload:body.payload}}
+ if(kind==='inventoryCorrection'){if(!body.payload||typeof body.payload!=='object'||Array.isArray(body.payload))reject();return {capability:'stock.write',suffix:'/inventory/movements/'+identifier(target)+'/correct',payload:body.payload}}
  if(kind==='inventory'){if(target!==''||!Object.hasOwn(inventory,body.command)||!body.payload||typeof body.payload!=='object'||Array.isArray(body.payload))reject();return {capability:'stock.write',suffix:'/inventory/'+inventory[body.command].path,payload:body.payload}}
  if(kind==='createOrder'){if(target!=='')reject();return {capability:'orders.write',suffix:'/orders',payload:body}}
  if(kind==='defineRoute'||kind==='plan'){const id=identifier(target);return {capability:kind==='plan'?'planning.write':'orders.write',suffix:`/orders/${id}/${kind==='plan'?'work-orders':'route'}`,payload:body}}
@@ -70,6 +72,6 @@ function describe({kind,target,body}){
  }
  reject();
 }
-const allowedKinds=Object.freeze({stockUnit:'master.write',rawIssue:'stock.write',rawReturn:'stock.write',incomingInspect:'quality.write',materialReadiness:'planning.write',executionControl:'orders.write',machineBatch:'planning.write',workspacePreference:'orders.read',routeTemplate:'planning.write',siteCalendar:'planning.write',machineCalendar:'planning.write',machineCreate:'master.write',machinePlanning:'planning.write','productionSupplier:dispatch':'stock.write','productionSupplier:return':'stock.write','productionSupplier:complete':'quality.write',productionOrder:'planning.write',masterData:'master.write',outsourcing:'stock.write',shipping:'shipment.write',inventory:'stock.write',createOrder:'orders.write',defineRoute:'orders.write',plan:'planning.write',production:'production.write',quality:'quality.write',...Object.fromEntries(Object.entries(operations).map(([name,value])=>['operation:'+name,value.capability]))});
+const allowedKinds=Object.freeze({inventoryCorrection:'stock.write',stockUnit:'master.write',rawIssue:'stock.write',rawReturn:'stock.write',incomingInspect:'quality.write',materialReadiness:'planning.write',executionControl:'orders.write',machineBatch:'planning.write',workspacePreference:'orders.read',routeTemplate:'planning.write',siteCalendar:'planning.write',machineCalendar:'planning.write',machineCreate:'master.write',machinePlanning:'planning.write','productionSupplier:dispatch':'stock.write','productionSupplier:return':'stock.write','productionSupplier:complete':'quality.write',productionOrder:'planning.write',masterData:'master.write',outsourcing:'stock.write',shipping:'shipment.write',inventory:'stock.write',createOrder:'orders.write',defineRoute:'orders.write',plan:'planning.write',production:'production.write',quality:'quality.write',...Object.fromEntries(Object.entries(operations).map(([name,value])=>['operation:'+name,value.capability]))});
 function storageKind(command){const d=describe(command),name=command.kind==='productionSupplier'?'productionSupplier:'+command.body.action:command.kind==='operation'?'operation:'+command.body.command:command.kind;if(allowedKinds[name]!==d.capability)reject();return name}
 module.exports={describe,allowedKinds,storageKind};

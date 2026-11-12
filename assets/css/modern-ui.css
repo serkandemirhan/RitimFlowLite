@@ -574,3 +574,19 @@ section[data-inventory-panel="receipt"]{display:grid;grid-template-columns:repea
 .api-shell #work-document-panel.polish-documents-empty .document-heading{display:flex!important;justify-content:space-between!important;align-items:center!important;flex:1!important;width:auto!important;margin:0!important}
 .api-shell #work-document-panel.polish-documents-empty #work-document-list{margin:0!important;padding:0!important}
 .api-shell #work-document-panel.polish-documents-empty{flex-direction:row!important}
+.audit-stock-quality{display:block;grid-column:1/-1;color:var(--text-muted,#526782);font-size:12px;font-weight:400}
+.audit-stock-selection{margin-top:16px;border-top:1px solid #dce5f0;padding-top:12px}
+.audit-return-quality article,.audit-incoming-history article{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #e5ebf3}
+.audit-return-quality article p,.audit-incoming-history article p{margin:4px 0;font-size:13px}
+.audit-movement-actor{display:block;margin-top:8px;color:#526782}
+.audit-supplier-return{grid-column:1/-1;justify-self:end}
+.audit-lot-actions{grid-column:1/-1;justify-self:end;font-size:12px}.audit-lot-actions summary{cursor:pointer;color:#526782}.audit-lot-actions .btn{margin-top:8px}
+.operations-order-context small,.operations-order-context strong{display:block;line-height:1.6}
+.incoming-lot{padding:12px 0;border-bottom:1px solid #e3eaf2}.incoming-lot>summary{cursor:pointer;line-height:1.6}.incoming-lot>summary small{display:block;color:#5a6b80;margin-left:16px}
+.stock-product-total[data-title]::before{content:attr(data-title);display:block;font-size:11px;font-weight:400;color:#5a6b80}.audit-lot-quality{grid-column:1/-1;color:#5a6b80;font-size:11px;line-height:1.5}
+.audit-task-dialog,#audit-correction-dialog{width:min(560px,calc(100vw - 24px));max-height:calc(100dvh - 32px);overflow:auto;border:1px solid #dae4f2;border-radius:16px;padding:20px}
+.audit-task-dialog header,#audit-correction-dialog header,.audit-task-dialog footer,#audit-correction-dialog footer{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.audit-task-dialog header h2,#audit-correction-dialog header h2{font-size:19px;margin:0}
+.audit-task-dialog .formfield,#audit-correction-dialog .formfield{margin:16px 0}
+.audit-task-dialog footer,#audit-correction-dialog footer{justify-content:flex-end;margin-top:20px}
+@media(max-width:600px){.audit-return-quality article{align-items:flex-start;flex-direction:column}.audit-task-dialog,#audit-correction-dialog{padding:16px}.audit-task-dialog footer .btn,#audit-correction-dialog footer .btn{white-space:normal}}
