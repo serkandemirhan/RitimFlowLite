@@ -48,7 +48,7 @@ module.exports=async function({page,origin,ready,checks,seedLongLists,recordLong
  await check('Üretim Takibi: hiyerarşi, aç/kapat, yoğunluk ve sekmeler korunur',async()=>{
   await open('view=production-monitor');await p.locator('[data-tab=all]').click();await settle();
   await p.locator('[data-action=expand]').click();await settle();assert((await p.locator('.tracking-production').count())>0);assert((await p.locator('.tracking-job').count())>0);
-  await p.locator('.compact-view-preferences>summary').click();await p.locator('[data-setting=density]').selectOption('compact');await settle();assert(await p.locator('.production-tracking').evaluate(e=>e.classList.contains('density-compact')));
+  await p.locator('.compact-view-preferences>summary').click();await p.getByRole('radio',{name:'Kompakt',exact:true}).click();await settle();assert(await p.locator('.production-tracking').evaluate(e=>e.classList.contains('density-compact')));
   await p.locator('[data-action=collapse]').click();await settle();assert.equal(await p.locator('.tracking-production').count(),0);
   await p.locator('[data-action=expand]').click();await settle();const toggle=p.locator('.tracking-production-row [data-toggle]').first();await toggle.focus();await p.keyboard.press('Enter');await settle();assert.equal(await p.locator('.tracking-production-row [data-toggle]').first().getAttribute('aria-expanded'),'false');
   await p.locator('[data-tab=completed]').click();await settle();assert(await p.locator('[data-setting=range]').isVisible());

@@ -190,7 +190,16 @@
  function tracking(ctx,area){
   const section=$('.production-tracking',area),bar=$('.tracking-search',section);if(!bar)return;
   const options=$('.tracking-options',section),density=$('[data-setting=density]',options)?.closest('label');
-  if(density)ViewPreferences(bar,[density]);
+  if(density){
+   const select=$('[data-setting=density]',density),choices=node('div','tracking-density');
+   density.replaceWith(choices);select.hidden=true;choices.append(select);
+   for(const [value,label]of [['compact','Kompakt'],['normal','Standart']]){
+    const row=node('label'),radio=document.createElement('input');radio.type='radio';radio.name='tracking-row-density';radio.value=value;radio.checked=select.value===value;
+    radio.onchange=()=>{if(radio.checked){select.value=value;select.dispatchEvent(new Event('change',{bubbles:true}))}};
+    row.append(radio,document.createTextNode(label));choices.append(row);
+   }
+   ViewPreferences(bar,[choices]);
+  }
   if(options){options.classList.add('compact-table-tools');options.setAttribute('aria-label','Ağaç görünümü araçları')}
   ContextualToolbar(bar);filterChips(bar,[{field:$('[name=q]',bar),label:'Arama'},{field:$('[name=priority]',bar),label:'Öncelik'}]);sticky(section,bar);
  }
