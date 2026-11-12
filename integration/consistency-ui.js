@@ -11,7 +11,7 @@
  }
  function execution(target,state){
   if(!target)return;if(state.parentHeld&&state.status==='open')state={...state,status:'held'};const history=state.history||[],latest=history[0];
-  if(state.status==='open'&&!latest)return;
+  if(['open','closed'].includes(state.status)&&!latest)return;
   const box=document.createElement('section');box.className='execution-status-panel';box.dataset.state=state.status;
   box.append(text(document.createElement('h3'),({held:'İşler durduruldu',cancelled:'İptal edildi',closed:'Kapalı',open:'Durdurma kaldırıldı'})[state.status]||state.status));
   if(latest)box.append(text(document.createElement('p'),[latest.actor_name||'Kullanıcı bilgisi yok',new Date(latest.occurred_at).toLocaleString('tr-TR'),latest.payload?.reason].filter(Boolean).join(' · ')));

@@ -507,3 +507,4 @@ section[data-inventory-panel="receipt"]{display:grid;grid-template-columns:repea
 .visual-clarity .premium-sidebar .nav-group{display:flex!important;flex-direction:column;gap:4px;margin-bottom:20px;flex:0 0 auto!important}
 .visual-clarity .premium-sidebar .side-btn{height:40px!important;min-height:40px;max-height:44px;flex:0 0 auto!important}
 .visual-clarity .premium-sidebar .nav-footer{margin-top:auto}
+@media(max-width:700px){.visual-clarity .order-gantt-row.order-gantt-axis{display:none!important}.visual-clarity .order-gantt-label{min-height:0!important;line-height:1.45}.visual-clarity .order-gantt-label>*{margin-top:2px;margin-bottom:2px}}
