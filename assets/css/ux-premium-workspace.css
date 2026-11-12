@@ -1836,3 +1836,5 @@ button.workspace-filter-chip{cursor:pointer;min-height:32px}.workspace-filter-dr
 .api-shell .job-history td:last-child>span{margin-right:8px}
 .api-shell .job-actions>summary{font-size:14px;font-weight:600;margin-bottom:12px}
 .api-shell .job-actions .supervisor-pause{margin-top:8px}
+
+.operator-manager-notice{border:1px solid #cfdef3;border-radius:10px;padding:12px 14px;margin-bottom:16px;background:#f1f6ff}.operator-manager-notice p{margin:6px 0 10px;color:#526b8b;font-size:13px}

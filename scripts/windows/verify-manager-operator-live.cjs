@@ -1,0 +1,22 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),{chromium}=require('playwright');
+(async()=>{
+ const root=path.resolve(__dirname,'../..'),origin='https://flow.getritim.com',out=path.join(root,'artifacts/operator-manager'),state=JSON.parse(fs.readFileSync(path.join(root,'artifacts/scenario-checkpoints/live-stock-release.json'),'utf8'));
+ const account=JSON.parse(fs.readFileSync(path.join(process.env.LOCALAPPDATA,'RitimFlowLite/cloud/pilot-test-accounts.json'),'utf8')).admin,browser=await chromium.launch();fs.mkdirSync(out,{recursive:true});
+ try{
+  const context=await browser.newContext();const login=await context.request.post(origin+'/auth/login',{data:account,headers:{origin},maxRedirects:0});assert.equal(login.status(),303);assert.equal(login.headers().location,'/');
+  const session=await(await context.request.get(origin+'/api/v1/session')).json(),index=session.memberships.findIndex(m=>m.siteId===state.siteId);assert(index>=0);const membership=session.memberships[index];
+  const page=await context.newPage(),errors=[],writes=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.route('**/api/v1/**',route=>{if(!['GET','HEAD','OPTIONS'].includes(route.request().method())){writes.push(route.request().method());return route.abort()}return route.continue()});
+  await page.goto(origin+'/auth/team?tenantId='+membership.tenantId+'#team');await page.getByRole('button',{name:'＋ Kullanıcı ekle',exact:true}).click();assert.equal(await page.locator('dialog input[type=email]').count(),0);assert(await page.locator('dialog input[name=username]').isVisible());await page.getByRole('button',{name:'Vazgeç',exact:true}).click();
+  await page.getByRole('link',{name:'Operatör Ekranı',exact:true}).click();await page.waitForFunction(()=>document.getElementById('api-scope')||document.querySelector('.operator-studio'));
+  if(await page.locator('#api-scope').count()){await page.locator('#api-scope').selectOption(String(index));await page.getByRole('button',{name:'Devam',exact:true}).click()}
+  async function ready(){await page.waitForFunction(()=>document.querySelector('.operator-studio')&&!document.getElementById('api-scope')&&document.getElementById('app')?.getAttribute('aria-busy')!=='true');assert.equal(await page.locator('#api-alert').innerText(),'')}
+  await ready();assert.equal(await page.locator('.operator-studio-heading h2').innerText(),'Operatör İşleri');
+  const base=origin+`/api/v1/sites/${membership.tenantId}/${membership.siteId}`,response=await context.request.get(base+'/operator/work-orders?workspace=team&state=active&limit=100');assert.equal(response.status(),200);const jobs=(await response.json()).workOrders;let chosen=jobs.find(j=>!j.reconciliationWarning),detailVerified=false;if(!chosen){const history=await(await context.request.get(base+'/operator/work-orders?workspace=team&state=finished&limit=20')).json();for(const summary of history.workOrders.slice(0,5)){const detail=await(await context.request.get(base+'/operator/work-orders?workspace=team&workOrderId='+summary.id)).json(),job=detail.workOrders[0];if(job&&!job.reconciliationWarning){chosen=job;break;}}}
+  if(chosen){await page.evaluate(id=>RitimPremiumAPI.openAssigned(id),chosen.id);await ready();await page.locator('.operator-manager-notice').waitFor();assert.equal(await page.locator('.operator-secondary-actions button:enabled').count(),0);detailVerified=true;}
+  for(const width of [390,1366]){await page.setViewportSize({width,height:844});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.screenshot({path:path.join(out,'live-'+width+'.png'),fullPage:true})}
+  for(const file of ['integration/premium-api.js','integration/api-adapter.js','assets/css/ux-premium-workspace.css','assets/css/workspace-admin-navigation.css']){const r=await context.request.get(origin+'/'+file);assert.equal(r.status(),200);assert.equal((await r.text()).replace(/\r\n/g,'\n'),fs.readFileSync(path.join(root,file),'utf8').replace(/\r\n/g,'\n'))}
+  assert.deepEqual(errors,[]);assert.deepEqual(writes,[]);fs.writeFileSync(path.join(out,'live.json'),JSON.stringify({status:'PASS',readOnly:true,managerEntry:true,usernameCreationForm:true,activeTeamJobs:jobs.length,detailVerified,viewports:[390,1366],errors,writes},null,2));console.log('LIVE manager access PASS: '+jobs.length+' team jobs; detail verified '+detailVerified+'; account form available.');
+ }finally{await browser.close()}
+})().catch(e=>{console.error(e.message);process.exitCode=1});
