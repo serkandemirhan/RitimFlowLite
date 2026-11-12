@@ -6,7 +6,7 @@ async function compensation(c,s,order,id,seen=new Set()){
  if(!id||seen.has('c'+id)||seen.size>40)return false;seen.add('c'+id);
  const r=(await c.query('SELECT * FROM production_compensations WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND id=$4',[s.tenantId,s.siteId,order,id])).rows[0];
  if(!r)return false;if(r.rma_disposition_id)return (await c.query("SELECT 1 FROM rma_dispositions WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND id=$4 AND outcome='scrap'",[s.tenantId,s.siteId,order,r.rma_disposition_id])).rowCount>0;
- const source=(await c.query(`SELECT work_order_id FROM production_events WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND id=$4
+ const source=(await c.query(`SELECT e.work_order_id FROM production_events e JOIN work_orders w ON (w.tenant_id,w.site_id,w.id)=(e.tenant_id,e.site_id,e.work_order_id) WHERE e.tenant_id=$1 AND e.site_id=$2 AND w.order_id=$3 AND e.id=$4
  UNION ALL SELECT work_order_id FROM output_dispositions WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND id=$5`,[s.tenantId,s.siteId,order,r.production_event_id,r.disposition_id])).rows[0];
  return source?job(c,s,order,source.work_order_id,seen):false;
 }
