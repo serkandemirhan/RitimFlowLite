@@ -2,7 +2,7 @@
  function render(kind,columns,rows,{h,sort}){return `<section class="order-grid-section operational-grid"><div class="order-grid-options"><details class="orders-columns-popover"><summary>Kolonlar</summary><div>${columns.slice(1).map(c=>`<label><input type="checkbox" data-grid-column="${c.key}" checked> ${h(c.label)}</label>`).join('')}</div></details></div><div class="order-grid-scroll"><table class="order-grid" data-grid-kind="${kind}"><thead><tr>${columns.map(c=>`<th data-column="${c.key}" aria-sort="${sort?.key===c.key?(sort.desc?'descending':'ascending'):'none'}"><button class="grid-sort" onclick="RitimPremiumAPI.listSort('${kind}','${c.key}')">${h(c.label)} <span aria-hidden="true">${sort?.key===c.key?(sort.desc?'↓':'↑'):'↕'}</span></button><span class="grid-resize" aria-hidden="true"></span></th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${columns.map(c=>`<td data-column="${c.key}">${c.cell(r)}</td>`).join('')}</tr>`).join('')||`<tr><td colspan="${columns.length}">Eşleşen kayıt yok.</td></tr>`}</tbody></table></div></section>`}
  let resizeObserver;
  const clipped=wrap=>[wrap,...wrap.querySelectorAll('*')].some(n=>n.scrollHeight>n.clientHeight+1||n.scrollWidth>n.clientWidth+1);
- const hiddenByKind={'production-monitor':['orderNumber','orderCreatedAt','machineCode'],'jobs':['orderNumber','operatorName'],'production-orders':[]};
+ const hiddenByKind={'production-monitor':['orderNumber','orderCreatedAt','machineCode'],'jobs':['orderNumber','operatorName'],'production-orders':['number','createdAt','createdBy','customer','orderNumber']};
  function enhance(table){
   if(!table)return;
   resizeObserver?.disconnect();const updates=[];
