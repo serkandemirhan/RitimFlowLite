@@ -1294,7 +1294,7 @@
 .operator-quality-summary .operator-quality-decisions{margin:0;padding:0;border:0}
 .operator-compact-panel .operator-result-field{display:none}
 .operator-quality-overview h3{font-size:14px;margin:10px 0 8px}
-.operator-quality-counts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.operator-quality-counts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .operator-quality-counts>div{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px 3px;border-radius:9px;background:#f0f3f7;text-align:center}
 .operator-quality-counts strong{font-size:20px}.operator-quality-counts span{font-size:11px}
 .operator-quality-counts [data-quality=approved]{background:#eaf6ef;color:#206b4e}

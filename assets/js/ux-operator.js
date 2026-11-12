@@ -167,7 +167,7 @@
       );
     const good = amount("ux05-ig", input),
       scrap = amount("ux05-is", input),
-      rework = amount("ux05-ir", input);
+      rework = 0;
     if (
       [good, scrap, rework].some((n) => !Number.isInteger(n) || n < 0) ||
       good + scrap + rework < 1 ||
@@ -179,7 +179,7 @@
       good,
       scrap,
       rework,
-      defect: input["quality-defect"] || "Kontrolde yeniden işlem gereği",
+      defect: input["quality-defect"] || "",
     });
     if (!result.ok) return fail(result.message);
     record(
@@ -187,39 +187,9 @@
       j,
       "inspection",
       good + scrap + rework,
-      `Sağlam ${good}, hurda ${scrap}, rework ${rework}`,
+      `Sağlam ${good}, hurda ${scrap}`,
     );
     return { ok: true, message: "Kontrol sonuçları onaylandı" };
-  }
-  function reworkInspect(id, state, input) {
-    const j = state.jobs.find((j) => j.id === id);
-    guardJob(j);
-    const x = ledger(j, true);
-    if (state.user !== "Yönetici")
-      return fail("Rework sonucu yetkili tarafından onaylanmalıdır");
-    const good = amount("ux05-rg", input),
-      scrap = amount("ux05-rs", input);
-    if (
-      [good, scrap].some((n) => !Number.isInteger(n) || n < 0) ||
-      good + scrap < 1 ||
-      good + scrap > x.rework
-    )
-      return fail("Rework bakiyesini aşan işlem");
-    const result = RitimQuality.rework(state, {
-      job: id,
-      task: input["quality-task"],
-      good,
-      scrap,
-    });
-    if (!result.ok) return fail(result.message);
-    record(
-      state,
-      j,
-      "rework_result",
-      good + scrap,
-      `Yeniden kontrol: sağlam ${good}, hurda ${scrap}`,
-    );
-    return { ok: true, message: "Rework sonucu kaydedildi" };
   }
   function pause(id, state, input) {
     const j = state.jobs.find((j) => j.id === id),
@@ -304,7 +274,7 @@
       ).unstarted
     )
       return fail(
-        "Açık kontrol/rework/işlenmemiş veya işe alınmamış miktar var; iş emri kapatılamaz",
+        "Açık kontrol, geçmişten kalan karar veya işlenmemiş miktar var; iş emri kapatılamaz",
       );
     j.state = "complete";
     record(
@@ -366,7 +336,7 @@
      ["Kontrol bekleyen", x.pending],
      ["Üretim hurdası", j.scrap],
      ["Ayar firesi", x.setup],
-     ["Rework bekleyen", x.rework],
+     ...(x.rework ? [["Geçmiş tamir kararı", x.rework]] : []),
      ["Henüz işlenmeyen", remaining],
      ["İşe alınmamış", receivedOpen],
      ["Transfer çıkışı", b.transferredOut],
@@ -385,24 +355,13 @@
  <div class="ux05-inline"><input id="ux05-receive" class="input" type="number" min="1" step="1" inputmode="numeric" value="${receivedOpen > 0 ? Math.min(10, receivedOpen) : 0}" aria-label="Teslim miktarı"><button class="btn" ${!receivedOpen || ["complete", "shipped"].includes(j.state) ? "disabled" : ""} onclick="RitimUX05.receive(${jsArg(j.id)})">Teslim Aldım</button></div>
  </div>
  <div class="card pad ux05-block"><h3>Kalite Kontrol</h3><p class="tiny">Yalnızca yetkili kullanıcı kontrol sonucunu onaylar. Diğerleri açık miktarı izler.</p>
- <label class="formfield">Kontrol / rework açıklaması<input class="input" id="quality-defect"></label><div class="ux05-three"><label>Sağlam<input id="ux05-ig" type="number" min="0" value="0"></label><label>Hurda<input id="ux05-is" type="number" min="0" value="0"></label><label>Rework<input id="ux05-ir" type="number" min="0" value="0"></label></div>
+ <label class="formfield">Kontrol açıklaması<input class="input" id="quality-defect"></label><div class="ux05-three"><label>Sağlam<input id="ux05-ig" type="number" min="0" value="0"></label><label>Hurda<input id="ux05-is" type="number" min="0" value="0"></label></div>
  <button class="btn full" ${!x.pending || state.user !== "Yönetici" ? "disabled" : ""} onclick="RitimUX05.inspect(${jsArg(j.id)})">Kontrol Sonucunu Onayla (${x.pending} bekliyor)</button>
- <label class="formfield">Kaynak rework işi<select class="select" id="quality-task">${(
-   state.reworkTasks || []
- )
-   .filter((t) => t.job === j.id && t.remaining > 0)
-   .map(
-     (t) =>
-       `<option value="${html(t.id)}">${html(t.id)} · ${t.executed} kontrol bekliyor</option>`,
-   )
-   .join(
-     "",
-   )}</select></label><div class="ux05-three"><label>Rework → Sağlam<input id="ux05-rg" type="number" min="0" value="0"></label><label>Rework → Hurda<input id="ux05-rs" type="number" min="0" value="0"></label></div>
- <button class="btn full" ${!x.rework || state.user !== "Yönetici" ? "disabled" : ""} onclick="RitimUX05.rework(${jsArg(j.id)})">Rework Kontrolünü Onayla</button>
+
  </div>
  <div class="card pad ux05-block"><h3>Vardiya Devri / Sonuçlandırma</h3><textarea id="ux05-handover-note" class="textarea" rows="2" placeholder="Sonraki operatöre takım, parça ve işlem notları…"></textarea>
  <div class="ux05-inline ux05-buttons"><button class="btn" ${x.handover || !["running", "paused"].includes(j.state) ? "disabled" : ""} onclick="RitimUX05.handover(${jsArg(j.id)})">Vardiya Devret</button><button class="btn" ${j.state === "complete" || j.state === "shipped" ? "disabled" : ""} onclick="RitimUX05.close(${jsArg(j.id)})">İş Emrini Kapat</button></div>
- <p class="tiny">Açık kontrol, rework, henüz işlenmeyen veya işe alınmamış miktar varsa doğrudan kapatma engellenir. Makine değişimi ve plan revizyonu yöneticinin ayrı işlemidir.</p>
+ <p class="tiny">Açık kontrol, geçmişten kalan çözümlenmemiş karar, henüz işlenmeyen veya işe alınmamış miktar varsa doğrudan kapatma engellenir. Makine değişimi ve plan revizyonu yöneticinin ayrı işlemidir.</p>
  </div></section></div>`;
   };
   function run(fn, id) {
@@ -410,8 +369,7 @@
       {
         sampleReceive: ["ux05-receive"],
         logProduction: ["ux05-qty", "ux05-type"],
-        inspect: ["ux05-ig", "ux05-is", "ux05-ir", "quality-defect"],
-        reworkInspect: ["ux05-rg", "ux05-rs", "quality-task"],
+        inspect: ["ux05-ig", "ux05-is", "quality-defect"],
         pause: ["ux05-pause-reason"],
         handover: ["ux05-handover-note"],
       }[fn.name] || [];
@@ -441,7 +399,6 @@
     receive: (id) => run(sampleReceive, id),
     production: (id) => run(logProduction, id),
     inspect: (id) => run(inspect, id),
-    rework: (id) => run(reworkInspect, id),
     pause: (id) => run(pause, id),
     resume: (id) => run(resume, id),
     start: (id) => run(start, id),

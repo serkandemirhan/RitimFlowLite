@@ -5,6 +5,7 @@
   if(!target||target.querySelector('.quantity-breakdown'))return;
   const box=document.createElement('section');box.className='quantity-breakdown';box.setAttribute('aria-label','Üretim ve kalite miktarları');
   for(const [label,key]of [['Hedef','quantity'],['İşlenen','produced'],['Onaylanan','approved'],['Kalite reddi','rejected'],['Üretim hurdası','productionScrap'],['Tamir bekleyen','repairPending'],['Kontrol bekleyen','qualityPending']]){
+   if(key==='repairPending'&&target.classList.contains('operator-quantity-summary'))continue;
    const item=document.createElement('div');item.dataset.quantity=key;item.append(text(document.createElement('small'),label),text(document.createElement('strong'),v[key]??'—'));box.append(item);
   }
   const foot=document.createElement('p');foot.className='quantity-explanation';foot.textContent='İşlenen adet, onaylanan adet değildir. Kalite reddi ve üretim hurdası ayrı kayıtlardır.';box.append(foot);target.querySelector('.job-studio-totals')?.remove();if(target.classList.contains('operator-quantity-summary'))target.replaceChildren();target.append(box);
