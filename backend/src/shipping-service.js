@@ -5,11 +5,11 @@ const {data,payload,identifier,qty,cmd,scoped,audit,lockedOrder,number,fail}=req
 const {lotView}=require('./output-reservations');
 async function availableLot(c,s,order,lotId){
  const lot=await lotView(c,s,order,lotId);
- const q=await c.query('SELECT w.status,w.production_order_id,o.sequence FROM work_orders w JOIN operations o ON (o.tenant_id,o.site_id,o.order_id,o.id)=(w.tenant_id,w.site_id,w.order_id,w.operation_id) WHERE w.tenant_id=$1 AND w.site_id=$2 AND w.order_id=$3 AND w.id=$4',[s.tenantId,s.siteId,order,lot.sourceWorkOrderId]);
+ const q=await c.query('SELECT w.status,w.production_order_id,o.sequence,i.part_name,i.part_number,p.number production_number FROM work_orders w JOIN operations o ON (o.tenant_id,o.site_id,o.order_id,o.id)=(w.tenant_id,w.site_id,w.order_id,w.operation_id) LEFT JOIN production_orders p ON (p.tenant_id,p.site_id,p.id)=(w.tenant_id,w.site_id,w.production_order_id) LEFT JOIN order_items i ON (i.tenant_id,i.site_id,i.id)=(p.tenant_id,p.site_id,p.order_item_id) WHERE w.tenant_id=$1 AND w.site_id=$2 AND w.order_id=$3 AND w.id=$4',[s.tenantId,s.siteId,order,lot.sourceWorkOrderId]);
  if(!q.rowCount)fail(404,'NOT_FOUND','Source work order not found');const job=q.rows[0];const route=await c.query('SELECT sequence,kind FROM operations WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND production_order_id IS NOT DISTINCT FROM $4::uuid ORDER BY sequence',[s.tenantId,s.siteId,order,job.production_order_id]);
  if(!job.production_order_id&&(route.rowCount<1||route.rowCount>2||route.rows.some((r,i)=>r.kind!=='internal'||r.sequence!==i))&&!await require('./route-support').supportsSupplierFinal(c,s,order,2))fail(409,'OPERATION_UNSUPPORTED','Unsupported historical route');
  if(job.sequence!==route.rows.length-1||job.status!=='complete')fail(409,'FINAL_OPERATION_INCOMPLETE','Final operation must be completed');
- return {...lot,availableToShip:lot.availableApproved};
+ return {...lot,partName:job.part_name||null,partNumber:job.part_number||null,productionNumber:job.production_number||null,availableToShip:lot.availableApproved};
 }
 async function view(c,s,order){
  // Only final, completed operations can ship. Avoid replaying quality and stock

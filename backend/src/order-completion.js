@@ -13,7 +13,7 @@ async function closing(c,s,id){
  const o=await lockedOrder(c,s,id),args=[s.tenantId,s.siteId,id];
  const ship=await require('./shipping-service').view(c,s,id);
  const returned=number((await c.query('SELECT COALESCE(SUM(quantity_pieces),0) n FROM rma_receipts WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3',args)).rows[0].n);
- const netDelivered=ship.totals.delivered-returned,reasons=[];if(o.itemized){for(const item of await require('./order-items').items(c,s,id)){const delivered=await require('./order-items').shippingBalance(c,s,id,item.id,'deliver');if(delivered!==item.orderedQuantity)reasons.push(item.lineNumber+'. ?r?n kaleminin teslimat? tamamlanmal?');}}
+ const netDelivered=ship.totals.delivered-returned,reasons=[];if(o.itemized){for(const item of await require('./order-items').items(c,s,id)){const delivered=await require('./order-items').shippingBalance(c,s,id,item.id,'deliver');if(delivered!==item.orderedQuantity)reasons.push(item.lineNumber+'. ürün: '+(item.partName||item.partNumber||'Ürün')+' · Teslim '+delivered+' / '+item.orderedQuantity);}}
  if(netDelivered!==number(o.ordered_qty))reasons.push('Net teslimat sipariş miktarına eşit olmalı');
  if(ship.totals.inTransit||ship.totals.awaitingDispatch)reasons.push('Açık sevkiyat var');
  if((await c.query("SELECT 1 FROM work_orders WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND status NOT IN ('complete','cancelled') LIMIT 1",args)).rowCount)reasons.push('Tamamlanmamış iş emri var');
