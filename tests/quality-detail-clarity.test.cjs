@@ -35,8 +35,8 @@ test('accepted output separates current result, historic notification and produc
  await page.getByRole('button',{name:'Ölçüm.pdf'}).click();await page.getByRole('button',{name:'Açık kontrollere dön'}).click();assert.deepEqual(await page.evaluate(()=>calls),[['document','doc'],['queue',false]]);
  assert.equal(await page.locator('.quality-history-record script').count(),0);assert.match(await page.locator('.quality-history-record').first().innerText(),/Ölçüler uygun <kontrol>/);
  await page.locator('.quality-record-trace').first().evaluate(e=>e.open=false);
- const dir=path.resolve('artifacts/quality-detail-clarity');fs.mkdirSync(dir,{recursive:true});
- for(const [width,height]of [[1920,1080],[1366,768],[390,844],[375,667]]){await page.setViewportSize({width,height});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await page.screenshot({path:path.join(dir,'completed-'+width+'.png'),fullPage:true})}
+
+ for(const [width,height]of [[1920,1080],[1366,768],[390,844],[375,667]]){await page.setViewportSize({width,height});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false)}
 }));
 test('pending control retains original decision dialog and save action',()=>fixture(async page=>{
  assert.match(await page.locator('.quality-state-content').innerText(),/3 adet kontrol bekliyor/);

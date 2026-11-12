@@ -4,7 +4,7 @@
  const $=(s,within=document)=>within?.querySelector(s)||null,$$=(s,within=document)=>[...(within?.querySelectorAll(s)||[])];
  const node=(tag,cls,text)=>{const n=document.createElement(tag);n.className=cls||'';if(text)n.textContent=text;return n};
  const button=(text,fn)=>{const b=node('button','btn',text);b.type='button';b.onclick=fn;return b};
- const titles={'production-orders':'Üretim Emirleri',jobs:'İş Emirleri',compensations:'Telafi Takibi','production-monitor':'Üretim Takibi',orders:'Siparişler',shipping:'Sevkiyat',outsourcing:'Fason',returns:'Müşteri İadeleri','quality-list':'Kalite Kontrol',rework:'Tamir'};
+ const titles={'production-orders':'Üretim Emirleri',jobs:'İş Emirleri',compensations:'Telafi Takibi','production-monitor':'Üretim Takibi',orders:'Siparişler',shipping:'Sevkiyat',outsourcing:'Fason',returns:'Müşteri İadeleri','quality-list':'Kalite Kontrol','quality-control':'Kalite Kontrolü',rework:'Tamir'};
  const inventoryTitles={receipt:'Mal Kabul',move:'Konumlar Arası Transfer',pick:'Üretime Malzeme Teslimi',stock:'Stok Durumu',scrap:'Hurda',history:'Hareket Geçmişi'};
  const localSearches=new Map();
  let lifecycle;

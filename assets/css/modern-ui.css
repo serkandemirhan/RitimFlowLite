@@ -563,6 +563,29 @@ section[data-inventory-panel="receipt"]{display:grid;grid-template-columns:repea
 .api-shell .polish-documents-empty #work-document-list{font-size:12px;color:#698098}
 .api-shell .polish-quality-result{padding:12px 16px;background:#eef8f3;border:1px solid #c7e3d7;color:#25634c;border-radius:8px;font-weight:600}
 .api-shell .quality-work-identity{font-size:12px;color:#52677d;margin:6px 0 12px}
+.api-shell .quality-control-detail{max-width:1100px;background:#fff;border:1px solid #dce5ef;border-radius:8px;padding:20px}
+.api-shell .quality-control-heading{display:flex;justify-content:space-between;align-items:start;gap:16px}
+.api-shell .quality-control-heading h2{font-size:20px;margin:8px 0 0;line-height:1.4}
+.api-shell .quality-control-heading>.btn{flex-shrink:0}
+.api-shell .quality-control-context{display:flex;gap:16px 32px;flex-wrap:wrap;margin:20px 0}
+.api-shell .quality-control-context>div{min-width:100px;max-width:100%}
+.api-shell .quality-control-detail dt{font-size:11px;color:#52677d;font-weight:400}
+.api-shell .quality-control-detail dd{margin:4px 0 0;font-size:13px;font-weight:600;overflow-wrap:anywhere}
+.api-shell .quality-control-summary{padding:16px;border:1px solid #dce5ef;border-radius:8px;background:#f5f8fc;margin-bottom:20px}
+.api-shell .quality-control-summary.is-completed{background:#f4f8f6}
+.api-shell .quality-control-detail h3{font-size:14px;margin:0 0 12px}
+.api-shell .quality-control-summary dl{display:flex;gap:16px 32px;flex-wrap:wrap;margin:0}
+.api-shell .quality-control-summary dd{font-size:18px}
+.api-shell .quality-control-form{margin:0 0 20px!important;max-width:680px}
+.api-shell .quality-control-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.api-shell .quality-control-form textarea{min-height:72px}
+.api-shell .quality-control-documents{font-size:12px;margin:16px 0}
+.api-shell .quality-control-documents>summary{cursor:pointer;margin-bottom:8px}
+.api-shell #control-document-options label{display:flex;align-items:center;gap:8px;margin:8px 0}
+.api-shell .quality-control-related{margin-top:20px;padding-top:16px;border-top:1px solid #dce5ef}
+.api-shell .quality-control-detail .quality-history-record{background:#fff}
+.api-shell .quality-control-detail [hidden]{display:none!important}
+@media(max-width:700px){.api-shell .quality-control-detail{padding:14px}.api-shell .quality-control-heading{flex-wrap:wrap}.api-shell .quality-control-heading h2{font-size:17px}.api-shell .quality-control-context{gap:12px 20px}.api-shell .quality-control-fields{grid-template-columns:1fr}.api-shell .quality-control-form{padding:12px!important}}
 .api-shell .quality-controls-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .api-shell .quality-controls-toolbar>input{flex:1;min-width:180px}
 .api-shell .quality-type-filter{display:flex;align-items:center;gap:8px;white-space:nowrap;font-size:12px}

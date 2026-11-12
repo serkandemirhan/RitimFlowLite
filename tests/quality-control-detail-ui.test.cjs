@@ -1,0 +1,12 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),{chromium}=require('playwright');
+test('all control types share a result-only detail; pending inputs are bounded to this record',async()=>{
+ const browser=await chromium.launch();try{const page=await browser.newPage();await page.setContent('<div class="api-shell ritim-ui"><main id="page"></main></div>');
+ for(const file of ['assets/css/ux-premium-workspace.css','assets/vendor/ui/tabler.scoped.css','assets/css/modern-ui.css'])await page.addStyleTag({content:fs.readFileSync(file,'utf8')});await page.addScriptTag({content:fs.readFileSync('integration/quality-controls.js','utf8')});
+ for(const [type,source]of [['production','output'],['supplier','output'],['incoming','incoming'],['return','return']]){
+  await page.evaluate(({type,source})=>{window.view={control:{id:'selected',source,type,description:'Mil <script>alert(1)</script>',operation:'Torna',reference:'IE-001',unit:source==='incoming'?'m':'piece',quantity:2,approved:2,rejected:0,pending:0},action:{limit:0},decisions:[{id:'decision',outcome:'approved',quantity:2,note:'Ölçüler uygun <kontrol>',actorName:'Ayşe',createdAt:'2026-11-12T08:00:00Z',documents:[{id:'document',filename:'Kontrol.pdf'}]}],availableDocuments:[]};document.getElementById('page').innerHTML=RitimQualityControls.detail(view)}, {type,source});
+  assert.equal(await page.locator('#quality-control-form').count(),0);assert.equal(await page.locator('.quality-history-record').count(),1);assert.match(await page.locator('.quality-control-detail').innerText(),/Ölçüler uygun <kontrol>/);assert.equal(await page.locator('#page script').count(),0);assert(!/Üretim hurdası|Miktar ayrıntıları|Lot bazında|Telafi|Onaylayın/.test(await page.locator('#page').innerText()));
+  for(const width of [1366,390,375]){await page.setViewportSize({width,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false)}
+  await page.evaluate(()=>{view.control.pending=1;view.action.limit=1;view.control.approved=1;document.getElementById('page').innerHTML=RitimQualityControls.detail(view)});assert.equal(await page.locator('#control-quantity').getAttribute('max'),'1');assert.equal(await page.locator('#control-note').evaluate(el=>el.required),source!=='incoming');
+ }
+ }finally{await browser.close()}
+});
