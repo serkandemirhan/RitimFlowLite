@@ -14,7 +14,7 @@ test('shipping workspace: five products, approved final output, partial multi-pr
   app.addHook('onError',async(req,reply,e)=>{if(!e.statusCode||e.statusCode>=500)console.log('Shipping fixture error:',e.code,e.message)});
   await seed.query("INSERT INTO orders(tenant_id,site_id,id,order_number,customer,part_name,ordered_qty,itemized) VALUES($1,$2,$3,'FIVE-PRODUCTS','Workshop Customer','5 ürün',49,true)",[tenant,site,order]);
   const lines=[];for(const [index,amount]of [10,20,8,6,5].entries()){const item=id();lines.push(item);await seed.query('INSERT INTO order_items(tenant_id,site_id,order_id,id,line_number,part_number,part_name,quantity) VALUES($1,$2,$3,$4,$5,$6,$7,$8)',[tenant,site,order,item,index+1,'P'+(index+1),'Ürün '+(index+1),amount]);}
-  async function output(item,amount,{approved=true,final=true}={}){
+  async function output(item,amount,{approved=true,final=true,finish=false}={}){
    const po=id(),op=id(),job=id(),machine=id(),lot=id(),reservation=id();
    await seed.query("INSERT INTO production_orders(tenant_id,site_id,order_id,id,number,quantity,planning_state,order_item_id) VALUES($1,$2,$3,$4,$5,$6,'planned',$7)",[tenant,site,order,po,'PO-'+po,amount,item]);
    await seed.query("INSERT INTO operations(tenant_id,site_id,order_id,id,sequence,name,kind,production_order_id) VALUES($1,$2,$3,$4,0,'Turning','internal',$5)",[tenant,site,order,op,po]);
@@ -25,10 +25,10 @@ test('shipping workspace: five products, approved final output, partial multi-pr
    await seed.query("INSERT INTO reservations(tenant_id,site_id,order_id,id,work_order_id,lot_id,quantity_pieces,status) VALUES($1,$2,$3,$4,$5,$6,$7,'active')",[tenant,site,order,reservation,job,lot,amount]);
    await post('/orders/'+order+'/physical-receipts',{reservationId:reservation,quantity:amount});const root='/orders/'+order+'/work-orders/'+job;
    await post(root+'/production/start',{});const result=await post(root+'/production/results',{lotId:lot,kind:'pending',quantity:amount});
-   if(approved){await post(root+'/quality/decisions',{eventId:result.eventId,lotId:lot,outcome:'approved',quantity:amount,evidence:'Physical inspection'});await post(root+'/production/complete',{});}else await post(root+'/production/pause',{reason:'Awaiting quality'});
-   return result;
+   if(approved){await post(root+'/quality/decisions',{eventId:result.eventId,lotId:lot,outcome:'approved',quantity:amount,evidence:'Physical inspection'});await post(root+'/production/complete',{});}else if(finish)await post(root+'/production/complete',{});else await post(root+'/production/pause',{reason:'Awaiting quality'});
+   return {...result,productionOrderId:po,workOrderId:job};
   }
-  const a1=await output(lines[0],4),a2=await output(lines[0],6);await output(lines[1],20);await output(lines[2],8,{approved:false});await output(lines[3],6,{final:false});
+  const a1=await output(lines[0],4),a2=await output(lines[0],6);await output(lines[1],20);const strictPending=await output(lines[2],8,{approved:false});await output(lines[3],6,{final:false});
   const path='/orders/'+order+'/shipping';
   let r=await call('GET','/shipping/ready-orders');assert.equal(r.statusCode,200,r.body);assert.equal(r.json().total,1);assert.equal(r.json().items[0].readyQuantity,30);assert.equal(r.json().items[0].readyProductCount,2);
   const initial=(await call('GET',path+'/products')).json();assert.deepEqual(initial.products.map(i=>i.readyQuantity),[10,20,0,0,0]);assert.equal(initial.products[0].sources.length,2,'Lot splits stay automatic');
@@ -50,6 +50,28 @@ test('shipping workspace: five products, approved final output, partial multi-pr
   const race=await Promise.all([call('POST',path+'/dispatch-products',{confirmed:true,lines:[{orderItemId:lines[0],quantity:4}]}),call('POST',path+'/dispatch-products',{confirmed:true,lines:[{orderItemId:lines[0],quantity:4}]})]);assert.deepEqual(race.map(x=>x.statusCode).sort(),[201,409]);
   await post(path+'/dispatch-products',{confirmed:true,lines:[{orderItemId:lines[1],quantity:17}]});assert.equal((await call('GET','/shipping/ready-orders')).json().total,0);assert.equal((await call('GET','/shipping/ready-orders?include='+order)).json().selected,null,'Exhausted order cannot be pinned into the selector');
   shipped=(await call('GET',path)).json();assert.equal(shipped.totals.dispatched,30);assert.equal(shipped.totals.delivered,9);assert.equal(shipped.shippingOrders.length,3,'Partial shipments remain separate records');
+  await post('/orders/'+order+'/work-orders/'+strictPending.workOrderId+'/production/complete',{});const strictControl=(await call('GET','/quality/controls/final/'+strictPending.productionOrderId)).json();assert.equal(strictControl.control.pending,8);assert.equal((await call('GET','/shipping/ready-orders')).json().total,0,'Required final control blocks shipping even after production completes');
+  // The policy is frozen per production order; only new production may bypass.
+  await seed.query("INSERT INTO tenant_memberships(tenant_id,user_id,role) VALUES($1,$2,'tenant_admin')",[tenant,actor]);
+  assert.equal((await call('GET','/shipping/rules')).json().allowUninspected,false);
+  assert.equal((await call('POST','/shipping/rules',{allowUninspected:true,version:0},id(),'v.v.v')).statusCode,403);
+  const changed=await post('/shipping/rules',{allowUninspected:true,version:0});assert.equal(changed.version,1);
+  assert.equal((await call('POST','/shipping/rules',{allowUninspected:false,version:0})).statusCode,409,'Stale rules cannot overwrite a current setting');
+  const uninspected=await output(lines[4],5,{approved:false,finish:true}),task=uninspected.productionOrderId;
+  assert.equal((await seed.query('SELECT allow_uninspected_shipping FROM production_orders WHERE id=$1',[task])).rows[0].allow_uninspected_shipping,true);
+  assert.equal((await seed.query('SELECT allow_uninspected_shipping FROM production_orders WHERE id=$1',[a1.productionOrderId])).rows[0].allow_uninspected_shipping,false);
+  let controls=(await call('GET','/quality/controls?type=final')).json();assert(controls.items.some(i=>i.id===task&&i.pending===5));
+  const beforeTracking=await call('GET','/production-tracking?tab=ready');assert.equal(beforeTracking.statusCode,200,beforeTracking.body);assert(beforeTracking.json().orders.some(o=>o.id===order&&o.shipping.readyQuantity===5));
+  const bypassKey=id(),without={confirmed:true,lines:[{orderItemId:lines[4],quantity:2}]};const bypass=await call('POST',path+'/dispatch-products',without,bypassKey);assert.equal(bypass.statusCode,201,bypass.body);assert.equal(bypass.json().events[0].uninspectedQuantity,2);assert.deepEqual((await call('POST',path+'/dispatch-products',without,bypassKey)).json(),bypass.json());
+  let control=(await call('GET','/quality/controls/final/'+task)).json();assert.equal(control.control.pending,3);assert.equal(control.control.bypassed,2);assert.equal(control.control.approved,0,'Bypass never fakes quality approval');
+  const decision='/orders/'+order+'/final-controls/'+task+'/decisions';assert.equal((await call('POST',decision,{quantity:4,outcome:'approved',evidence:'inspection'})).statusCode,409);
+  await post(decision,{quantity:1,outcome:'rejected',evidence:'Damaged'});await post(decision,{quantity:2,outcome:'approved',evidence:'Inspection'});
+  control=(await call('GET','/quality/controls/final/'+task)).json();assert.equal(control.control.pending,0);assert.equal(control.control.approved,2);assert.equal(control.control.rejected,1);assert.equal(control.control.bypassed,2);
+  await post(path+'/dispatch-products',{confirmed:true,lines:[{orderItemId:lines[4],quantity:2}]});
+  const completeBypass=await output(lines[2],8,{approved:false,finish:true});await post(path+'/dispatch-products',{confirmed:true,lines:[{orderItemId:lines[2],quantity:8}]});
+  control=(await call('GET','/quality/controls/final/'+completeBypass.productionOrderId)).json();assert.equal(control.control.pending,0);assert.equal(control.control.bypassed,8);assert.equal(control.control.controlStatus,'shipped_without_inspection');assert.equal(control.control.approved,0);assert.equal(control.action.limit,0);
+  assert.equal((await call('GET','/production-tracking?tab=ready')).json().orders.length,0);
+  await post('/shipping/rules',{allowUninspected:false,version:1});assert.equal((await seed.query('SELECT allow_uninspected_shipping FROM production_orders WHERE id=$1',[task])).rows[0].allow_uninspected_shipping,true,'Later settings do not change the production snapshot');
   const command={kind:'shipping',target:order,body:{command:'dispatch-products',orderId:order,payload:body}};assert.equal(require('../src/recovery-catalog').describe(command).suffix,'/orders/'+order+'/shipping/dispatch-products');assert.equal(require('../src/recovery-catalog').storageKind(command),'shipping');
  }finally{if(app)await app.close();if(pool)await pool.end();if(seed)await seed.end();await admin.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE`);await admin.query(`DROP ROLE IF EXISTS ${role}`);await admin.end();}
 });

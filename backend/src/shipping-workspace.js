@@ -33,14 +33,18 @@ async function products(c,s,order,snapshot=null){
  const sources=[...v.lots.map(l=>({...l,releaseId:null})),...v.returnedLots.map(l=>({...l,orderItemId:metadata.get(l.lotId)}))];
  let globalBudget=order.execution_hold?0:number(v.totals.availableToShip);
  const rows=items.map(i=>{const b=balances.get(i.id),allocated=number(b.allocated-b.returned),dispatched=number(b.dispatched-b.returned),delivered=number(b.delivered-b.returned),ordered=number(i.quantity);let budget=Math.max(0,Math.min(ordered-allocated,globalBudget));const selected=[];
-  for(const source of sources){if((order.itemized?source.orderItemId:order.id)!==i.id||!source.availableToShip||!budget)continue;const amount=Math.min(number(source.availableToShip),budget);selected.push({lotId:source.lotId,releaseId:source.releaseId||null,available:amount});budget-=amount;}
+  for(const source of sources){if((order.itemized?source.orderItemId:order.id)!==i.id||!source.availableToShip||!budget)continue;const amount=Math.min(number(source.availableToShip),budget);selected.push({lotId:source.lotId,releaseId:source.releaseId||null,available:amount,approvedAvailable:source.releaseId?amount:Math.min(amount,number(source.availableApproved))});budget-=amount;}
   const ready=selected.reduce((n,l)=>number(n+l.available),0);globalBudget-=ready;
-  return {id:i.id,partName:i.part_name||order.part_name,partNumber:i.part_number||null,orderedQuantity:ordered,dispatchedQuantity:dispatched,deliveredQuantity:delivered,awaitingDispatch:Math.max(0,allocated-dispatched),remainingQuantity:Math.max(0,ordered-dispatched),readyQuantity:ready,sources:selected};
+  return {id:i.id,partName:i.part_name||order.part_name,partNumber:i.part_number||null,orderedQuantity:ordered,dispatchedQuantity:dispatched,deliveredQuantity:delivered,awaitingDispatch:Math.max(0,allocated-dispatched),remainingQuantity:Math.max(0,ordered-dispatched),readyQuantity:ready,uninspectedReadyQuantity:selected.reduce((n,l)=>n+Math.max(0,l.available-l.approvedAvailable),0),sources:selected};
  });
- return {orderId:order.id,orderNumber:order.order_number,customer:order.customer,products:rows,readyQuantity:rows.reduce((n,i)=>number(n+i.readyQuantity),0)};
+ const lineage=(await c.query('SELECT l.id,w.production_order_id FROM production_output_lots l JOIN work_orders w ON (w.tenant_id,w.site_id,w.id)=(l.tenant_id,l.site_id,l.work_order_id) WHERE l.tenant_id=$1 AND l.site_id=$2 AND l.order_id=$3',[s.tenantId,s.siteId,order.id])).rows,productions=new Map();
+ const parent=lot=>{const id=lineage.find(l=>l.id===lot)?.production_order_id;if(!id)return null;if(!productions.has(id))productions.set(id,{id,readyQuantity:0,dispatchedQuantity:0});return productions.get(id)};
+ for(const i of rows)for(const source of i.sources){const p=parent(source.lotId);if(p)p.readyQuantity+=source.available;}
+ for(const event of v.events)if(event.type==='dispatch'){const p=parent(event.outputLotId);if(p)p.dispatchedQuantity+=event.quantity;}
+ return {productions:[...productions.values()],orderId:order.id,orderNumber:order.order_number,customer:order.customer,products:rows,readyQuantity:rows.reduce((n,i)=>number(n+i.readyQuantity),0)};
 }
 
-async function ready(c,s,q={}){
+async function ready(c,s,q={},allItems=false){
  if(Object.keys(q).some(k=>!['q','after','limit','include'].includes(k)))fail(400,'INVALID_INPUT','Geçersiz seçim filtresi.');
  const term=q.q??'',limit=q.limit===undefined?30:Number(q.limit),after=q.after?identifier(q.after):null,include=q.include?identifier(q.include):null;
  if(typeof term!=='string'||term.length>120||!Number.isInteger(limit)||limit<1||limit>100)fail(400,'INVALID_INPUT','Geçersiz seçim filtresi.');
@@ -54,7 +58,7 @@ async function ready(c,s,q={}){
    OR EXISTS(SELECT 1 FROM rma_releases r WHERE r.tenant_id=o.tenant_id AND r.site_id=o.site_id AND r.order_id=o.id)) ORDER BY o.id`,[s.tenantId,s.siteId,term.trim()]);
  const eligible=[];let unavailable=0;
  for(const order of candidates.rows){try{const p=await products(c,s,order);if(p.readyQuantity>0)eligible.push({id:order.id,orderNumber:order.order_number,customer:order.customer,partName:order.part_name,status:order.status,readyQuantity:p.readyQuantity,readyProductCount:p.products.filter(i=>i.readyQuantity>0).length});}catch(e){if(['INTEGRITY_ERROR','PRODUCTION_RECONCILIATION_REQUIRED','OPERATION_UNSUPPORTED'].includes(e.code))unavailable++;else throw e;}}
- const rows=eligible.filter(o=>!after||o.id>after);return {items:rows.slice(0,limit),total:eligible.length,nextAfter:rows.length>limit?rows[limit-1].id:null,selected:eligible.find(o=>o.id===include)||null,unavailable};
+ const rows=eligible.filter(o=>!after||o.id>after);return {items:allItems?rows:rows.slice(0,limit),total:eligible.length,nextAfter:rows.length>limit?rows[limit-1].id:null,selected:eligible.find(o=>o.id===include)||null,unavailable};
 }
 
 function routes(api){
@@ -84,12 +88,13 @@ function routes(api){
    const id=crypto.randomUUID();await c.query('INSERT INTO shipping_orders(tenant_id,site_id,order_id,id,actor_id,idempotency_key) VALUES($1,$2,$3,$4,$5,$6)',[s.tenantId,s.siteId,orderId,id,s.identity.userId,req.headers['idempotency-key']]);
    const events=[];
    for(const line of lines){let remaining=line.quantity;const product=snapshot.products.find(i=>i.id===line.orderItemId);
-    for(const source of product.sources){if(!remaining)break;const amount=Math.min(remaining,source.available),allocation=crypto.randomUUID(),dispatch=crypto.randomUUID();
+    for(const source of product.sources){if(!remaining)break;const amount=Math.min(remaining,source.available),uninspected=Math.max(0,amount-source.approvedAvailable),before=uninspected?await shipping.availableLot(c,s,orderId,source.lotId):null,allocation=crypto.randomUUID(),dispatch=crypto.randomUUID();
      for(const [eventId,type,dispatchId]of [[allocation,'allocate',null],[dispatch,'dispatch',dispatch]])await c.query('INSERT INTO shipping_events(tenant_id,site_id,order_id,id,shipping_order_id,event_type,allocation_id,dispatch_id,output_lot_id,quantity_pieces,actor_id,idempotency_key,rma_release_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)',[s.tenantId,s.siteId,orderId,eventId,id,type,allocation,dispatchId,source.lotId,amount,s.identity.userId,req.headers['idempotency-key'],source.releaseId]);
-     events.push({orderItemId:line.orderItemId,outputLotId:source.lotId,rmaReleaseId:source.releaseId,allocationId:allocation,dispatchId:dispatch,quantity:amount});remaining-=amount;
+     if(uninspected)await require('./final-control').recordBypass(c,s,orderId,{...before,lotId:source.lotId},allocation,uninspected);
+     events.push({uninspectedQuantity:uninspected,orderItemId:line.orderItemId,outputLotId:source.lotId,rmaReleaseId:source.releaseId,allocationId:allocation,dispatchId:dispatch,quantity:amount});remaining-=amount;
     }
    }
-   await audit(c,s,'shipping.products_dispatched','order',orderId,{shippingOrderId:id,lines,events});return {status:201,body:{id,orderId,quantity:lines.reduce((n,i)=>number(n+i.quantity),0),lines,events,delivered:false}};
+   await audit(c,s,'shipping.products_dispatched','order',orderId,{shippingOrderId:id,lines,events});return {status:201,body:{id,orderId,quantity:lines.reduce((n,i)=>number(n+i.quantity),0),lines,events,uninspectedQuantity:events.reduce((n,e)=>n+e.uninspectedQuantity,0),delivered:false}};
   });return reply.code(r.status).send(r.body);
  });
 }

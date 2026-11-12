@@ -2,7 +2,7 @@
 // One row per inspection source. Partial decisions stay open; legacy rework is
 // a recorded decision, not an additional quality queue or a new repair command.
 const {data,scoped,fail,identifier}=require('./orders-planning');
-const types=['all','incoming','production','supplier','return'];
+const types=['all','incoming','production','supplier','return','final'];
 function filters(q={}){
  if(Object.keys(q).some(k=>!['q','type','state','limit','after'].includes(k)))fail(400,'INVALID_INPUT','Geçersiz kontrol filtresi');
  const type=q.type||'all',state=q.state||'open',query=q.q??'',limit=Number(q.limit??25),after=q.after?identifier(q.after):null;
@@ -20,7 +20,17 @@ const production=`SELECT e.id,CASE WHEN op.kind='external' THEN 'supplier' ELSE 
  LEFT JOIN order_items oi ON (oi.tenant_id,oi.site_id,oi.id)=(po.tenant_id,po.site_id,po.order_item_id)
  LEFT JOIN production_output_lots ol ON (ol.tenant_id,ol.site_id,ol.production_event_id)=(e.tenant_id,e.site_id,e.id)
  LEFT JOIN LATERAL(SELECT SUM(quantity_pieces) decided,SUM(quantity_pieces) FILTER(WHERE outcome='approved') approved,SUM(quantity_pieces) FILTER(WHERE outcome='rejected') rejected,SUM(quantity_pieces) FILTER(WHERE outcome='rework') rework,MAX(occurred_at) last_decision FROM output_dispositions WHERE tenant_id=e.tenant_id AND site_id=e.site_id AND production_event_id=e.id) d ON true
- WHERE e.tenant_id=$1 AND e.site_id=$2 AND e.kind IN ('good','pending') AND e.quantity_pieces>0 AND (NOT e.separate_quality_request OR EXISTS(SELECT 1 FROM production_quality_requests qr WHERE (qr.tenant_id,qr.site_id,qr.production_event_id)=(e.tenant_id,e.site_id,e.id)))`;
+ WHERE e.tenant_id=$1 AND e.site_id=$2 AND e.kind IN ('good','pending') AND e.quantity_pieces>0 AND NOT(COALESCE(po.final_control_enabled,false) AND op.sequence=(SELECT MAX(x.sequence) FROM operations x WHERE (x.tenant_id,x.site_id,x.production_order_id)=(po.tenant_id,po.site_id,po.id))) AND (NOT e.separate_quality_request OR EXISTS(SELECT 1 FROM production_quality_requests qr WHERE (qr.tenant_id,qr.site_id,qr.production_event_id)=(e.tenant_id,e.site_id,e.id)))`;
+const finalControls=`SELECT t.id,'final' type,t.created_at recorded,COALESCE(SUM(e.quantity_pieces),0) quantity,
+ COALESCE(SUM(d.decided+COALESCE(b.n,0)),0) decided,COALESCE(SUM(d.approved),0) approved,COALESCE(SUM(d.rejected),0) rejected,COALESCE(SUM(d.rework),0) rework,
+ jsonb_build_object('source','final','orderId',t.order_id,'workOrderId',t.work_order_id,'reference',p.number||' · Son kontrol','orderNumber',o.order_number,'customer',o.customer,'operation','Son kalite kontrolü','description',i.part_name,'unit','piece','bypassed',COALESCE(SUM(b.n),0),'controlStatus',CASE WHEN SUM(e.quantity_pieces)>SUM(d.decided+COALESCE(b.n,0)) THEN 'pending' WHEN COALESCE(SUM(b.n),0)>0 AND SUM(d.decided)=0 THEN 'shipped_without_inspection' WHEN COALESCE(SUM(b.n),0)>0 THEN 'completed_with_uninspected_shipping' ELSE 'inspected' END,'decidedAt',MAX(GREATEST(d.last_decision,b.last_bypass))) payload
+ FROM final_control_tasks t JOIN production_orders p ON (p.tenant_id,p.site_id,p.id)=(t.tenant_id,t.site_id,t.id)
+ JOIN orders o ON (o.tenant_id,o.site_id,o.id)=(t.tenant_id,t.site_id,t.order_id)
+ JOIN order_items i ON (i.tenant_id,i.site_id,i.id)=(p.tenant_id,p.site_id,p.order_item_id)
+ JOIN effective_production_events e ON (e.tenant_id,e.site_id,e.work_order_id)=(t.tenant_id,t.site_id,t.work_order_id) AND e.kind IN ('good','pending')
+ LEFT JOIN LATERAL(SELECT COALESCE(SUM(quantity_pieces),0) decided,COALESCE(SUM(quantity_pieces) FILTER(WHERE outcome='approved'),0) approved,COALESCE(SUM(quantity_pieces) FILTER(WHERE outcome='rejected'),0) rejected,COALESCE(SUM(quantity_pieces) FILTER(WHERE outcome='rework'),0) rework,MAX(occurred_at) last_decision FROM output_dispositions WHERE tenant_id=e.tenant_id AND site_id=e.site_id AND production_event_id=e.id) d ON true
+ LEFT JOIN LATERAL(SELECT SUM(quantity_pieces) n,MAX(created_at) last_bypass FROM shipping_quality_bypasses WHERE tenant_id=e.tenant_id AND site_id=e.site_id AND production_event_id=e.id) b ON true
+ WHERE t.tenant_id=$1 AND t.site_id=$2 GROUP BY t.id,t.created_at,t.order_id,t.work_order_id,p.number,o.order_number,o.customer,i.part_name`;
 const incoming=`SELECT l.id,'incoming' type,COALESCE(receipt.created_at,d.last_decision) recorded,
  q.approved+q.rejected+GREATEST(0,q.physical-GREATEST(0,q.approved+q.returned-q.used_approved)-GREATEST(0,q.rejected-q.used_rejected)) quantity,
  q.approved+q.rejected decided,q.approved,q.rejected,0 rework,
@@ -45,7 +55,7 @@ const supplier=`SELECT r.id,'supplier' type,r.created_at recorded,r.quantity_pie
  JOIN operations op ON (op.tenant_id,op.site_id,op.id)=(j.tenant_id,j.site_id,j.operation_id)
  LEFT JOIN LATERAL(SELECT SUM(quantity_pieces) decided,SUM(quantity_pieces) FILTER(WHERE outcome='approved') approved,SUM(quantity_pieces) FILTER(WHERE outcome='rejected') rejected,MAX(created_at) last_decision FROM outsourcing_inspections WHERE tenant_id=r.tenant_id AND site_id=r.site_id AND return_id=r.id) i ON true WHERE r.tenant_id=$1 AND r.site_id=$2`;
 async function controls(c,s,q={}){
- const f=filters(q),sql=`WITH sources AS (${production} UNION ALL ${incoming} UNION ALL ${returns} UNION ALL ${supplier}), candidates AS (
+ const f=filters(q),sql=`WITH sources AS (${production} UNION ALL ${finalControls} UNION ALL ${incoming} UNION ALL ${returns} UNION ALL ${supplier}), candidates AS (
  SELECT *,GREATEST(0,quantity-decided) pending FROM sources WHERE quantity>0), filtered AS (
  SELECT * FROM candidates WHERE ($4='all' OR type=$4) AND (($5='open' AND pending>0) OR ($5='completed' AND pending=0 AND decided>0))
  AND ($6='' OR strpos(lower(concat_ws(' ',payload->>'description',payload->>'reference',payload->>'orderNumber',payload->>'customer',payload->>'supplier',payload->>'operation')),lower($6))>0))`;
@@ -57,17 +67,20 @@ async function controls(c,s,q={}){
  const rows=result.page.slice(0,f.limit),items=rows.map(r=>({...r.payload,id:r.id,type:r.type,state:f.state,recordedAt:r.recorded,...Object.fromEntries(['quantity','decided','approved','rejected','rework','pending'].map(k=>[k,Number(r[k])]))}));
  return {items,total:Number(result.total),type:f.type,state:f.state,query:f.query,nextAfter:result.page.length>f.limit?items.at(-1).id:null};
 }
-const sourceSql=()=>`${production} UNION ALL ${incoming} UNION ALL ${returns} UNION ALL ${supplier}`;
+const sourceSql=()=>`${production} UNION ALL ${finalControls} UNION ALL ${incoming} UNION ALL ${returns} UNION ALL ${supplier}`;
 const item=r=>({...r.payload,id:r.id,type:r.type,state:Number(r.pending)>0?'open':'completed',recordedAt:r.recorded,...Object.fromEntries(['quantity','decided','approved','rejected','rework'].map(k=>[k,Number(r[k])])),pending:Number(r.pending)});
 async function controlDetail(c,s,source,id,q={}){
- if(!['output','incoming','return','outsourcing'].includes(source)||Object.keys(q).some(k=>k!=='after'))fail(400,'INVALID_INPUT','Geçersiz kontrol kaydı');
+ if(!['output','incoming','return','outsourcing','final'].includes(source)||Object.keys(q).some(k=>k!=='after'))fail(400,'INVALID_INPUT','Geçersiz kontrol kaydı');
  id=identifier(id);const after=q.after?identifier(q.after):null;
  const found=(await c.query(`WITH sources AS (${sourceSql()}) SELECT *,GREATEST(0,quantity-decided) pending FROM sources WHERE id=$4 AND quantity>0 AND payload->>'source'=$5`,[s.tenantId,s.siteId,null,id,source])).rows[0];
  if(!found)fail(404,'NOT_FOUND','Kontrol kaydı bulunamadı');
  const control=item(found),args=[s.tenantId,s.siteId,id];let decisions,action={limit:control.pending},documents=[],availableDocuments=[];
  // Actor names use existing scope-checked display functions, never a users grant.
  const auditActor=(alias,event)=>`(SELECT ritim_audit_actor_name(a.tenant_id,a.site_id,a.id) FROM audit_events a WHERE a.tenant_id=${alias}.tenant_id AND a.site_id=${alias}.site_id AND a.actor_id=${alias}.actor_id AND a.event_type='${event}' AND a.payload->>'id'=${alias}.id::text ORDER BY a.occurred_at,a.id LIMIT 1)`;
- if(source==='output'){
+ if(source==='final'){
+  decisions=`SELECT d.id,d.outcome,d.quantity_pieces quantity,d.evidence note,NULL::text reason,d.occurred_at created_at,ritim_quality_actor_name(d.tenant_id,d.site_id,d.id) actor_name,'[]'::jsonb documents FROM output_dispositions d JOIN final_control_tasks t ON (t.tenant_id,t.site_id,t.work_order_id)=(d.tenant_id,d.site_id,d.work_order_id) WHERE d.tenant_id=$1 AND d.site_id=$2 AND t.id=$3`;
+  availableDocuments=(await c.query("SELECT id,filename FROM work_documents WHERE tenant_id=$1 AND site_id=$2 AND work_order_id=$3 AND context='quality' ORDER BY created_at,id",[s.tenantId,s.siteId,control.workOrderId])).rows;const x=await require('./quality-disposition').source(c,s,control.orderId,control.workOrderId);if(x.rows.reduce((n,r)=>n+r.undisposed,0)!==control.pending)fail(409,'INTEGRITY_ERROR','Son kontrol miktarı doğrulanamadı.');
+ }else if(source==='output'){
   if(control.type==='supplier'){const supplier=(await c.query("SELECT s.name FROM production_output_lots l JOIN production_supplier_events r ON (r.tenant_id,r.site_id,r.returned_lot_id)=(l.tenant_id,l.site_id,l.input_lot_id) AND r.kind='return' JOIN production_supplier_events d ON (d.tenant_id,d.site_id,d.id)=(r.tenant_id,r.site_id,r.dispatch_id) JOIN outsourcing_suppliers s ON (s.tenant_id,s.site_id,s.id)=(d.tenant_id,d.site_id,d.supplier_id) WHERE l.tenant_id=$1 AND l.site_id=$2 AND l.production_event_id=$3",args)).rows[0];if(supplier)control.supplier=supplier.name}
   decisions=`SELECT d.id,d.outcome,d.quantity_pieces quantity,d.evidence note,NULL::text reason,d.occurred_at created_at,ritim_quality_actor_name(d.tenant_id,d.site_id,d.id) actor_name,${require('./quality-documents').projection('d')} documents FROM output_dispositions d WHERE d.tenant_id=$1 AND d.site_id=$2 AND d.production_event_id=$3`;
   if(control.pending){try{const v=await require('./quality-disposition').source(c,s,control.orderId,control.workOrderId),output=v.rows.find(x=>x.eventId===id);if(!output||output.undisposed!==control.pending)throw Error('Unreconciled output');action.inputLotId=output.lotId;availableDocuments=(await c.query("SELECT id,filename FROM work_documents WHERE tenant_id=$1 AND site_id=$2 AND work_order_id=$3 AND context='quality' ORDER BY created_at,id",[s.tenantId,s.siteId,control.workOrderId])).rows}catch(e){if(e.statusCode&&e.statusCode>=500||e.code&&String(e.code).match(/^\d/))throw e;action.limit=0;action.notice='Kontrol miktarı doğrulanamadı. Bağlı iş emrini inceleyin.'}}
@@ -88,4 +101,4 @@ async function controlDetail(c,s,source,id,q={}){
  return {control,action,documents,availableDocuments,decisions:result.page.slice(0,50).map(d=>({id:d.id,outcome:d.outcome,quantity:Number(d.quantity),note:d.note,reason:d.reason,createdAt:d.created_at,actorName:d.actor_name,documents:d.documents})),decisionTotal:Number(result.total),nextAfter:result.page.length>50?result.page[49].id:null};
 }
 function routes(api){api.get('/sites/:tenantId/:siteId/quality/controls',req=>scoped(req,(c,s)=>controls(c,s,req.query),'quality.write'));api.get('/sites/:tenantId/:siteId/quality/controls/:source/:id',req=>scoped(req,(c,s)=>controlDetail(c,s,req.params.source,req.params.id,req.query),'quality.write'))}
-module.exports={routes,controls,controlDetail,filters};
+module.exports={routes,controls,controlDetail,filters,finalControls};

@@ -17,7 +17,7 @@ async function call(c,action,p){
  let r;try{r=await c.query('SELECT ritim_admin_workspace($1,$2::jsonb) AS workspace',[action,JSON.stringify(p)]);}catch(e){if(e.code==='42501')fail(403,'FORBIDDEN','Bu kullanıcı veya tesis için yetkiniz yok.');throw e;}
  const w=r.rows[0].workspace;if(w?.conflict)fail(409,'STALE_VERSION','Bilgiler değişti. Sayfayı yenileyip tekrar deneyin.');return w;
 }
-async function read(pool,s){return inTransaction(pool,async c=>{await authorizeScope(c,{...s,capability:'members.manage'});const w=await call(c,'read',{}),names=await require('./workspace-users').execute(c,'read',{});for(const u of w.members)u.username=names[u.id]||null;return w;});}
+async function read(pool,s){return inTransaction(pool,async c=>{await authorizeScope(c,{...s,capability:'members.manage'});const w=await call(c,'read',{}),names=await require('./workspace-users').execute(c,'read',{});w.shippingRules=await require('./final-control').rules(c,s);for(const u of w.members)u.username=names[u.id]||null;return w;});}
 async function change(req,action,b){const p=input(action,b),s=data(req);return cmd(req,'workspace.'+action,'members.manage',p,async c=>{
  const workspace=await call(c,action,p);await audit(c,s,'workspace.'+action,'tenant',s.tenantId,p);return {status:200,body:workspace};
 });}
