@@ -9,7 +9,7 @@ test('B03A isolation on real PostgreSQL with actual restricted login',async t=>{
   await createRole(admin,owner);
   await createRole(admin,runtime);
   await admin.query(`CREATE SCHEMA "${schema}" AUTHORIZATION "${owner}"`);
-  migrations=new Pool({connectionString:roleUrl(owner),options:`-c search_path=${schema}`});assert.deepEqual(await migrate(migrations),['001','002','003','004','005','006','007','008','009','010','011','012','013','014','015','016','017','018','019','020','021','022','023','024','025','026','027','028','029','030','031','032','033','034','035','036','037','038','039','040','041','042','043','044','045','046','047','048','049','050','051','052','053','054','055','056']);
+  migrations=new Pool({connectionString:roleUrl(owner),options:`-c search_path=${schema}`});assert.deepEqual(await migrate(migrations),['001','002','003','004','005','006','007','008','009','010','011','012','013','014','015','016','017','018','019','020','021','022','023','024','025','026','027','028','029','030','031','032','033','034','035','036','037','038','039','040','041','042','043','044','045','046','047','048','049','050','051','052','053','054','055','056','057','058','059','060','061','062']);
   const c=await migrations.connect();try{await c.query('BEGIN');await provisionRuntime(c,schema,runtime);await c.query('COMMIT')}finally{c.release()}
   const seed=new Pool({connectionString:db,options:`-c search_path=${schema}`});try{
    await seed.query("INSERT INTO tenants(id,name) VALUES($1,'A'),($2,'B')",[ta,tb]);

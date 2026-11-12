@@ -8,14 +8,14 @@ function filters(q={},rework=false){const allowed=['q','orderId','limit','after'
 async function cursor(c,s,table,id,extra=''){if(id&&!(await c.query(`SELECT id FROM ${table} WHERE tenant_id=$1 AND site_id=$2 AND id=$3 ${extra}`,[s.tenantId,s.siteId,id])).rowCount)fail(400,'INVALID_INPUT','Sayfa konumu bu iş yerinde bulunamadı')}
 async function quality(c,s,q={}){const f=filters(q),args=[s.tenantId,s.siteId,f.query,f.orderId];await cursor(c,s,'production_events',f.after,"AND kind IN ('good','pending')");
  const sql=`WITH disposed AS (SELECT production_event_id,SUM(quantity_pieces) quantity FROM output_dispositions WHERE tenant_id=$1 AND site_id=$2 GROUP BY production_event_id), candidates AS MATERIALIZED (
- SELECT e.id,e.work_order_id,w.order_id,e.kind,e.quantity_pieces,COALESCE(d.quantity,0) decided,ol.id output_lot_id,ol.input_lot_id,w.work_order_number,w.status,o.order_number,o.customer,o.part_name,op.name operation
+ SELECT e.id,e.work_order_id,w.order_id,e.kind,e.quantity_pieces,COALESCE(d.quantity,0) decided,ol.id output_lot_id,ol.input_lot_id,w.work_order_number,w.status,o.order_number,o.customer,COALESCE((SELECT oi.part_name FROM production_orders item_po JOIN order_items oi ON (oi.tenant_id,oi.site_id,oi.id)=(item_po.tenant_id,item_po.site_id,item_po.order_item_id) WHERE (item_po.tenant_id,item_po.site_id,item_po.id)=(w.tenant_id,w.site_id,w.production_order_id)),o.part_name) part_name,op.name operation
  FROM effective_production_events e JOIN work_orders w ON (w.tenant_id,w.site_id,w.id)=(e.tenant_id,e.site_id,e.work_order_id)
  JOIN orders o ON (o.tenant_id,o.site_id,o.id)=(e.tenant_id,e.site_id,w.order_id)
  JOIN operations op ON (op.tenant_id,op.site_id,op.id)=(w.tenant_id,w.site_id,w.operation_id)
  LEFT JOIN disposed d ON d.production_event_id=e.id
  LEFT JOIN production_output_lots ol ON (ol.tenant_id,ol.site_id,ol.production_event_id)=(e.tenant_id,e.site_id,e.id)
  WHERE e.tenant_id=$1 AND e.site_id=$2 AND e.kind IN ('good','pending') AND e.quantity_pieces>COALESCE(d.quantity,0) AND (NOT e.separate_quality_request OR EXISTS(SELECT 1 FROM production_quality_requests qr WHERE qr.tenant_id=e.tenant_id AND qr.site_id=e.site_id AND qr.production_event_id=e.id))
- AND ($3='' OR strpos(lower(concat_ws(' ',w.work_order_number,o.order_number,o.customer,o.part_name,op.name,e.id::text)),lower($3))>0)
+ AND ($3='' OR strpos(lower(concat_ws(' ',w.work_order_number,o.order_number,o.customer,COALESCE((SELECT oi.part_name FROM production_orders item_po JOIN order_items oi ON (oi.tenant_id,oi.site_id,oi.id)=(item_po.tenant_id,item_po.site_id,item_po.order_item_id) WHERE (item_po.tenant_id,item_po.site_id,item_po.id)=(w.tenant_id,w.site_id,w.production_order_id)),o.part_name),op.name,e.id::text)),lower($3))>0)
  AND ($4::uuid IS NULL OR w.order_id=$4)) `;
  const count=(await c.query(sql+`SELECT (SELECT count(*) FROM candidates) total,(SELECT count(DISTINCT work_order_id) FROM candidates) jobs,
  COALESCE((SELECT jsonb_agg(p ORDER BY p.id) FROM (SELECT * FROM candidates WHERE ($5::uuid IS NULL OR id>$5) ORDER BY id LIMIT $6) p),'[]'::jsonb) page`,[...args,f.after,f.limit+1])).rows[0];
@@ -30,11 +30,11 @@ async function rework(c,s,q={}){const f=filters(q,true),args=[s.tenantId,s.siteI
  LEFT JOIN rework_inputs i ON (i.tenant_id,i.site_id,i.allocation_id)=(a.tenant_id,a.site_id,a.id)
  LEFT JOIN work_orders w ON (w.tenant_id,w.site_id,w.id)=(i.tenant_id,i.site_id,i.work_order_id)
  WHERE a.tenant_id=$1 AND a.site_id=$2 GROUP BY a.decision_id), candidates AS (
- SELECT d.*,w.work_order_number,o.order_number,o.part_number,o.part_name,COALESCE(t.allocated,0) allocated,t.invalid
+ SELECT d.*,w.work_order_number,o.order_number,o.part_number,COALESCE((SELECT oi.part_name FROM production_orders item_po JOIN order_items oi ON (oi.tenant_id,oi.site_id,oi.id)=(item_po.tenant_id,item_po.site_id,item_po.order_item_id) WHERE (item_po.tenant_id,item_po.site_id,item_po.id)=(w.tenant_id,w.site_id,w.production_order_id)),o.part_name) part_name,COALESCE(t.allocated,0) allocated,t.invalid
  FROM output_dispositions d JOIN work_orders w ON (w.tenant_id,w.site_id,w.id)=(d.tenant_id,d.site_id,d.work_order_id)
  JOIN orders o ON (o.tenant_id,o.site_id,o.id)=(d.tenant_id,d.site_id,d.order_id) LEFT JOIN totals t ON t.decision_id=d.id
  WHERE d.tenant_id=$1 AND d.site_id=$2 AND d.outcome='rework'
- AND ($3='' OR strpos(lower(concat_ws(' ',w.work_order_number,o.order_number,o.customer,o.part_name,o.part_number)),lower($3))>0)
+ AND ($3='' OR strpos(lower(concat_ws(' ',w.work_order_number,o.order_number,o.customer,COALESCE((SELECT oi.part_name FROM production_orders item_po JOIN order_items oi ON (oi.tenant_id,oi.site_id,oi.id)=(item_po.tenant_id,item_po.site_id,item_po.order_item_id) WHERE (item_po.tenant_id,item_po.site_id,item_po.id)=(w.tenant_id,w.site_id,w.production_order_id)),o.part_name),o.part_number)),lower($3))>0)
  AND ($4::uuid IS NULL OR d.order_id=$4)
  AND ($5='all' OR COALESCE(t.allocated,0)<d.quantity_pieces OR COALESCE(t.active,false) OR COALESCE(t.invalid,false))) `;
  const total=number((await c.query(sql+'SELECT count(*) total FROM candidates',args)).rows[0].total);
@@ -50,7 +50,7 @@ async function rework(c,s,q={}){const f=filters(q,true),args=[s.tenantId,s.siteI
 }
 function route(req,kind){const s=data(req);return inTransaction(req.server.pgPool,async c=>{await authorizeScope(c,{...s,capability:'quality.write'});return (kind==='quality'?quality:rework)(c,s,req.query||{})})}
 async function history(c,s,q={}){const f=filters(q);await cursor(c,s,'output_dispositions',f.after);const args=[s.tenantId,s.siteId,f.query,f.orderId];
- const sql=`FROM output_dispositions d JOIN work_orders w ON (w.tenant_id,w.site_id,w.id)=(d.tenant_id,d.site_id,d.work_order_id) JOIN orders o ON (o.tenant_id,o.site_id,o.id)=(d.tenant_id,d.site_id,d.order_id) WHERE d.tenant_id=$1 AND d.site_id=$2 AND ($3='' OR strpos(lower(concat_ws(' ',w.work_order_number,o.order_number,o.customer,o.part_name,d.evidence)),lower($3))>0) AND ($4::uuid IS NULL OR d.order_id=$4)`;
+ const sql=`FROM output_dispositions d JOIN work_orders w ON (w.tenant_id,w.site_id,w.id)=(d.tenant_id,d.site_id,d.work_order_id) JOIN orders o ON (o.tenant_id,o.site_id,o.id)=(d.tenant_id,d.site_id,d.order_id) WHERE d.tenant_id=$1 AND d.site_id=$2 AND ($3='' OR strpos(lower(concat_ws(' ',w.work_order_number,o.order_number,o.customer,COALESCE((SELECT oi.part_name FROM production_orders item_po JOIN order_items oi ON (oi.tenant_id,oi.site_id,oi.id)=(item_po.tenant_id,item_po.site_id,item_po.order_item_id) WHERE (item_po.tenant_id,item_po.site_id,item_po.id)=(w.tenant_id,w.site_id,w.production_order_id)),o.part_name),d.evidence)),lower($3))>0) AND ($4::uuid IS NULL OR d.order_id=$4)`;
  const total=number((await c.query('SELECT count(*) total '+sql,args)).rows[0].total),rows=(await c.query(`SELECT ${require('./quality-documents').projection('d')} documents,d.id,d.order_id AS "orderId",d.work_order_id AS "workOrderId",w.work_order_number AS "workOrderNumber",o.order_number AS "orderNumber",o.part_name AS "partName",d.outcome,d.quantity_pieces AS quantity,d.evidence,d.occurred_at AS "decidedAt" ${sql} AND ($5::uuid IS NULL OR (d.occurred_at,d.id)<(SELECT occurred_at,id FROM output_dispositions WHERE tenant_id=$1 AND site_id=$2 AND id=$5)) ORDER BY d.occurred_at DESC,d.id DESC LIMIT $6`,[...args,f.after,f.limit+1])).rows,items=rows.slice(0,f.limit).map(x=>({...x,quantity:number(x.quantity)}));return {items,total,nextAfter:rows.length>f.limit?items.at(-1).id:null};
 }
 function routes(api){api.get('/sites/:tenantId/:siteId/quality/queue',req=>route(req,'quality'));api.get('/sites/:tenantId/:siteId/quality/history',req=>{const s=data(req);return inTransaction(req.server.pgPool,async c=>{await authorizeScope(c,{...s,capability:'quality.write'});return history(c,s,req.query||{})})})}

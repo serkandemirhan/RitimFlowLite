@@ -1,0 +1,12 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),{chromium}=require('playwright');
+const source=fs.readFileSync('integration/premium-api.js','utf8'),line=key=>source.split('\n').find(l=>l.includes(key));
+test('route editors select only catalog operations and fill the kind automatically',async()=>{
+ const browser=await chromium.launch();try{const p=await browser.newPage();await p.setContent('<main></main>');
+ const start=source.indexOf(' chooseCatalogOperation(handler,'),end=source.indexOf('\n templateEdit(',start),method=source.slice(start,end);
+ const functions=[line('function catalogOperationSelect('),line('function poOperationSelect('),line('function routeEditor('),source.slice(source.indexOf(' function simpleWizardContent('),source.indexOf(' function displayWizard('))].join('\n');
+ await p.evaluate(({functions,method})=>{window.el=id=>document.getElementById(id);window.h=x=>String(x??'').replaceAll('&','&amp;').replaceAll('"','&quot;');window.jsArg=x=>h(JSON.stringify(x));window.poOperationChoices=[{id:'internal',name:'Torna',kind:'internal'},{id:'external',name:'Kaplama',kind:'external'}];window.poEditModel={operations:[{name:'',kind:'internal'}]};window.poDraft={operations:[{name:'',kind:'internal'}]};window.captureRoute=()=>{};window.capturePo=()=>{};window.captureWizard=()=>{};window.wizard={step:2,templateOperations:[{name:'',kind:'internal'}]};eval(functions+';window.renderModal=()=>{document.querySelector("main").innerHTML=simpleWizardContent()};window.draw=()=>{document.querySelector("main").innerHTML=routeEditor(poEditModel.operations,"po-edit","po")};');window.RitimPremiumAPI=eval('({'+method+'})');draw()},{functions,method});
+ assert.equal(await p.locator('input[type=text]').count(),0);await p.locator('.catalog-operation-choice').selectOption('external');assert.equal(await p.locator('#po-edit-kind-0').inputValue(),'external');assert(await p.locator('#po-edit-kind-0').isDisabled());assert.equal(await p.evaluate(()=>poEditModel.operations[0].name),'Kaplama');
+ await p.locator('.catalog-operation-choice').selectOption('internal');assert.equal(await p.locator('#po-edit-kind-0').inputValue(),'internal');
+ await p.evaluate(()=>{poEditModel.operations[0]={name:'Unlisted legacy operation',kind:'external'};draw()});assert.equal(await p.locator('.catalog-operation-choice').inputValue(),'');assert.equal(await p.locator('#po-edit-name-0').inputValue(),'');
+ }finally{await browser.close()}
+});

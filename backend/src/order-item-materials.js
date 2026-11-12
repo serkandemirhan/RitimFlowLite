@@ -1,0 +1,6 @@
+'use strict';
+const {identifier,fail}=require('./orders-planning');
+const {amount,unitAmount}=require('./material-stock');
+function values(rows){if(rows===undefined)return [];if(!Array.isArray(rows)||rows.length>20)fail(400,'INVALID_INPUT','En fazla 20 malzeme seçin');const result=rows.map(x=>{if(!x||typeof x!=='object'||Array.isArray(x))fail(400,'INVALID_INPUT','Malzeme satırı geçersiz');return {materialId:identifier(x.materialId),quantity:amount(x.quantity)}});if(new Set(result.map(x=>x.materialId)).size!==result.length)fail(400,'INVALID_INPUT','Aynı malzemeyi bir kez ekleyin');return result}
+async function resolve(c,s,rows){const result=[];for(const r of rows){const m=(await c.query(`SELECT m.id,m.code,m.description,m.base_unit,u.fractional FROM inventory_materials m JOIN master_parts p ON (p.tenant_id,p.site_id,p.id)=(m.tenant_id,m.site_id,m.part_id) JOIN stock_units u ON (u.tenant_id,u.site_id,u.id)=(m.tenant_id,m.site_id,m.unit_id) WHERE m.tenant_id=$1 AND m.site_id=$2 AND m.id=$3 AND p.deleted_at IS NULL AND p.card_type IN ('raw','semi') FOR SHARE OF m,p`,[s.tenantId,s.siteId,r.materialId])).rows[0];if(!m)fail(409,'MATERIAL_UNAVAILABLE','Tanımlı ve aktif hammadde veya yarı mamul seçin');unitAmount(m,r.quantity);result.push({...r,code:m.code,name:m.description,unit:m.base_unit})}return result}
+module.exports={values,resolve};

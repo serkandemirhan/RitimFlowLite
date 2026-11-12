@@ -1,0 +1,75 @@
+'use strict';
+const assert=require('node:assert/strict');
+module.exports=async function({call,base,admin,schema,ta,sa,tb,sb,operator,ot,id}){
+ const post=async(path,body,key,status=201,token)=>{const r=await call('POST',base+path,body,'raw-scenario-'+key,token);assert.equal(r.statusCode,status,key+': '+r.body);return r.json()};
+ const metre=await post('/stock-units',{code:'m',name:'Metre',fractional:true},'unit');
+ const piece=await post('/stock-units',{code:'piece',name:'Adet',fractional:false},'unit-piece');
+ const customer=await post('/master-data/customers',{code:'42',name:'Raw stock customer'},'customer');
+ const other=await post('/master-data/customers',{code:'43',name:'Other raw customer'},'other');
+ const raw=await post('/master-data/parts',{code:'15',name:'Steel bar',cardType:'raw',stockUnitId:metre.id},'raw');
+ assert.equal(raw.stockUnitId,metre.id);assert.equal(raw.cardType,'raw');
+ const semi=await post('/master-data/parts',{code:'17',name:'Semi bush',cardType:'semi',stockUnitId:piece.id},'semi');
+ const product=await post('/master-data/parts',{code:'16',name:'Finished shaft'},'product');
+ const failUnit=await post('/master-data/parts/'+raw.id+'/update',{code:'15',name:'Steel bar',version:raw.version,cardType:'raw',stockUnitId:piece.id},'unit-change',409);assert.equal(failUnit.error.code,'UNIT_IMMUTABLE');
+ async function production(cust,key,qty){const order=await post('/orders',{customerId:cust,items:[{partId:product.id,quantity:qty,dueDate:'2026-12-20',materials:key==='a'?[{materialId:raw.id,quantity:2.5},{materialId:semi.id,quantity:3}]:[]}]},key+'-order');const po=await post('/orders/'+order.id+'/production-orders',{quantity:qty,orderItemId:order.items[0].id,operations:[{name:'Raw test turning',kind:'internal'},{name:'Raw test coating',kind:'external'}]},key+'-po');const planned=await post('/production-orders/'+po.id+'/state',{action:'plan',version:po.version,plannedDate:'2026-12-01'},key+'-plan',200);return {order,po:planned,job:planned.workOrders[0]}}
+ await post('/orders',{customerId:customer.id,items:[{partId:product.id,quantity:1,materials:[{materialId:raw.id,quantity:1},{materialId:raw.id,quantity:2}]}]},'duplicate-material',400);await post('/orders',{customerId:customer.id,items:[{partId:product.id,quantity:1,materials:[{materialId:semi.id,quantity:0.5}]}]},'fractional-piece-material',400);
+ const noMaterial=await post('/orders',{customerId:customer.id,items:[{partId:product.id,quantity:1,materials:[{materialId:product.id,quantity:1}]}]},'invalid-material',409);assert.equal(noMaterial.error.code,'MATERIAL_UNAVAILABLE');
+ const a=await production(customer.id,'a',20),b=await production(customer.id,'b',50),foreign=await production(other.id,'foreign',1);
+ assert.equal(a.order.items[0].materials[0].code,'15');assert.equal(a.po.expectedMaterials[0].quantity,2.5);assert.equal(b.order.items[0].materials.length,0);assert.equal(Number((await admin.query(`SELECT count(*) n FROM ${schema}.inventory_movements v JOIN ${schema}.inventory_lots l ON (l.tenant_id,l.site_id,l.id)=(v.tenant_id,v.site_id,v.lot_id) WHERE l.material_id=$1`,[raw.id])).rows[0].n),0);
+ const plant=await post('/inventory/locations',{kind:'plant',code:'RAW-PLANT'},'plant');const warehouse=await post('/inventory/locations',{kind:'warehouse',code:'RAW-WH',parentId:plant.id},'warehouse');const region=await post('/inventory/locations',{kind:'region',code:'RAW-R',parentId:warehouse.id},'region');const container=await post('/inventory/locations',{kind:'container',code:'RAW-C',parentId:region.id},'container');
+ const receiptBody={materialId:raw.id,locationId:container.id,quantity:12.5,productionId:a.po.id,supplierRef:'Customer delivery',documentRef:'RAW-RECEIPT'};
+ const receipt=await post('/inventory/receipts',receiptBody,'receipt');assert.match(receipt.lotCode,/^LOT-042-015-\d{6}$/);assert.equal(receipt.ownerCustomerId,customer.id);
+ assert.deepEqual(await post('/inventory/receipts',receiptBody,'receipt'),receipt);
+ const issue={productionId:a.po.id,lotId:receipt.lotId,sourceLocationId:container.id,quantity:2.5};
+ assert.equal((await post('/inventory/raw-issues',issue,'pre-quality',409)).error.code,'QUALITY_APPROVAL_REQUIRED');
+ await post('/inventory/lots/'+receipt.lotId+'/inspect',{outcome:'approved',quantity:10},'inspect');await post('/inventory/lots/'+receipt.lotId+'/inspect',{outcome:'rejected',quantity:2.5},'reject');
+ assert.equal((await post('/inventory/lots/'+receipt.lotId+'/inspect',{outcome:'approved',quantity:.1},'over-inspect',409)).error.code,'QUANTITY_EXCEEDED');
+ assert.equal((await post('/inventory/raw-issues',{...issue,productionId:foreign.po.id},'wrong-customer',409)).error.code,'CUSTOMER_MISMATCH');
+ assert.equal((await post('/inventory/raw-issues',{...issue,quantity:11},'over-approved',409)).error.code,'QUALITY_APPROVAL_REQUIRED');
+ const issuedA=await post('/inventory/raw-issues',issue,'issue-a');assert.deepEqual(await post('/inventory/raw-issues',issue,'issue-a'),issuedA);
+ await post('/inventory/raw-issues',{...issue,productionId:b.po.id,quantity:3},'issue-b');
+ const stock=async()=>{const r=await call('GET',base+'/inventory/balances');assert.equal(r.statusCode,200,r.body);return r.json().balances.find(x=>x.lotId===receipt.lotId&&x.locationId===container.id)};
+ assert.equal((await stock()).quantity,7);assert.equal((await stock()).unit,'m');
+ const readMaterials=await call('GET',base+'/production-orders/'+a.po.id+'/materials');assert.equal(readMaterials.json().issues[0].quantity,2.5);assert.equal(readMaterials.json().readiness,'missing');
+ const machine=await post('/machine-planning/machines',{code:'RAW-TURN'},'machine');await admin.query(`INSERT INTO "${schema}".work_assignments(tenant_id,site_id,id,work_order_id,machine_id,user_id) VALUES($1,$2,$3,$4,$5,$6)`,[ta,sa,id(),a.job.id,machine.id,operator]);
+ const execution='/orders/'+a.order.id+'/work-orders/'+a.job.id+'/production';assert.equal((await post(execution+'/start',{},'start-blocked',409,ot)).error.code,'MATERIAL_NOT_READY');
+ await post('/production-orders/'+a.po.id+'/material-readiness',{readiness:'partial'},'ready-a',200);
+ await post(execution+'/start',{},'start',200,ot);
+ const inputs=(await call('GET',base+execution+'/balances')).json();assert.equal(inputs.inputMode,'raw');assert.equal(inputs.inputQuantity,20);assert.equal(inputs.materialReadiness,'partial');
+ const output=await post(execution+'/results',{lotId:inputs.lots[0].lotId,kind:'pending',quantity:20},'results',201,ot);
+ assert.equal((await stock()).quantity,7); // Recording products never deducts metres a second time.
+ await post(execution+'/pause',{reason:'Material scenario pause'},'pause',200,ot);
+ assert.equal((await post('/inventory/raw-issues/'+issuedA.id+'/return',{destinationLocationId:container.id,quantity:3},'over-return',409)).error.code,'RETURN_EXCEEDED');
+ await post('/inventory/raw-issues/'+issuedA.id+'/return',{destinationLocationId:container.id,quantity:1},'return');assert.equal((await stock()).quantity,8);
+ const qa=await call('GET',base+'/orders/'+a.order.id+'/work-orders/'+a.job.id+'/quality');assert.equal(qa.statusCode,200,qa.body);
+ const qualityOutput=qa.json().outputs[0];await post('/orders/'+a.order.id+'/work-orders/'+a.job.id+'/quality/decisions',{eventId:qualityOutput.eventId,lotId:qualityOutput.lotId,outputLotId:qualityOutput.outputLotId,outcome:'approved',quantity:20,evidence:'Scenario dimensional check'},'product-quality');
+ await post(execution+'/complete',{},'complete',200,ot);
+ const vendor=await post('/outsourcing/suppliers',{code:'RAW-VENDOR',name:'Raw scenario coating'},'vendor');
+ const supplierJob=a.po.workOrders.find(j=>j.kind==='external'),supplierPath='/production-orders/'+a.po.id+'/work-orders/'+supplierJob.id+'/supplier';
+ const supplierBefore=(await call('GET',base+supplierPath)).json();assert.equal(supplierBefore.sources[0].available,20);
+ const sent=await post(supplierPath+'/dispatch',{supplierId:vendor.id,sourceId:supplierBefore.sources[0].id,sourceType:'output',quantity:20,expectedReturnDate:'2026-12-05'},'supplier-send');
+ const dispatchId=sent.dispatches[0].id;const partialReturn=await post(supplierPath+'/return',{dispatchId,quantity:7},'supplier-return');assert.equal(partialReturn.dispatches[0].outstanding,13);
+ const board=await call('GET',base+'/machine-planning');assert.equal(board.statusCode,200,board.body);const vendorLane=board.json().supplierLanes.find(l=>l.id===vendor.id);assert.equal(vendorLane.jobs.find(j=>j.id===supplierJob.id).quantity,13);
+ assert.equal((await stock()).quantity,8); // Supplier movements track product pieces, never raw metres.
+ assert.equal((await post(supplierPath+'/complete',{},'supplier-too-early',409)).error.code,'COMPLETION_BLOCKED');
+ for(const quantity of [0,-1,.0000001])assert.equal((await post('/inventory/raw-issues',{...issue,quantity},'invalid-'+quantity,400)).error.code,'INVALID_INPUT');
+ // Both raw units and product quantities remain visible without a BOM conversion.
+ const timeline=await call('GET',base+'/orders/'+a.order.id+'/timeline');assert.equal(timeline.statusCode,200,timeline.body);assert.equal(timeline.json().productionOrders[0].quantity,20);
+ const unauthorized=await call('POST',base+'/inventory/lots/'+receipt.lotId+'/inspect',{outcome:'approved',quantity:1},'raw-op-inspect',ot);assert.equal(unauthorized.statusCode,403);
+ const crossSite=await call('GET',`/api/v1/sites/${tb}/${sb}/production-orders/${a.po.id}/materials`);assert.equal(crossSite.statusCode,403);
+ const cancelled=await call('GET',base+'/orders/'+b.order.id+'/execution-control?productionId='+b.po.id);await post('/orders/'+b.order.id+'/execution-control',{productionId:b.po.id,action:'cancel',reason:'scenario',token:cancelled.json().token},'cancel',200);assert.equal((await stock()).quantity,8);
+ assert.equal((await post('/inventory/raw-issues',{...issue,productionId:b.po.id,quantity:1},'cancelled-issue',409)).error.code,'ORDER_CLOSED');
+ // Concurrent receipts allocate different numbers; customer ownership is independent of an expected job.
+ const generalBody={materialId:raw.id,locationId:container.id,quantity:1.25,productionId:a.po.id,ownership:'general'};
+ const parallel=await Promise.all([post('/inventory/receipts',generalBody,'parallel-1'),post('/inventory/receipts',generalBody,'parallel-2')]);assert.notEqual(parallel[0].lotCode,parallel[1].lotCode);assert.match(parallel[0].lotCode,/^LOT-GNL-015-\d{6}$/);assert.equal(parallel[0].ownerCustomerId,null);
+ const direct={...(await post('/orders',{customerId:customer.id,items:[{partId:product.id,quantity:5,dueDate:'2026-12-20'}]},'direct-order'))};
+ const directPo=await post('/orders/'+direct.id+'/production-orders',{quantity:5,orderItemId:direct.items[0].id,operations:[{name:'Raw initial outsource',kind:'external'}]},'direct-po');const directPlanned=await post('/production-orders/'+directPo.id+'/state',{action:'plan',version:directPo.version,plannedDate:'2026-12-01'},'direct-plan',200);
+ const directLot=parallel[0].lotId;await post('/inventory/lots/'+directLot+'/inspect',{outcome:'approved',quantity:1.25},'direct-inspect');
+ const concurrent=await Promise.all([call('POST',base+'/inventory/raw-issues',{productionId:directPo.id,lotId:directLot,sourceLocationId:container.id,quantity:.75},'raw-concurrent-1'),call('POST',base+'/inventory/raw-issues',{productionId:directPo.id,lotId:directLot,sourceLocationId:container.id,quantity:.75},'raw-concurrent-2')]);assert.deepEqual(concurrent.map(r=>r.statusCode).sort(),[201,409]);
+ await post('/inventory/lots/'+parallel[1].lotId+'/inspect',{outcome:'approved',quantity:1.25},'second-lot-inspect');await post('/inventory/raw-issues',{productionId:directPo.id,lotId:parallel[1].lotId,sourceLocationId:container.id,quantity:.25},'second-lot-issue');const multiLot=(await call('GET',base+'/production-orders/'+directPo.id+'/materials')).json();assert.equal(multiLot.issues.length,2);assert.equal(new Set(multiLot.issues.map(i=>i.lotId)).size,2);
+ await post('/production-orders/'+directPo.id+'/material-readiness',{readiness:'partial'},'direct-ready',200);
+ const directPath='/production-orders/'+directPo.id+'/work-orders/'+directPlanned.workOrders[0].id+'/supplier';const directView=(await call('GET',base+directPath)).json();assert.equal(directView.sources[0].available,5);await post(directPath+'/dispatch',{supplierId:vendor.id,sourceId:directView.sources[0].id,sourceType:'material',quantity:5},'direct-send');
+ const heldReturn=concurrent.find(r=>r.statusCode===201).json();await post('/inventory/raw-issues/'+heldReturn.id+'/return',{quantity:.75,destinationLocationId:container.id},'direct-return-running',409);
+ const report={lot:receipt.lotCode,unit:'m',received:12.5,qualityApproved:10,qualityRejected:2.5,issuedToProductionA:2.5,issuedToProductionB:3,returned:1,warehouseBalance:8,productOrderA:20,productOrderB:50,productsRecorded:20,supplierSent:20,supplierReturned:7,supplierOutstanding:13,cancellationRestoredStock:false};
+ return report;
+};

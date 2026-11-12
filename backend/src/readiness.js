@@ -3,7 +3,8 @@ const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypt
 const directory=path.join(__dirname,'..','migrations');
 function expectedMigrations(){return fs.readdirSync(directory).filter(f=>/^\d+_[a-z0-9_]+\.sql$/.test(f)).sort().map(f=>({version:f.split('_')[0],checksum:crypto.createHash('sha256').update(fs.readFileSync(path.join(directory,f))).digest('hex')}));}
 async function checkReadiness(pool,{isolatedDevelopment=false}={}){
- const actual=await pool.query('SELECT version,checksum FROM ritim_schema_versions() ORDER BY version');
+ const rawSecurity=await pool.query("SELECT count(*)=6 AND bool_and(relrowsecurity AND relforcerowsecurity AND has_table_privilege(current_user,oid,'SELECT')) ok FROM pg_class WHERE relnamespace=current_schema()::regnamespace AND relname=ANY($1::text[])",[['stock_units','inventory_lot_inspections','raw_material_issues','raw_material_returns','raw_material_authorizations','stock_lot_sequences']]);if(rawSecurity.rows[0]?.ok!==true)throw Error('Material stock privileges or RLS invalid');
+ const itemSecurity=await pool.query("SELECT has_table_privilege(current_user,'order_items','SELECT') AND (SELECT relrowsecurity AND relforcerowsecurity FROM pg_class WHERE oid='order_items'::regclass) ok");if(itemSecurity.rows[0]?.ok!==true)throw Error('Order item privileges or RLS invalid');const actual=await pool.query('SELECT version,checksum FROM ritim_schema_versions() ORDER BY version');
  const files=fs.readdirSync(directory).filter(f=>/^\d+_[a-z0-9_]+\.sql$/.test(f)).sort();
  if(actual.rows.length!==files.length||files.some((f,i)=>actual.rows[i].version!==f.split('_')[0]||!require('./migration-checksum').checksums(fs.readFileSync(path.join(directory,f),'utf8')).includes(actual.rows[i].checksum)))throw Error('Migration version mismatch');
  if(isolatedDevelopment){

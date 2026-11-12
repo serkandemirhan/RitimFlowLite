@@ -1,6 +1,6 @@
 param(
   [switch]$Apply,
-  [string[]]$Keep = @('cloud-release/order-grid', 'cloud-release/iphone-pilot', 'cloud-release/pilot-edge', 'cloud-release/pilot-functional', 'cloud-release/android-operator-final', 'cloud-release/operator-refinement', 'native-postgres')
+  [string[]]$Keep = @('cloud-release/order-grid', 'cloud-release/iphone-pilot', 'cloud-release/pilot-edge', 'cloud-release/pilot-functional', 'cloud-release/android-operator-final', 'cloud-release/operator-refinement', 'native-postgres', 'material-stock-ui', 'material-stock-pages', 'public-presentations', 'presentation-site', 'getritim-presentation-publish')
 )
 $ErrorActionPreference = 'Stop'
 $artifactRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../artifacts'))

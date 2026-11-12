@@ -1,0 +1,6 @@
+node_modules
+backend/node_modules
+artifacts
+.git
+.env*
+backend/.env*

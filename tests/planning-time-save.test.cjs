@@ -1,0 +1,12 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),{chromium}=require('playwright');
+const source=fs.readFileSync('integration/premium-api.js','utf8'),line=key=>source.split('\n').find(l=>l.includes(key));
+test('fully produced job saves and reopens per-piece time instead of silently resetting to zero',async()=>{
+ const b=await chromium.launch();try{const p=await b.newPage();await p.setContent('<main></main>');
+ const functions=['planningDuration','inlineTimingValues','inlineTimingContent'].map(n=>line('function '+n+'(')).join('\n');
+ const methods=['boardEditTime(id)','boardTimeDraft(key,value)','async boardSaveTime()'].map(n=>line(n)).join('\n');
+ await p.evaluate(({functions,methods})=>{window.busy=false;window.boardTimeEdit=null;window.boardNotice='';window.capable=()=>true;window.boardStale=()=>false;window.el=id=>document.getElementById(id);window.h=x=>String(x??'');window.jsArg=JSON.stringify;window.journal={list:()=>[]};window.machineBoard={jobs:[{id:'job',orderId:'order',number:'JOB',quantity:1,produced:1,status:'waiting',timing:{setupMinutes:0,cycleMinutes:0,version:1}}]};window.saved=[];window.run=async f=>f();window.experienceCommand=async(kind,order,id,payload)=>{saved.push(payload);machineBoard.jobs[0].timing={...payload,version:payload.version+1}};window.readMachineBoard=async()=>machineBoard;eval(functions+';window.draw=()=>{document.querySelector("main").innerHTML=inlineTimingContent(machineBoard.jobs[0])};');window.RitimPremiumAPI=eval('({'+methods+'})');RitimPremiumAPI.boardEditTime('job')},{functions,methods});
+ await p.getByLabel('Adet başı süre · dk',{exact:true}).fill('43');await p.getByRole('button',{name:'Kaydet',exact:true}).click();assert.deepEqual(await p.evaluate(()=>saved[0]),{version:1,setupMinutes:0,cycleMinutes:43});
+ await p.evaluate(()=>RitimPremiumAPI.boardEditTime('job'));assert.equal(await p.locator('#inline-time-total').inputValue(),'43');
+ await p.evaluate(()=>{machineBoard.jobs[0].quantity=10;machineBoard.jobs[0].produced=0;machineBoard.jobs[0].timing.setupMinutes=5;RitimPremiumAPI.boardEditTime('job')});await p.getByLabel('Kalan iş için yaklaşık süre · dk',{exact:true}).fill('45');await p.getByRole('button',{name:'Kaydet',exact:true}).click();assert.equal(await p.evaluate(()=>saved[1].cycleMinutes),4);assert.equal(await p.evaluate(()=>saved[1].setupMinutes),5);
+ }finally{await b.close()}
+});
