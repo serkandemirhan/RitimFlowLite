@@ -1,7 +1,7 @@
 /* Presentation only: move existing controls; keep their IDs, form ownership and handlers. */
 (function(root){
  'use strict';
- const $=(s,within=document)=>within.querySelector(s),$$=(s,within=document)=>[...within.querySelectorAll(s)];
+ const $=(s,within=document)=>within?.querySelector(s)||null,$$=(s,within=document)=>[...(within?.querySelectorAll(s)||[])];
  const node=(tag,cls,text)=>{const n=document.createElement(tag);n.className=cls||'';if(text)n.textContent=text;return n};
  const button=(text,fn)=>{const b=node('button','btn',text);b.type='button';b.onclick=fn;return b};
  const titles={'production-orders':'Üretim Emirleri',jobs:'İş Emirleri',compensations:'Telafi Takibi','production-monitor':'Üretim Takibi',orders:'Siparişler',shipping:'Sevkiyat',outsourcing:'Fason',returns:'Müşteri İadeleri','quality-list':'Kalite Kontrol',rework:'Tamir'};
