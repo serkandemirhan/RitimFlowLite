@@ -13,7 +13,7 @@ async function main(){
   const health=await context.request.get(origin+'/health/ready');assert.equal(health.status(),200);report.health=health.status();
   for(const file of ['integration/compact-workspace.js','assets/css/compact-workspace.css','integration/premium-api.js','integration/modern-ui.js']){
    const response=await context.request.get(origin+'/'+file+'?release='+encodeURIComponent(revision));assert.equal(response.status(),200,file);
-   const expected=crypto.createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex'),actual=crypto.createHash('sha256').update(await response.body()).digest('hex');assert.equal(actual,expected,'Deployed bytes differ: '+file);report.assets.push({file,sha256:actual});
+   const expected=crypto.createHash('sha256').update(fs.readFileSync(path.join(root,file),'utf8').replace(/\r\n/g,'\n')).digest('hex'),actual=crypto.createHash('sha256').update(await response.body()).digest('hex');assert.equal(actual,expected,'Deployed bytes differ: '+file);report.assets.push({file,sha256:actual});
   }
   const sessionResponse=await context.request.get(origin+'/api/v1/session');assert.equal(sessionResponse.status(),200);const session=await sessionResponse.json();
   const checkpoint=path.join(root,'artifacts/scenario-checkpoints/live-stock-release.json'),knownSite=fs.existsSync(checkpoint)?JSON.parse(fs.readFileSync(checkpoint,'utf8')).siteId:null;
