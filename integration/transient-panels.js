@@ -41,7 +41,8 @@
   }
   for(const input of root.querySelectorAll('input[type=number]')){if(!input.inputMode)input.inputMode=input.step&&input.step!=='1'?'decimal':'numeric'}
   for(const input of root.querySelectorAll('[required]')){const label=input.closest('label');if(label&&!label.querySelector('.required-marker')){const caption=document.createElement('span');caption.className='required-caption';while(label.firstChild&&label.firstChild!==input)caption.append(label.firstChild);const mark=document.createElement('span');mark.className='required-marker';mark.textContent=' *';mark.setAttribute('aria-hidden','true');caption.append(mark);label.insertBefore(caption,input)}}
-  if(root.querySelector('.required-marker')&&!root.querySelector('.required-help')){const note=document.createElement('p');note.className='required-help';note.textContent='* Zorunlu alanlar';root.append(note)}
+  const requiredContainers=new Set([...root.querySelectorAll('.required-marker')].map(mark=>mark.closest('dialog,form')||root));
+  for(const container of requiredContainers)if(!container.querySelector('.required-help')){const note=document.createElement('p');note.className='required-help';note.textContent='* Zorunlu alanlar';container.append(note)}
   for(const footer of root.querySelectorAll('.production-create-footer,.modal-foot,.order-actionbar'))footer.classList.add('ergonomic-actions');
   for(const box of root.querySelectorAll('.flow-metrics,.po-summary-facts'))box.classList.add('ergonomic-facts');
   for(const d of root.querySelectorAll('details')){const s=d.querySelector(':scope>summary');if(s&&/geçmiş|Ek bilgiler|belgeler/i.test(s.textContent))d.classList.add('ergonomic-secondary')}

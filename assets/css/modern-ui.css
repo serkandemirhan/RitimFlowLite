@@ -562,6 +562,27 @@ section[data-inventory-panel="receipt"]{display:grid;grid-template-columns:repea
 .api-shell .polish-documents-empty .document-heading small{display:none}
 .api-shell .polish-documents-empty #work-document-list{font-size:12px;color:#698098}
 .api-shell .polish-quality-result{padding:12px 16px;background:#eef8f3;border:1px solid #c7e3d7;color:#25634c;border-radius:8px;font-weight:600}
+.api-shell .quality-work-identity{font-size:12px;color:#52677d;margin:6px 0 12px}
+.api-shell .operations-quality .refine-state-card{display:block}
+.api-shell .quality-state-content>small{display:block;font-size:11px;letter-spacing:.04em;margin-bottom:5px}
+.api-shell .quality-state-content>strong{display:block;font-size:18px}
+.api-shell .quality-state-content>p{margin:8px 0 12px;max-width:780px;line-height:1.6}
+.api-shell .quality-next-actions{display:flex;gap:8px;flex-wrap:wrap}
+.api-shell .quality-current-totals{margin:12px 0 0;padding-top:12px;border-top:1px solid #d5dfeb;font-size:12px}
+.api-shell .quality-records>section{margin:16px 0 24px}
+.api-shell .quality-records h3{font-size:14px;margin:0 0 6px}
+.api-shell .quality-section-note{font-size:12px;color:#52677d;line-height:1.6;margin:0 0 12px;max-width:800px}
+.api-shell .quality-history-record{padding:12px 14px;margin:8px 0;border:1px solid #dce4ee;border-radius:8px;background:#fafbfd;min-width:0}
+.api-shell .quality-record-heading{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:13px}
+.api-shell .quality-history-record>p{font-size:12px;margin:8px 0;line-height:1.5;overflow-wrap:anywhere}
+.api-shell .quality-history-record>small{display:block;color:#52677d;font-size:11px;margin-top:6px}
+.api-shell .quality-record-documents:empty{display:none}
+.api-shell .quality-record-trace{margin-top:8px;font-size:11px;color:#52677d}
+.api-shell .quality-record-trace>summary{cursor:pointer;padding:4px 0}
+.api-shell .quality-record-trace dd{margin:3px 0 10px;overflow-wrap:anywhere}
+.api-shell .quality-records>summary{font-weight:600}
+.api-shell #work-document-panel .document-heading{gap:12px;flex-wrap:wrap}
+.api-shell #work-document-panel #document-add[hidden]{display:none!important}
 .api-shell .polish-quality-quantities>summary{cursor:pointer;padding:8px 0;font-size:13px;color:#5c718b}
 .api-shell #raw-stock-panel form{display:grid!important;grid-template-columns:minmax(0,2fr) minmax(150px,1fr) auto!important;align-items:end;gap:14px}
 .api-shell #raw-stock-panel .polish-production-choice,.api-shell #raw-stock-panel #raw-expected-materials{grid-column:1/-1}

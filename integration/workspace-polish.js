@@ -75,6 +75,40 @@
   const outputs=v.qualityView.outputs||[],pending=outputs.reduce((n,o)=>n+(o.unresolved||0)+(o.reworkPending||0),0),approved=outputs.reduce((n,o)=>n+(o.approved||0),0),rejected=outputs.reduce((n,o)=>n+(o.rejected||0),0),panel=document.querySelector('.operations-quality');
   if(panel&&!pending&&outputs.length){const text=approved+' adet onaylandı'+(rejected?' · '+rejected+' adet reddedildi':''),card=panel.querySelector('.refine-state-card.is-complete');if(card){card.querySelector('strong').textContent=text;}else{const summary=document.createElement('p');summary.className='polish-quality-result';summary.setAttribute('role','status');summary.textContent=text;panel.querySelector('h2')?.after(summary)}panel.querySelector('.operations-context')?.remove();const counts=panel.querySelector('.quantity-breakdown'),details=disclosure(counts,'Miktar ayrıntıları','polish-quality-quantities');if(details)for(const extra of panel.querySelectorAll(':scope>.clarity-quantity-details')){extra.querySelector('summary')?.remove();details.append(...extra.childNodes);extra.remove()}for(const p of panel.querySelectorAll(':scope>p'))if(['Kontrol bekleyen üretim yok.','Tamir bekleyen yok.'].includes(p.textContent.trim())){const heading=p.previousElementSibling;if(heading?.tagName==='H3')heading.remove();p.remove()}}
  }
+ function qualityDetail(v){
+  if(v.page!=='quality'||!v.qualityView)return;
+  const panel=document.querySelector('.operations-quality');if(!panel||panel.dataset.qualityClarity)return;panel.dataset.qualityClarity='true';
+  const outputs=v.qualityView.outputs||[],sum=key=>outputs.reduce((n,o)=>n+Number(o[key]||0),0),pending=sum('unresolved'),repair=outputs.reduce((n,o)=>n+Number(o.reworkPending??o.rework??0),0),rejected=sum('rejected'),approved=sum('approved'),unavailable=v.qualityView.unavailable;
+  const job=[...(v.jobs||[]),...(v.assignedJobs||[])].find(j=>j.id===v.jobSelected),heading=panel.querySelector('h2');
+  if(job?.workOrderNumber){const identity=document.createElement('p');identity.className='quality-work-identity';identity.textContent='İş emri: '+job.workOrderNumber;heading?.after(identity)}
+  panel.querySelector('.operations-context')?.remove();
+  let card=panel.querySelector('.refine-state-card');
+  if(!card){card=document.createElement('section');card.className='refine-state-card';(panel.querySelector('.detail-context-line')||heading)?.after(card)}
+  panel.querySelector('.polish-quality-result')?.remove();
+  const title=unavailable?'Kontrol miktarları doğrulanamadı':pending?pending+' adet kontrol bekliyor':repair?repair+' adet tamir bekliyor':outputs.length?(approved?approved+' adet onaylandı'+(rejected?' · '+rejected+' adet reddedildi':''):rejected+' adet reddedildi'):'Henüz kontrol edilecek üretim yok';
+  const next=unavailable?'Üretim kayıtlarının mutabakatı doğrulanmadan yeni karar vermeyin.':pending?'Ürünleri kontrol edin; aşağıdaki “Karar ver” düğmesinden onay, ret ve tamir miktarlarını kaydedin.':repair?'Tamir işlerini açın; tamir gerektiren ürünler için iş emrini buradan takip edin.':outputs.length?'Bu işte bekleyen kalite kararı yok. Diğer ürünleri kontrol etmek için bekleyen kontrollere dönün.':'Operatör üretim bildirdiğinde kontrol edilecek miktar burada görünür.';
+  card.classList.toggle('is-complete',!unavailable&&!pending&&!repair&&!!approved&&!rejected);card.classList.toggle('is-warning',!!unavailable||!!pending||!!repair||!!rejected);card.setAttribute('role','status');
+  card.innerHTML='<div class="quality-state-content"><small>Güncel kalite durumu</small><strong>'+h(title)+'</strong><p>'+h(next)+'</p><div class="quality-next-actions"></div></div>';
+  const actions=card.querySelector('.quality-next-actions');
+  const repairButton=panel.querySelector(':scope>button[onclick*="openRepair"]');if(repairButton)actions.append(repairButton);
+  const back=document.createElement('button');back.className='btn';back.textContent='Bekleyen kontrollere dön';back.onclick=()=>root.RitimPremiumAPI.qualitySection(false);actions.append(back);
+  if(pending||repair){const totals=document.createElement('p');totals.className='quality-current-totals';totals.textContent=approved+' onaylı · '+rejected+' reddedilen · '+pending+' kontrol bekleyen · '+repair+' tamir bekleyen';card.append(totals)}
+  const intro=[...panel.querySelectorAll(':scope>p')].find(p=>p.textContent.startsWith('Onaylanmamış'));if(intro)disclosure(intro,'Kalite süreci hakkında','flow-details');
+  const recover=panel.querySelector(':scope>button[onclick*="openRecovery"]');if(recover)disclosure(recover,'Kayıplar ve telafi işlemleri','flow-details');
+  // Histories describe immutable events, not the current queue state.
+  if(!v.extras)return;
+  const history=[...panel.querySelectorAll(':scope>details')].find(d=>d.querySelector('summary')?.textContent==='Tamamlanan kontroller ve geçmiş');if(!history)return;
+  const number=n=>h(new Intl.NumberFormat('tr-TR').format(Number(n||0))),meta=r=>[r.actorName,r.occurredAt&&new Date(r.occurredAt).toLocaleString('tr-TR')].filter(Boolean).map(h).join(' · ');
+  const trace=r=>'<details class="quality-record-trace"><summary>Lot ve kayıt bilgisi</summary><dl><dt>Çıktı lotu</dt><dd>'+h(r.outputLotId||(r.provenanceStatus==='historical_unreconciled'?'Tarihsel iz doğrulanamadı':'Bu kayıtta çıktı lotu yok'))+'</dd>'+((r.eventId||r.id)?'<dt>Kayıt</dt><dd>'+h(r.eventId||r.id)+'</dd>':'')+'</dl></details>';
+  const productionLabels={pending:'Kontrole gönderilen üretim',good:'Doğrudan onaylı üretim',scrap:'Üretim hurdası',setup_scrap:'Ayar hurdası'},decisionLabels={approved:'Onaylandı',rejected:'Reddedildi',rework:'Tamire ayrıldı'};
+  const decisions=v.extras.qualityHistory?.decisions||[],events=v.extras.productionHistory?.events||[];
+  history.classList.add('quality-records');history.open=true;
+  history.innerHTML='<summary>Kontrol ve üretim kayıtları</summary><section><h3>Kaydedilen kalite kararları</h3><p class="quality-section-note">Kontrol sonucunda verilen kararlar; güncel bekleyen miktarı üstte gösterilir.</p>'+(decisions.map(d=>'<article class="quality-history-record"><div class="quality-record-heading"><strong>'+h(decisionLabels[d.outcome]||d.outcome)+'</strong><b>'+number(d.quantity)+' adet</b></div>'+(d.evidence?'<p><span>Kontrol notu:</span> '+h(d.evidence)+'</p>':'')+'<small>'+meta(d)+'</small><div class="quality-record-documents"></div>'+trace(d)+'</article>').join('')||'<p>Henüz kalite kararı kaydedilmedi.</p>')+'</section><section><h3>Üretimden gelen bildirimler</h3><p class="quality-section-note">Üretimde bildirilen miktarlar. “Kontrole gönderilen” kaydı geçmişteki bildirimi gösterir; kalite sonucuyla toplanmaz.</p>'+(events.map(e=>'<article class="quality-history-record"><div class="quality-record-heading"><strong>'+h(productionLabels[e.kind]||e.kind)+'</strong><b>'+number(e.quantity)+' adet</b></div>'+(e.kind==='scrap'||e.kind==='setup_scrap'?'<p>Üretim sırasında ayrılan hurda; kalite reddinden ayrıdır.</p>':'')+'<small>'+meta(e)+'</small>'+trace(e)+'</article>').join('')||'<p>Henüz üretim bildirimi yok.</p>')+'</section>';
+  const lots=document.createElement('details');lots.className='quality-record-trace';lots.innerHTML='<summary>Lot bazında kalite sonuçları</summary>'+outputs.map((o,i)=>'<article class="quality-history-record"><strong>Üretim çıktısı '+(i+1)+'</strong><p>'+number(o.approved)+' onaylı · '+number(o.rejected)+' reddedilen · '+number(o.unresolved)+' kontrol bekleyen · '+number(o.reworkPending??o.rework)+' tamir bekleyen</p>'+trace(o)+'</article>').join('');if(outputs.length)history.append(lots);
+  for(const help of [...panel.querySelectorAll(':scope>details')].filter(d=>['Kalite süreci hakkında','Kayıplar ve telafi işlemleri'].includes(d.querySelector('summary')?.textContent)))panel.append(help);
+  // Keep the same authorized document-opening action as the original history.
+  for(const [i,d]of decisions.entries()){const holder=history.querySelectorAll('.quality-record-documents')[i];for(const doc of d.documents||[]){const button=document.createElement('button');button.className='btn sm';button.textContent=doc.filename||'Kontrol belgesi';button.onclick=()=>root.RitimPremiumAPI.documentOpen(doc.id);holder.append(button)}}
+ }
  function order(v){
   if(v.page!=='detail'||!(v.orderClosing?.canClose||v.detail?.status==='closed'))return;
   const summary=document.querySelector('.flow-order-summary');if(!summary)return;
@@ -82,6 +116,6 @@
   const details=disclosure(metrics,'Teslimat ve süreç ayrıntıları','polish-order-checks');if(details&&stages)details.append(stages);
   if(v.orderClosing?.canClose){const jobs=v.orderSummary?.jobs||[],done=jobs.filter(j=>j.status==='complete').length,note=document.createElement('p');note.className='polish-quality-result';note.textContent='Kapatmaya hazır · '+v.orderClosing.netDelivered+'/'+v.orderClosing.orderedQuantity+' teslim'+(jobs.length?' · '+done+'/'+jobs.length+' iş tamamlandı':'');summary.querySelector('.flow-heading')?.after(note);}
  }
- function mount(v){master(v);if(v.page==='inventory')inventory(v);if(v.poSupplier)supplier(v);if(v.page==='production-order')material(v);operator(v);shipping(v);quality(v);order(v);}
+ function mount(v){master(v);if(v.page==='inventory')inventory(v);if(v.poSupplier)supplier(v);if(v.page==='production-order')material(v);operator(v);shipping(v);quality(v);qualityDetail(v);order(v);}
  root.RitimWorkspacePolish={mount,unitInput};
 })(typeof window==='undefined'?globalThis:window);
