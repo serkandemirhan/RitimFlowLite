@@ -563,3 +563,13 @@ section[data-inventory-panel="receipt"]{display:grid;grid-template-columns:repea
 .api-shell .polish-documents-empty #work-document-list{font-size:12px;color:#698098}
 .api-shell .polish-quality-result{padding:12px 16px;background:#eef8f3;border:1px solid #c7e3d7;color:#25634c;border-radius:8px;font-weight:600}
 .api-shell .polish-quality-quantities>summary{cursor:pointer;padding:8px 0;font-size:13px;color:#5c718b}
+.api-shell #raw-stock-panel form{display:grid!important;grid-template-columns:minmax(0,2fr) minmax(150px,1fr) auto!important;align-items:end;gap:14px}
+.api-shell #raw-stock-panel .polish-production-choice,.api-shell #raw-stock-panel #raw-expected-materials{grid-column:1/-1}
+.api-shell #raw-stock-panel #raw-expected-materials:empty{display:none}
+.api-shell #raw-stock-panel label{min-width:0}
+.api-shell .polish-order-checks{border-top:1px solid #e1e7ef;padding-top:10px;margin:10px 0}
+.api-shell .polish-order-checks>summary{cursor:pointer;color:#526c89;font-size:13px;padding:6px 0}
+@media(max-width:700px){.api-shell #raw-stock-panel form{grid-template-columns:minmax(0,1fr)!important}.api-shell #raw-stock-panel form>button{justify-self:end}}
+.api-shell #work-document-panel.polish-documents-empty{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;padding:12px 18px!important;min-height:0!important}
+.api-shell #work-document-panel.polish-documents-empty .document-heading{display:flex!important;justify-content:space-between!important;align-items:center!important;flex:1!important;width:auto!important;margin:0!important}
+.api-shell #work-document-panel.polish-documents-empty #work-document-list{margin:0!important;padding:0!important}
