@@ -85,14 +85,14 @@
   let card=panel.querySelector('.refine-state-card');
   if(!card){card=document.createElement('section');card.className='refine-state-card';(panel.querySelector('.detail-context-line')||heading)?.after(card)}
   panel.querySelector('.polish-quality-result')?.remove();
-  const title=unavailable?'Kontrol miktarları doğrulanamadı':pending?pending+' adet kontrol bekliyor':repair?repair+' adet tamir bekliyor':outputs.length?(approved?approved+' adet onaylandı'+(rejected?' · '+rejected+' adet reddedildi':''):rejected+' adet reddedildi'):'Henüz kontrol edilecek üretim yok';
-  const next=unavailable?'Üretim kayıtlarının mutabakatı doğrulanmadan yeni karar vermeyin.':pending?'Ürünleri kontrol edin; aşağıdaki “Karar ver” düğmesinden onay, ret ve tamir miktarlarını kaydedin.':repair?'Tamir işlerini açın; tamir gerektiren ürünler için iş emrini buradan takip edin.':outputs.length?'Bu işte bekleyen kalite kararı yok. Diğer ürünleri kontrol etmek için bekleyen kontrollere dönün.':'Operatör üretim bildirdiğinde kontrol edilecek miktar burada görünür.';
+  const title=unavailable?'Kontrol miktarları doğrulanamadı':pending?pending+' adet kontrol bekliyor':outputs.length?(approved?approved+' adet onaylandı'+(rejected?' · '+rejected+' adet reddedildi':''):rejected?rejected+' adet reddedildi':'Kalite kararları kaydedildi'):'Henüz kontrol edilecek üretim yok';
+  const next=unavailable?'Üretim kayıtlarının mutabakatı doğrulanmadan yeni karar vermeyin.':pending?'Ürünleri kontrol edin; aşağıdaki “Karar ver” düğmesinden onay ve ret miktarlarını kaydedin.':outputs.length?'Bu işte bekleyen kalite kararı yok. Diğer ürünleri kontrol etmek için açık kontrollere dönün.':'Operatör üretim bildirdiğinde kontrol edilecek miktar burada görünür.';
   card.classList.toggle('is-complete',!unavailable&&!pending&&!repair&&!!approved&&!rejected);card.classList.toggle('is-warning',!!unavailable||!!pending||!!repair||!!rejected);card.setAttribute('role','status');
   card.innerHTML='<div class="quality-state-content"><small>Güncel kalite durumu</small><strong>'+h(title)+'</strong><p>'+h(next)+'</p><div class="quality-next-actions"></div></div>';
   const actions=card.querySelector('.quality-next-actions');
-  const repairButton=panel.querySelector(':scope>button[onclick*="openRepair"]');if(repairButton)actions.append(repairButton);
-  const back=document.createElement('button');back.className='btn';back.textContent='Bekleyen kontrollere dön';back.onclick=()=>root.RitimPremiumAPI.qualitySection(false);actions.append(back);
-  if(pending||repair){const totals=document.createElement('p');totals.className='quality-current-totals';totals.textContent=approved+' onaylı · '+rejected+' reddedilen · '+pending+' kontrol bekleyen · '+repair+' tamir bekleyen';card.append(totals)}
+  panel.querySelector(':scope>button[onclick*="openRepair"]')?.remove();
+  const back=document.createElement('button');back.className='btn';back.textContent='Açık kontrollere dön';back.onclick=()=>root.RitimPremiumAPI.qualitySection(false);actions.append(back);
+  if(pending||repair){const totals=document.createElement('p');totals.className='quality-current-totals';totals.textContent=approved+' onaylı · '+rejected+' reddedilen · '+pending+' kontrol bekleyen'+(repair?' · '+repair+' adet için geçmiş tamir kararı var. Bu, düzeltmenin yapıldığını göstermez.':'');card.append(totals)}
   const intro=[...panel.querySelectorAll(':scope>p')].find(p=>p.textContent.startsWith('Onaylanmamış'));if(intro)disclosure(intro,'Kalite süreci hakkında','flow-details');
   const recover=panel.querySelector(':scope>button[onclick*="openRecovery"]');if(recover)disclosure(recover,'Kayıplar ve telafi işlemleri','flow-details');
   // Histories describe immutable events, not the current queue state.

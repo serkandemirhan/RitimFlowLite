@@ -1,0 +1,63 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+module.exports=async function({page,origin,ready,call,base,admin,schema,ta,sa,tb,sb,operatorToken,pendingReceipt,errors,responses}){
+ const dir=path.resolve('artifacts/quality-controls');fs.mkdirSync(dir,{recursive:true});const checks=[];
+ const get=async(query='',status=200)=>{const r=await call('GET',base+'/quality/controls'+query);assert.equal(r.statusCode,status,r.body);return r.json()},post=async(url,payload,key,status=201)=>{const r=await call('POST',base+url,payload,key);assert.equal(r.statusCode,status,r.body);return r.json()};
+ let open=await get('?limit=100'),done=await get('?state=completed&limit=100');
+ assert(open.items.some(x=>x.type==='incoming'));assert(open.items.some(x=>x.type==='supplier'));assert(done.items.some(x=>x.type==='production'));
+ checks.push('Unified incoming, production and supplier sources; completed output is absent from open controls');
+ const receipt=open.items.find(x=>x.id===pendingReceipt.lotId);assert(receipt);assert.equal(receipt.pending,3);
+ await post('/inventory/lots/'+receipt.id+'/inspect',{quantity:1,outcome:'approved'},'quality-workspace-partial');
+ open=await get('?type=incoming&limit=100');assert.equal(open.items.find(x=>x.id===receipt.id).pending,2);assert(!(await get('?state=completed&type=incoming&limit=100')).items.some(x=>x.id===receipt.id));
+ checks.push('Partial receipt remains open and is excluded from completed controls');
+ const foreign=await call('GET',`/api/v1/sites/${tb}/${sb}/quality/controls`);assert([403,404].includes(foreign.statusCode));
+ assert.equal((await call('GET',base+'/quality/controls',null,null,operatorToken)).statusCode,403);
+ for(const query of ['?type=bad','?state=bad','?limit=0','?after=bad','?unrecognized=true'])await get(query,400);
+ await get('?after=00000000-0000-0000-0000-000000000001',400);
+ checks.push('Role, site, filter and cursor isolation');
+ const paged=[],seen=new Set();let after;do{const r=await get('?limit=1'+(after?'&after='+after:''));paged.push(...r.items);after=r.nextAfter;if(after){assert(!seen.has(after));seen.add(after)}}while(after);assert.equal(new Set(paged.map(x=>x.id)).size,paged.length);assert.equal(paged.length,(await get()).total);
+ checks.push('Stable cursor pagination has no omissions or duplicate controls');console.log('Quality API, partial controls, isolation and pagination PASS');
+ await page.goto(origin+'/?view=quality-list');await page.waitForFunction(()=>document.getElementById('api-scope')||document.querySelector('.quality-controls-workspace'));
+ if(await page.locator('#api-scope').count()){await page.locator('#api-scope').selectOption('0');await page.getByRole('button',{name:'Devam',exact:true}).click()}await ready();
+ assert.equal(await page.getByRole('button',{name:'Tamir',exact:true}).count(),0);
+ await page.locator('#quality-control-type').selectOption('incoming');await ready();
+ await page.locator('#quality-control-query').fill(receipt.reference);await page.locator('.quality-controls-toolbar button[type=submit]').click();await ready();
+ assert.equal(await page.locator('.quality-controls-workspace tbody tr:has(td[data-column])').count(),1);
+ await page.getByRole('button',{name:'Kontrol et',exact:true}).click();await page.locator('#workflow-dialog[open]').waitFor();
+ await page.locator('#incoming-quantity-'+receipt.id).fill('2');await page.getByRole('button',{name:'Kalite kararını kaydet',exact:true}).click();await ready();assert.equal(await page.locator('#workflow-dialog').evaluate(d=>d.open),false);
+ assert.equal(await page.locator('.quality-controls-workspace tbody tr:has(td[data-column])').count(),0);
+ await page.getByRole('button',{name:'Tamamlanan Kontroller',exact:true}).click();await ready();assert.equal(await page.locator('#quality-control-type').inputValue(),'incoming');assert.equal(await page.locator('#quality-control-query').inputValue(),receipt.reference);
+ await page.getByRole('button',{name:'Kaydı aç',exact:true}).click();await page.locator('#workflow-dialog[open]').waitFor();assert.equal(await page.locator('#workflow-dialog .quality-history-record').count(),2);await page.locator('#workflow-dialog button[aria-label=Kapat]').click();
+ checks.push('Receipt action records remaining amount, moves to completed, preserves filters and opens its exact decision history');console.log('Quality receipt UI PASS');
+ const onlyReceipt=await call('GET',base+'/inventory/inspection-history?lotId='+receipt.id);assert.equal(onlyReceipt.statusCode,200,onlyReceipt.body);assert(onlyReceipt.json().items.every(x=>x.lotId===receipt.id));
+ const supplier=(await get('?type=supplier')).items[0];assert(supplier);await post('/orders/'+supplier.orderId+'/work-orders/'+supplier.workOrderId+'/quality/decisions',{eventId:supplier.id,lotId:(await call('GET',base+'/orders/'+supplier.orderId+'/work-orders/'+supplier.workOrderId+'/quality')).json().outputs.find(x=>x.eventId===supplier.id).lotId,outcome:'approved',quantity:3,evidence:'Partial supplier inspection'},'quality-supplier-partial');
+ assert.equal((await get('?type=supplier')).items.find(x=>x.id===supplier.id).pending,4);assert(!(await get('?state=completed&type=supplier')).items.some(x=>x.id===supplier.id));
+ checks.push('Partial production output uses remaining quantity rather than individual historical decisions');
+ // Finalize the returned seven pieces to exercise a real customer return.
+ const supplierPath='/orders/'+supplier.orderId+'/work-orders/'+supplier.workOrderId,output=(await call('GET',base+supplierPath+'/quality')).json().outputs.find(x=>x.eventId===supplier.id);
+ await post(supplierPath+'/quality/decisions',{eventId:supplier.id,lotId:output.lotId,outcome:'approved',quantity:4,evidence:'Remaining supplier inspection'},'quality-supplier-done');
+ const productionId=(await admin.query(`SELECT production_order_id FROM ${schema}.work_orders WHERE tenant_id=$1 AND site_id=$2 AND id=$3`,[ta,sa,supplier.workOrderId])).rows[0].production_order_id;
+ const supplierBase='/production-orders/'+productionId+'/work-orders/'+supplier.workOrderId+'/supplier',supplierView=(await call('GET',base+supplierBase)).json(),dispatch=supplierView.dispatches.find(d=>d.outstanding>0);
+ await post(supplierBase+'/return',{dispatchId:dispatch.id,quantity:dispatch.outstanding},'quality-supplier-final-return');
+ const lastOutput=(await call('GET',base+supplierPath+'/quality')).json().outputs.find(x=>x.unresolved>0);
+ await post(supplierPath+'/quality/decisions',{eventId:lastOutput.eventId,lotId:lastOutput.lotId,outcome:'approved',quantity:lastOutput.unresolved,evidence:'Final supplier check'},'quality-supplier-final-check');
+ await post(supplierBase+'/complete',{},'quality-supplier-complete',200);
+ const shipping=await post('/orders/'+supplier.orderId+'/shipping/orders',{},'quality-shipping-order');
+ await post('/orders/'+supplier.orderId+'/shipping/orders/'+shipping.id+'/allocate',{outputLotId:output.outputLotId,quantity:1,completeTo:'deliver'},'quality-return-delivery');
+ const rma=(await call('GET',base+'/orders/'+supplier.orderId+'/rma')).json(),delivery=rma.deliveries.find(d=>d.available>0);assert(delivery);
+ const authorization=await post('/orders/'+supplier.orderId+'/rma',{deliveryId:delivery.id,rmaNumber:'QUALITY-RETURN',reason:'Quality test',quantity:1},'quality-return-authorize'),returned=await post('/orders/'+supplier.orderId+'/rma/'+authorization.id+'/receipts',{quantity:1},'quality-return-receipt');
+ assert((await get('?type=return')).items.some(x=>x.id===returned.id));
+ const inspection=await post('/orders/'+supplier.orderId+'/rma/receipts/'+returned.id+'/inspections',{quantity:1,evidence:'Visual check'},'quality-return-inspect');assert((await get('?type=return')).items.some(x=>x.id===returned.id));
+ await post('/orders/'+supplier.orderId+'/rma/inspections/'+inspection.id+'/dispositions',{outcome:'approved',quantity:1},'quality-return-decision');assert(!(await get('?type=return')).items.some(x=>x.id===returned.id));assert((await get('?state=completed&type=return')).items.some(x=>x.id===returned.id));
+ checks.push('Customer return stays open after inspection until a disposition is recorded');
+ // Test all type filters on the real application and retain only this run.
+ await page.goto(origin+'/?view=quality-list');await ready();
+ for(const type of ['all','incoming','production','supplier','return']){await page.locator('#quality-control-type').selectOption(type);await ready();assert((await get('?type='+type)).items.every(x=>type==='all'||x.type===type))}
+ await page.locator('#quality-control-type').selectOption('all');await ready();assert.equal(new URL(page.url()).searchParams.has('controlType'),false);
+ for(const state of ['open','completed']){await page.getByRole('button',{name:state==='open'?'Açık Kontroller':'Tamamlanan Kontroller',exact:true}).click();await ready();assert.equal(await page.locator('#quality-control-type').inputValue(),'all');for(const [width,height]of [[1920,1080],[1366,768],[390,844],[375,667]]){await page.setViewportSize({width,height});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await page.screenshot({path:path.join(dir,state+'-'+width+'.png'),fullPage:true})}}
+ await page.locator('#quality-control-type').selectOption('production');await ready();await page.getByRole('button',{name:'Kaydı aç',exact:true}).first().click();await ready();assert.equal(await page.locator('#quality-qty-rework').count(),0);assert.equal(await page.getByRole('button',{name:'Tamir işlerini aç',exact:true}).count(),0);
+ checks.push('Four source types, two status tabs, desktop/mobile overflow and removal of new quality repair decisions');
+ await page.goto(origin+'/?view=rework');await ready();assert.equal(await page.locator('.quality-controls-workspace').count(),1);checks.push('Old repair bookmarks safely redirect to quality controls');
+ assert.deepEqual(errors,[]);assert.deepEqual(responses,[]);
+ fs.writeFileSync(path.join(dir,'report.json'),JSON.stringify({status:'PASS',scope:'Actual app and restricted PostgreSQL, isolated fictional data',checks,viewports:4,errors,responses},null,2));console.log('QUALITY WORKSPACE PASS '+checks.length+' groups');
+};

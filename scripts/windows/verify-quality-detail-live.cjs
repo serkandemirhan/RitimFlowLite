@@ -7,12 +7,12 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
  const browser=await chromium.launch();try{
   const context=await browser.newContext(),response=await context.request.post(origin+'/auth/login',{data:account,headers:{origin},maxRedirects:0});assert.equal(response.status(),303);
   const session=await(await context.request.get(origin+'/api/v1/session')).json(),index=session.memberships.findIndex(m=>m.siteId===state.siteId);assert(index>=0);
-  if(preview)for(const asset of ['integration/premium-api.js','integration/workspace-polish.js','integration/transient-panels.js','assets/css/modern-ui.css'])await context.route(origin+'/'+asset+'*',route=>route.fulfill({path:path.join(root,asset),contentType:asset.endsWith('.js')?'text/javascript':'text/css'}));
+  if(preview)for(const asset of ['integration/quality-controls.js','integration/premium-api.js','integration/workspace-polish.js','integration/transient-panels.js','assets/css/modern-ui.css'])await context.route(origin+'/'+asset+'*',route=>route.fulfill({path:path.join(root,asset),contentType:asset.endsWith('.js')?'text/javascript':'text/css'}));
   const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto(origin+'/?view=orders');await page.waitForFunction(()=>document.getElementById('api-scope')||document.querySelector('.standard-workspace'));
   if(await page.locator('#api-scope').count()){await page.locator('#api-scope').selectOption(String(index));await page.getByRole('button',{name:'Devam',exact:true}).click()}
   await page.waitForFunction(()=>document.querySelector('.standard-workspace')&&document.getElementById('app')?.getAttribute('aria-busy')!=='true'&&!document.getElementById('api-scope'));
-  await page.goto(origin+'/?view=quality-list&tab=history');await page.getByRole('button',{name:'Kaydı aç',exact:true}).first().click();
+  await page.goto(origin+'/?view=quality-list&tab=history&controlType=production');await page.getByRole('button',{name:'Kaydı aç',exact:true}).first().click();
   await page.waitForFunction(()=>document.querySelector('.operations-quality')&&document.getElementById('app')?.getAttribute('aria-busy')!=='true');
   await page.waitForFunction(()=>!document.getElementById('work-document-list')?.textContent.includes('yükleniyor'));
   assert.equal(await page.locator('#api-alert').innerText(),'');

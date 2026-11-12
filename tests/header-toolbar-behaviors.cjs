@@ -86,18 +86,17 @@ module.exports=async function({page,origin,ready,checks,seedLongLists,recordLong
   await p.locator('#inventory-movements-query').fill('no-match-XYZ');await bar().getByRole('button',{name:'Ara',exact:true}).click();await settle();assert.equal(await p.locator('.inventory-movement').count(),0);
   await bar().getByRole('button',{name:'Temizle',exact:true}).click();await settle();assert((await p.locator('.inventory-movement').count())>0);assert((await p.locator('button[onclick*="auditCorrect("]').count())>0);
  });
- await check('Kalite: giriş kontrolü aç/kapat, üretim araması, kolon ve yenileme',async()=>{
-  await open('view=quality-list');const incoming=p.locator('#incoming-material-panel>details');assert(await incoming.evaluate(e=>e.open));await incoming.locator(':scope>summary').click();assert.equal(await incoming.evaluate(e=>e.open),false);await incoming.locator(':scope>summary').click();
+ await check('Kalite: ortak kontrol listesi, tür filtresi, arama ve kolonlar',async()=>{
+  await open('view=quality-list');assert.equal(await p.locator('.quality-controls-workspace').count(),1);await p.locator('#quality-control-type').selectOption('incoming');await settle();assert.equal(await p.locator('#quality-control-type').inputValue(),'incoming');await p.locator('#quality-control-type').selectOption('all');await settle();
   const input=bar().locator('input[type=search]');await input.fill('no-match-XYZ');await bar().getByRole('button',{name:'Uygula',exact:true}).click();await settle();assert((await p.locator('.active-filter-chip').count())>0);await p.locator('.active-filter-chip').click();await settle();assert.equal(await bar().locator('input[type=search]').inputValue(),'');
-  await bar().getByRole('button',{name:'Kontrolleri yenile',exact:true}).click();await settle();assert(await p.locator('.compact-columns>summary').isVisible());
+  assert(await p.locator('.compact-columns>summary').isVisible());
  });
- await check('Geçmiş Kontroller: giriş geçmişi ve üretim kayıtlarına erişim, arama temizleme',async()=>{
-  await open('view=quality-list&tab=history');const history=p.locator('.compact-incoming-history');assert.equal(await history.evaluate(e=>e.open),false);await history.locator(':scope>summary').click();assert(await p.locator('.audit-incoming-history').isVisible());
-  await p.locator('#quality-history-search').fill('no-match-XYZ');await bar().getByRole('button',{name:'Ara',exact:true}).click();await settle();await p.locator('.active-filter-chip').click();await settle();assert.equal(await p.locator('#quality-history-search').inputValue(),'');
+ await check('Tamamlanan kontroller: ortak liste ve arama temizleme',async()=>{
+  await open('view=quality-list&tab=history');assert.equal(await p.locator('.quality-controls-workspace').count(),1);
+  await p.locator('#quality-control-query').fill('no-match-XYZ');await bar().locator('button[type=submit]').click();await settle();await p.locator('.active-filter-chip').click();await settle();assert.equal(await p.locator('#quality-control-query').inputValue(),'');
  });
- await check('Tamir: tek başlık, aktif/geçmiş seçimi ve arama temizleme',async()=>{
-  await open('view=rework');assert.equal(await p.locator('.operations-rework>h2').count(),0);await p.getByRole('combobox',{name:'Tamir durumu'}).selectOption('1');await settle();
-  await bar().locator('input[type=search]').fill('no-match-XYZ');await bar().getByRole('button',{name:'Uygula',exact:true}).click();await settle();await p.locator('.active-filter-chip').click();await settle();assert.equal(await bar().locator('input[type=search]').inputValue(),'');
+ await check('Eski tamir bağlantısı kalite kontrollerine yönlenir',async()=>{
+  await open('view=rework');assert.equal(await p.locator('.quality-controls-workspace').count(),1);assert.equal(await p.getByRole('button',{name:'Tamir',exact:true}).count(),0);
  });
  if(seedLongLists)await check('Uzun listeler: sayfalama, masaüstü sticky toolbar, formda normal akış',async()=>{
   await seedLongLists();if(recordLongComparison)await recordLongComparison();await open('view=orders');assert.equal(await p.locator('tbody tr[data-order-id]').count(),25);

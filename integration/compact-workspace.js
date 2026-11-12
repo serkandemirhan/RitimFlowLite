@@ -216,6 +216,7 @@
   sticky(section,bar);
  }
  function quality(ctx,area){
+  const unified=$('.quality-controls-toolbar',area);if(unified){ContextualToolbar(unified);const section=unified.closest('section');columns(unified,section);const input=$('input',unified),select=$('select',unified);filterChips(unified,[{field:input,label:'Arama',clear:()=>{input.value='';root.RitimPremiumAPI.qualityControlsSearch()}},{field:select,label:'Kontrol türü',empty:'all',clear:()=>root.RitimPremiumAPI.qualityControlsType('all')}]);sticky(section,unified);return}
   if(ctx.qualityHistoryMode){
    const history=$('.audit-incoming-history',area);if(history){
     const heading=$(':scope>h2,:scope>h3',history),details=node('details','compact-incoming-history'),summary=node('summary','',heading?.textContent||'Mal kabul kalite geçmişi');
