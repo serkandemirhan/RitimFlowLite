@@ -45,3 +45,7 @@
 .api-shell.sidebar-collapsed .premium-sidebar .side-btn{justify-content:center;padding:10px;min-height:44px}
 .api-shell.sidebar-collapsed .nav-account>summary{justify-content:center;padding:4px}
 .api-shell.sidebar-collapsed .nav-account-actions{left:0;width:180px}
+.api-shell .nav-account-actions .nav-account-workspace{margin:0 0 5px;padding:10px;background:#ffffff05;border-bottom:1px solid #ffffff14}
+.api-shell.sidebar-collapsed .nav-account-actions .nav-account-workspace>div{display:grid!important}
+.api-shell.sidebar-collapsed .nav-account-actions .nav-account-workspace>i{display:block!important}
+.api-shell .nav-account-actions .nav-account-workspace strong,.api-shell .nav-account-actions .nav-account-workspace span{white-space:normal;overflow-wrap:anywhere}
