@@ -38,6 +38,7 @@ async function authorizeRecoveryResource(client,scope,storedKind,command){
   const p=b.payload;if(b.command==='allocate'){const q=await client.query('SELECT 1 FROM production_output_lots WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND id=$4',[scope.tenantId,scope.siteId,order,identifier(p.outputLotId)]);if(!q.rowCount)denied();if(p.rmaReleaseId){const rr=await client.query('SELECT 1 FROM rma_releases WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND id=$4',[scope.tenantId,scope.siteId,order,identifier(p.rmaReleaseId)]);if(!rr.rowCount)denied()}}
   else if(b.command!=='confirm-delivery'){const ref=b.command==='dispatch'?p.allocationId:p.dispatchId,type=b.command==='dispatch'?'allocate':'dispatch';const q=await client.query('SELECT 1 FROM shipping_events WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND shipping_order_id=$4 AND id=$5 AND event_type=$6',[scope.tenantId,scope.siteId,order,b.shippingOrderId,identifier(ref),type]);if(!q.rowCount)denied()}
  }
+ if(command.kind==='operation'&&b.command==='productionReplace'){const r=await client.query('SELECT 1 FROM production_orders WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND id=$4',[scope.tenantId,scope.siteId,order,identifier(b.resourceId)]);if(!r.rowCount)denied();}
  let job=null;
  if(command.kind==='production'||command.kind==='quality')job=b.workOrderId;
  if(command.kind==='operation'&&['productionEntryEdit','productionCorrection','productionCorrectionDecision','drawingAck','operator','machine','handover','jobTiming','operatorHandoff'].includes(b.command))job=b.resourceId;

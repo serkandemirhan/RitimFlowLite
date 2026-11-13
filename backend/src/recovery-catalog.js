@@ -6,6 +6,9 @@ const {HttpError}=require('./auth');
 const reject=()=>{throw new HttpError(400,'INVALID_COMMAND','Unsupported recovery command')};
 const inventory=Object.freeze({supplierReturn:{path:'supplier-returns'},material:{path:'materials'},location:{path:'locations'},locationUpdate:{path:'locations/update'},locationDelete:{path:'locations/delete'},receipt:{path:'receipts'},move:{path:'move'},scrap:{path:'scrap'},pick:{path:'pick'}});
 const operations=Object.freeze({
+ orderItemsChange:{capability:'orders.write',suffix:o=>`/orders/${o}/items/change`},
+ orderCloseRemainder:{capability:'orders.write',suffix:o=>`/orders/${o}/close-remainder`},
+ productionReplace:{capability:'orders.write',suffix:(o,r)=>`/orders/${o}/production-orders/${r}/replace`,resource:true},
  finalControlDecision:{capability:'quality.write',suffix:(o,r)=>`/orders/${o}/final-controls/${r}/decisions`,resource:true},
  productionEntryEdit:{capability:'production.write',suffix:(o,r)=>`/orders/${o}/work-orders/${r}/production/entry-corrections`,resource:true},
  productionCorrection:{capability:'production.write',suffix:(o,r)=>`/orders/${o}/work-orders/${r}/production/corrections`,resource:true},

@@ -35,7 +35,7 @@ async function smoke(databaseUrl) {
     migration = new Pool({connectionString: roles.roleUrl('ritim_smoke_migration'), options: '-c search_path=ritim_smoke'});
     const applied = await migrate(migration);
     const repeat = await migrate(migration);
-    if (applied.length !== 67 || repeat.length !== 0) throw Error('Unexpected migration/repeat result');
+    if (applied.length !== 68 || repeat.length !== 0) throw Error('Unexpected migration/repeat result');
     const client = await migration.connect();
     try {
       await client.query('BEGIN');
@@ -55,7 +55,7 @@ async function smoke(databaseUrl) {
     const version = (await admin.query('SHOW server_version')).rows[0].server_version;
     const result = {serverVersion:version, migrations:applied.length, repeatMigrations:repeat.length, restrictedRuntime:true, checks};
     fs.writeFileSync(path.join(evidence,'runtime-smoke.json'), JSON.stringify(result,null,2)+'\n');
-    console.log('Native API smoke: 67 migrations, repeat 0, restricted runtime readiness 200, unauthenticated session 401');
+    console.log('Native API smoke: 68 migrations, repeat 0, restricted runtime readiness 200, unauthenticated session 401');
   } finally {
     if (app) await app.close();
     if (runtime) await runtime.end();
@@ -77,7 +77,7 @@ async function operationsSmoke(databaseUrl, privateDirectory) {
   finally {await before.end();}
   await ops.initialize(config,adminIdentity);
   await assert.rejects(ops.initialize(config,adminIdentity),/already exist/);
-  assert.equal((await ops.upgrade(config)).length,67);
+  assert.equal((await ops.upgrade(config)).length,68);
   assert.deepEqual(await ops.upgrade(config),[]);
   await ops.provision(config);
   await ops.ready(config);
@@ -163,7 +163,7 @@ async function main() {
     if(process.argv.includes('--lifecycle-only')){await require('./local-lifecycle.cjs')(url.toString());return;}
     const qualityOnly=process.argv.includes('--quality-only');
     const planningOnly=process.argv.includes('--planning-only');
-    const files = process.argv.includes('--shipping-workspace')?['test/shipping-workspace.test.js','test/b04b1a-quality.test.js','test/recovery-routes.test.js']:process.argv.includes('--operator-access')?['test/b04a-production.test.js']:process.argv.includes('--team-users')?['test/workspace-administration.test.js','test/workspace-users.test.js']:planningOnly?['test/b03b-planning.test.js']:qualityOnly?['test/b04b1a-quality.test.js']:fs.readdirSync(path.join(root,'backend/test')).filter(x=>x.endsWith('.test.js')).sort().map(x=>'test/'+x);
+    const files = process.argv.includes('--order-lifecycle')?['test/order-lifecycle.test.js']:process.argv.includes('--shipping-workspace')?['test/shipping-workspace.test.js','test/b04b1a-quality.test.js','test/recovery-routes.test.js']:process.argv.includes('--operator-access')?['test/b04a-production.test.js']:process.argv.includes('--team-users')?['test/workspace-administration.test.js','test/workspace-users.test.js']:planningOnly?['test/b03b-planning.test.js']:qualityOnly?['test/b04b1a-quality.test.js']:fs.readdirSync(path.join(root,'backend/test')).filter(x=>x.endsWith('.test.js')).sort().map(x=>'test/'+x);
     const result = spawnSync(process.execPath,['--test','--test-reporter=tap',...files],{
       cwd:path.join(root,'backend'), encoding:'utf8', maxBuffer:32*1024*1024, timeout:300000, windowsHide:true,
       env:{...process.env, PATH:bin+path.delimiter+process.env.PATH, TEST_DATABASE_URL:url.toString()},
@@ -176,7 +176,7 @@ async function main() {
     if (result.error) console.log('Backend runner failed: '+result.error.code);
     if(qualityOnly){if(result.status!==0||result.error||testCount<2||!/^# fail 0$/m.test(result.stdout||'')||!/^# skipped 0$/m.test(result.stdout||''))throw Error('Quality regression failed; inspect artifacts/native-postgres/quality-consistency.tap');return;}
     if(planningOnly){if(result.status!==0||result.error||testCount<2||!/^# fail 0$/m.test(result.stdout||'')||!/^# skipped 0$/m.test(result.stdout||''))throw Error('Planning regression failed; inspect artifacts/native-postgres/backend.tap');return;}
-    if(process.argv.includes('--team-users')||process.argv.includes('--operator-access')||process.argv.includes('--shipping-workspace')){if(result.status!==0||!/^# fail 0$/m.test(result.stdout||''))throw Error('Managed users regression failed; inspect artifacts/native-postgres/backend.tap');return;}
+    if(process.argv.includes('--order-lifecycle')||process.argv.includes('--team-users')||process.argv.includes('--operator-access')||process.argv.includes('--shipping-workspace')){if(result.status!==0||!/^# fail 0$/m.test(result.stdout||''))throw Error('Managed users regression failed; inspect artifacts/native-postgres/backend.tap');return;}
     await smoke(url.toString());
     if (result.status !== 0 || result.error || testCount<142 || !/^# fail 0$/m.test(result.stdout||'') || !/^# skipped 0$/m.test(result.stdout||'') || !/^# cancelled 0$/m.test(result.stdout||'')) {
       throw Error('Backend regression failed; inspect redacted artifacts/native-postgres/backend.tap');
