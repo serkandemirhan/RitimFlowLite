@@ -25,7 +25,7 @@ test('shipping workspace: five products, approved final output, partial multi-pr
    await seed.query("INSERT INTO reservations(tenant_id,site_id,order_id,id,work_order_id,lot_id,quantity_pieces,status) VALUES($1,$2,$3,$4,$5,$6,$7,'active')",[tenant,site,order,reservation,job,lot,amount]);
    await post('/orders/'+order+'/physical-receipts',{reservationId:reservation,quantity:amount});const root='/orders/'+order+'/work-orders/'+job;
    await post(root+'/production/start',{});const result=await post(root+'/production/results',{lotId:lot,kind:'pending',quantity:amount});
-   if(approved){await post(root+'/quality/decisions',{eventId:result.eventId,lotId:lot,outcome:'approved',quantity:amount,evidence:'Physical inspection'});await post(root+'/production/complete',{});}else if(finish)await post(root+'/production/complete',{});else await post(root+'/production/pause',{reason:'Awaiting quality'});
+   if(approved){await post(root+'/quality/decisions',{eventId:result.eventId,lotId:lot,outcome:'approved',quantity:amount,evidence:'Physical inspection'});assert.equal((await call('GET',root+'/production/balances')).json().status,'complete');}else assert.equal((await call('GET',root+'/production/balances')).json().status,'paused');
    return {...result,productionOrderId:po,workOrderId:job};
   }
   const a1=await output(lines[0],4),a2=await output(lines[0],6);await output(lines[1],20);const strictPending=await output(lines[2],8,{approved:false});await output(lines[3],6,{final:false});
@@ -50,7 +50,7 @@ test('shipping workspace: five products, approved final output, partial multi-pr
   const race=await Promise.all([call('POST',path+'/dispatch-products',{confirmed:true,lines:[{orderItemId:lines[0],quantity:4}]}),call('POST',path+'/dispatch-products',{confirmed:true,lines:[{orderItemId:lines[0],quantity:4}]})]);assert.deepEqual(race.map(x=>x.statusCode).sort(),[201,409]);
   await post(path+'/dispatch-products',{confirmed:true,lines:[{orderItemId:lines[1],quantity:17}]});assert.equal((await call('GET','/shipping/ready-orders')).json().total,0);assert.equal((await call('GET','/shipping/ready-orders?include='+order)).json().selected,null,'Exhausted order cannot be pinned into the selector');
   shipped=(await call('GET',path)).json();assert.equal(shipped.totals.dispatched,30);assert.equal(shipped.totals.delivered,9);assert.equal(shipped.shippingOrders.length,3,'Partial shipments remain separate records');
-  await post('/orders/'+order+'/work-orders/'+strictPending.workOrderId+'/production/complete',{});const strictControl=(await call('GET','/quality/controls/final/'+strictPending.productionOrderId)).json();assert.equal(strictControl.control.pending,8);assert.equal((await call('GET','/shipping/ready-orders')).json().total,0,'Required final control blocks shipping even after production completes');
+  assert.equal((await call('POST','/orders/'+order+'/work-orders/'+strictPending.workOrderId+'/production/complete',{})).statusCode,409);const strictControl=(await call('GET','/quality/controls/final/'+strictPending.productionOrderId)).json();assert.equal(strictControl.control.pending,8);assert.equal((await call('GET','/shipping/ready-orders')).json().total,0,'Required final control blocks shipping even after production completes');
   // The policy is frozen per production order; only new production may bypass.
   await seed.query("INSERT INTO tenant_memberships(tenant_id,user_id,role) VALUES($1,$2,'tenant_admin')",[tenant,actor]);
   assert.equal((await call('GET','/shipping/rules')).json().allowUninspected,false);

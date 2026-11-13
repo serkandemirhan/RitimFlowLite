@@ -15,9 +15,9 @@ fs.cpSync(path.join(root,'assets/vendor/pdfjs'),path.join(out,'assets/vendor/pdf
 for(const name of ['tabler.LICENSE','tabulator.LICENSE','daypilot.LICENSE','daypilot.NOTICE'])fs.copyFileSync(path.join(root,'assets/vendor/ui',name),path.join(out,'assets/vendor/ui',name));
 fs.mkdirSync(path.join(out,'customers'),{recursive:true});
 fs.copyFileSync(path.join(root,'customers/hasmaksan.html'),path.join(out,'customers/hasmaksan.html'));
-for(const asset of ['operator.webmanifest','operator-offline.html'])fs.copyFileSync(path.join(root,asset),path.join(out,asset));
+for(const asset of ['operator.webmanifest','operator-offline.html','workspace.webmanifest','workspace-offline.html'])fs.copyFileSync(path.join(root,asset),path.join(out,asset));
 fs.cpSync(path.join(root,'assets/pwa'),path.join(out,'assets/pwa'),{recursive:true});
-const publicPaths=[...assets].map(x=>'/'+x).concat(['/operator.webmanifest','/operator-offline.html','/assets/pwa/operator-192.png','/assets/pwa/operator-512.png','/assets/pwa/operator-maskable-512.png','/assets/pwa/operator-180.png']);
+const publicPaths=[...assets].map(x=>'/'+x).concat(['/workspace.webmanifest','/workspace-offline.html','/operator.webmanifest','/operator-offline.html','/assets/pwa/operator-192.png','/assets/pwa/operator-512.png','/assets/pwa/operator-maskable-512.png','/assets/pwa/operator-180.png']);
 const hash=crypto.createHash('sha256').update(html);for(const asset of assets)hash.update(fs.readFileSync(path.join(root,asset)));
 const workerTemplate=fs.readFileSync(path.join(root,'operator-sw.js'),'utf8');hash.update(workerTemplate);for(const asset of publicPaths.filter(x=>!assets.has(x.slice(1))))hash.update(fs.readFileSync(path.join(root,asset.slice(1))));
 const worker=workerTemplate.replace('__BUILD_VERSION__',hash.digest('hex').slice(0,20)).replace('__PWA_ASSETS__',JSON.stringify(publicPaths));fs.writeFileSync(path.join(out,'operator-sw.js'),worker);

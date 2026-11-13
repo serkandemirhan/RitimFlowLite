@@ -11,7 +11,7 @@
    if(!refreshing){const run=async()=>{let r;try{r=await fetcher('/auth/refresh',{method:'POST',credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(timeoutMs)})}catch{throw new ApiError('AUTH_UNAVAILABLE','Oturum hizmetine ulaşılamadı. Yeniden deneyin.',503)}if(r.status>=500||r.status===429)throw new ApiError('AUTH_UNAVAILABLE','Oturum yenilenemedi. Yeniden deneyin.',503);return r.ok};refreshing=(globalThis.navigator?.locks?globalThis.navigator.locks.request('ritim-session-refresh',run):run()).finally(()=>{refreshing=null})}
    return refreshing;
   }
-  async function request(path,{method='GET',body,key}={}){
+  async function request(path,{method='GET',body,key}={}){if(!['GET','HEAD'].includes(method)&&globalThis.navigator?.onLine===false)throw new ApiError('OFFLINE','Bağlantı yok. İşlem gönderilmedi. Bağlantı geldiğinde yeniden deneyin.',0);
    const unavailable=()=>new ApiError('NETWORK_ERROR',['GET','HEAD'].includes(method)?'Güncel bilgiler alınamadı. Bağlantınızı kontrol edip ekranı yenileyin.':'Sunucuya ulaşılamadı; işlem durumu bilinmiyor. Aynı komut anahtarıyla tekrar deneyin.',0);
    const headers={accept:'application/json',...(cookieSession?{}:{authorization:`Bearer ${token}`})};
    if(body!==undefined){headers['content-type']='application/json';headers['idempotency-key']=key||randomUUID()}
