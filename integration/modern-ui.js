@@ -151,8 +151,8 @@
   const quality=actions.querySelector('button[onclick*="openQualityJob"]');if(quality)toolbar.append(quality);
   const warehouse=actions.querySelector('button[onclick*="inventory"]');if(warehouse){warehouse.textContent='Depoya git';warehouse.title='Genel depo sayfasında stokları ve malzeme hareketlerini görüntüle';toolbar.append(warehouse)}
   const drawing=actions.querySelector('.drawing-card');if(drawing)toolbar.append(button('Teknik resim',()=>open('Teknik resim',drawing)));
-  const readiness=actions.querySelector('.job-readiness');if(readiness){const balance=document.createElement('span'),label=document.createElement('small'),value=document.createElement('strong');label.textContent='Malzeme';value.textContent=[...readiness.querySelectorAll('.job-input-metrics>div')].map((e,i)=>(['Alınan','Tüketilen','Kullanılabilir'][i])+': '+e.querySelector('b').textContent).join(' · ');balance.append(label,value);strip.append(balance)}
-  history.before(strip,toolbar);actions.hidden=true;
+  const readiness=actions.querySelector('.job-readiness');if(readiness){const balance=document.createElement('span'),label=document.createElement('small'),value=document.createElement('strong');label.textContent=readiness.dataset.inputMode==='raw'?'Üretim takibi':'Malzeme';value.textContent=[...readiness.querySelectorAll('.job-input-metrics>div')].map(e=>e.querySelector('small').textContent+': '+e.querySelector('b').textContent).join(' · ');balance.append(label,value);strip.append(balance)}
+  history.before(strip,toolbar);const notice=readiness?.querySelector('.job-material-notice');if(notice)toolbar.before(notice);actions.hidden=true;
   const editor=timing?.querySelector('.planning-inline-time');if(editor)open('Tahmini süreyi düzenle',timing);
  }
  function mount(ctx){dispose();foundation(ctx.page);if(ctx.page==='job')jobLayout(ctx);if(ctx.page==='production-monitor')monitorLayout();if(['jobs','production-monitor'].includes(ctx.page))void jobs(ctx,generation);if(ctx.page==='machine-planning')planning(ctx)}

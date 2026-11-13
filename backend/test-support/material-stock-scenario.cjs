@@ -32,9 +32,9 @@ module.exports=async function({call,base,admin,schema,ta,sa,tb,sb,operator,ot,id
  assert.equal((await stock()).quantity,7);assert.equal((await stock()).unit,'m');
  const readMaterials=await call('GET',base+'/production-orders/'+a.po.id+'/materials');assert.equal(readMaterials.json().issues[0].quantity,2.5);assert.equal(readMaterials.json().readiness,'missing');
  const machine=await post('/machine-planning/machines',{code:'RAW-TURN'},'machine');await admin.query(`INSERT INTO "${schema}".work_assignments(tenant_id,site_id,id,work_order_id,machine_id,user_id) VALUES($1,$2,$3,$4,$5,$6)`,[ta,sa,id(),a.job.id,machine.id,operator]);
- const execution='/orders/'+a.order.id+'/work-orders/'+a.job.id+'/production';assert.equal((await post(execution+'/start',{},'start-blocked',409,ot)).error.code,'MATERIAL_NOT_READY');
+ const execution='/orders/'+a.order.id+'/work-orders/'+a.job.id+'/production';await post(execution+'/start',{},'start-without-readiness',200,ot);await post(execution+'/pause',{reason:'Malzeme bekleniyor'},'pause-without-readiness',200,ot);
  await post('/production-orders/'+a.po.id+'/material-readiness',{readiness:'partial'},'ready-a',200);
- await post(execution+'/start',{},'start',200,ot);
+ await post(execution+'/resume',{},'resume-with-readiness',200,ot);
  const inputs=(await call('GET',base+execution+'/balances')).json();assert.equal(inputs.inputMode,'raw');assert.equal(inputs.inputQuantity,20);assert.equal(inputs.materialReadiness,'partial');
  const output=await post(execution+'/results',{lotId:inputs.lots[0].lotId,kind:'pending',quantity:20},'results',201,ot);
  assert.equal((await stock()).quantity,7); // Recording products never deducts metres a second time.
