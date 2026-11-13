@@ -71,11 +71,22 @@
   }
   shell.querySelectorAll('.worklist-filters,.monitor-list-tools').forEach(x=>x.classList.add('modern-list-toolbar'));
  }
+ function mobileJobs(host,rows,ctx,monitor){
+  const list=document.createElement('section');list.className='manager-job-list';list.setAttribute('aria-label','Mobil iş emirleri');host.before(list);let page=1;const size=20;
+  const add=(parent,tag,cls,value)=>{const e=document.createElement(tag);e.className=cls;e.textContent=text(value);parent.append(e);return e};
+  function render(){list.replaceChildren();add(list,'p','mgr-job-list-count',rows.length+' i? emri');for(const r of rows.slice((page-1)*size,page*size)){
+   const card=document.createElement('article');card.className='manager-job-card';card.dataset.jobId=r.id;const open=button(r.partName||r.number,()=> (monitor?ctx.openMonitorJob:ctx.openJob)(r));open.className='mgr-job-title';card.append(open);
+   add(card,'p','mgr-job-operation',(r.operation||'Operasyon belirtilmedi')+' · '+(r.machineCode||'Makine atanmadı'));
+   const state=add(card,'div','mgr-job-state','');add(state,'strong','',r.produced+' / '+r.quantity+' adet');add(state,'span','pill',r.executionHeld?'Durduruldu':statuses[r.status]||r.status);const progress=document.createElement('progress');progress.max=Math.max(1,r.quantity);progress.value=Math.min(r.produced,r.quantity);progress.setAttribute('aria-label','İşlenen / hedef');card.append(progress);
+   if(r.priority>0)add(card,'span','mgr-job-priority',r.priority>=3?'Acil':'Öncelikli');add(card,'p','mgr-job-reference',r.number);if(r.dueDate)add(card,'small','mgr-job-due','Termin: '+new Date(r.dueDate).toLocaleDateString('tr-TR'));
+   const details=document.createElement('details');add(details,'summary','','İş bilgileri');for(const [label,value]of [['Sipariş',r.orderNumber],['Operatör',r.operatorName],['Onaylanan',r.approved],['Kalite reddi',r.rejected],['Üretim hurdası',r.productionScrap],['Oluşturan',r.createdBy]])if(value!==undefined&&value!==null&&value!=='')add(details,'p','',label+': '+value);card.append(details);list.append(card);
+  }if(!rows.length)add(list,'p','mgr-empty','Bu filtrelere uygun iş emri yok.');if(rows.length>size){const nav=document.createElement('nav');nav.className='mgr-card-paging';nav.setAttribute('aria-label','Mobil iş sayfaları');const prev=button('Önceki',()=>{page--;render();list.scrollIntoView({block:'start'})}),next=button('Sonraki',()=>{page++;render();list.scrollIntoView({block:'start'})});prev.disabled=page===1;next.disabled=page*size>=rows.length;nav.append(prev);add(nav,'span','',page+' / '+Math.ceil(rows.length/size));nav.append(next);list.append(nav)}}render();
+ }
  async function jobs(ctx,ticket){const monitor=ctx.page==='production-monitor';const old=document.querySelector('table[data-grid-kind="'+(monitor?'production-monitor':'jobs')+'"]');if(!old||!root.Tabulator)return;
   const section=old.closest('.order-grid-section'),host=document.createElement('div');host.className='modern-job-grid';host.setAttribute('aria-label','İş emirleri');
   const notice=document.createElement('p');notice.className='text-secondary modern-grid-status';notice.setAttribute('role','status');notice.textContent='İş emirleri yükleniyor…';section.before(notice);
   let rows;try{rows=monitor?ctx.monitorRows():await ctx.jobs()}catch(e){notice.textContent='Tablo yüklenemedi: '+e.message;return}if(ticket!==generation||!section.isConnected)return;
-  section.replaceWith(host);document.querySelector('nav[aria-label="Liste sayfaları"]')?.remove();gridKey=(ctx.scopeKey||'')+location.search;const saved=savedGrids.get(gridKey);
+  section.replaceWith(host);mobileJobs(host,rows,ctx,monitor);document.querySelector('nav[aria-label="Liste sayfaları"]')?.remove();gridKey=(ctx.scopeKey||'')+location.search;const saved=savedGrids.get(gridKey);
   const fields=[['number','İş emri',200],['partName','Parça',230],['operation','Operasyon',170],['machineCode','Makine',140],['operatorName','Operatör',150],['quantity','Hedef',85],['produced','İşlenen',85],['approved','Onaylanan',105],['rejected','Kalite reddi',105],['productionScrap','Üretim hurdası',120],['remaining','Kalan',85],['dueDate','Termin',120],['status','Durum',135],['orderNumber','Sipariş',180],['nextAction','Sonraki işlem',210]];
   if(!monitor)fields.splice(1,0,['createdAt','Olu\u015fturulma tarihi',150],['createdBy','Olu\u015fturan',160]);
   if(monitor){fields.splice(2,0,['customer','M\u00fc\u015fteri',180],['orderCreatedAt','Sipari\u015f tarihi',130]);fields.splice(fields.length-1,0,['reason','Bekleme nedeni',220])}

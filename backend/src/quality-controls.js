@@ -9,6 +9,7 @@ function filters(q={}){
  if(!types.includes(type)||!['open','completed'].includes(state)||typeof query!=='string'||query.length>120||!Number.isSafeInteger(limit)||limit<1||limit>100)fail(400,'INVALID_INPUT','Geçersiz kontrol filtresi');
  return {type,state,query:query.trim(),limit,after};
 }
+const groupedFinal=" AND NOT(COALESCE(po.final_control_enabled,false) AND EXISTS(SELECT 1 FROM final_control_tasks ft WHERE (ft.tenant_id,ft.site_id,ft.id)=(po.tenant_id,po.site_id,po.id)) AND op.sequence=(SELECT MAX(x.sequence) FROM operations x WHERE (x.tenant_id,x.site_id,x.production_order_id)=(po.tenant_id,po.site_id,po.id)))";
 const production=`SELECT e.id,CASE WHEN op.kind='external' THEN 'supplier' ELSE 'production' END type,e.occurred_at recorded,
  e.quantity_pieces quantity,COALESCE(d.decided,0) decided,COALESCE(d.approved,0) approved,COALESCE(d.rejected,0) rejected,COALESCE(d.rework,0) rework,
  jsonb_build_object('source','output','orderId',w.order_id,'workOrderId',w.id,'reference',w.work_order_number,'orderNumber',o.order_number,'customer',o.customer,'operation',op.name,
@@ -20,7 +21,7 @@ const production=`SELECT e.id,CASE WHEN op.kind='external' THEN 'supplier' ELSE 
  LEFT JOIN order_items oi ON (oi.tenant_id,oi.site_id,oi.id)=(po.tenant_id,po.site_id,po.order_item_id)
  LEFT JOIN production_output_lots ol ON (ol.tenant_id,ol.site_id,ol.production_event_id)=(e.tenant_id,e.site_id,e.id)
  LEFT JOIN LATERAL(SELECT SUM(quantity_pieces) decided,SUM(quantity_pieces) FILTER(WHERE outcome='approved') approved,SUM(quantity_pieces) FILTER(WHERE outcome='rejected') rejected,SUM(quantity_pieces) FILTER(WHERE outcome='rework') rework,MAX(occurred_at) last_decision FROM output_dispositions WHERE tenant_id=e.tenant_id AND site_id=e.site_id AND production_event_id=e.id) d ON true
- WHERE e.tenant_id=$1 AND e.site_id=$2 AND e.kind IN ('good','pending') AND e.quantity_pieces>0 AND NOT(COALESCE(po.final_control_enabled,false) AND op.sequence=(SELECT MAX(x.sequence) FROM operations x WHERE (x.tenant_id,x.site_id,x.production_order_id)=(po.tenant_id,po.site_id,po.id))) AND (NOT e.separate_quality_request OR EXISTS(SELECT 1 FROM production_quality_requests qr WHERE (qr.tenant_id,qr.site_id,qr.production_event_id)=(e.tenant_id,e.site_id,e.id)))`;
+ WHERE e.tenant_id=$1 AND e.site_id=$2 AND e.kind IN ('good','pending') AND e.quantity_pieces>0${groupedFinal} AND (NOT e.separate_quality_request OR EXISTS(SELECT 1 FROM production_quality_requests qr WHERE (qr.tenant_id,qr.site_id,qr.production_event_id)=(e.tenant_id,e.site_id,e.id)))`;
 const finalControls=`SELECT t.id,'final' type,t.created_at recorded,COALESCE(SUM(e.quantity_pieces),0) quantity,
  COALESCE(SUM(d.decided+COALESCE(b.n,0)),0) decided,COALESCE(SUM(d.approved),0) approved,COALESCE(SUM(d.rejected),0) rejected,COALESCE(SUM(d.rework),0) rework,
  jsonb_build_object('source','final','orderId',t.order_id,'workOrderId',t.work_order_id,'reference',p.number||' · Son kontrol','orderNumber',o.order_number,'customer',o.customer,'operation','Son kalite kontrolü','description',i.part_name,'unit','piece','bypassed',COALESCE(SUM(b.n),0),'controlStatus',CASE WHEN SUM(e.quantity_pieces)>SUM(d.decided+COALESCE(b.n,0)) THEN 'pending' WHEN COALESCE(SUM(b.n),0)>0 AND SUM(d.decided)=0 THEN 'shipped_without_inspection' WHEN COALESCE(SUM(b.n),0)>0 THEN 'completed_with_uninspected_shipping' ELSE 'inspected' END,'decidedAt',MAX(GREATEST(d.last_decision,b.last_bypass))) payload
@@ -67,16 +68,16 @@ async function controls(c,s,q={}){
  const rows=result.page.slice(0,f.limit),items=rows.map(r=>({...r.payload,id:r.id,type:r.type,state:r.payload.cancelled?'cancelled':f.state,recordedAt:r.recorded,...Object.fromEntries(['quantity','decided','approved','rejected','rework','pending'].map(k=>[k,Number(r[k])]))}));
  return {items,total:Number(result.total),type:f.type,state:f.state,query:f.query,nextAfter:result.page.length>f.limit?items.at(-1).id:null};
 }
-const sourceSql=()=>`SELECT raw.id,raw.type,raw.recorded,raw.quantity,raw.decided,raw.approved,raw.rejected,raw.rework,
+const sourceSql=(individualOutput=false)=>`SELECT raw.id,raw.type,raw.recorded,raw.quantity,raw.decided,raw.approved,raw.rejected,raw.rework,
  CASE WHEN skipped.id IS NULL THEN raw.payload ELSE raw.payload||jsonb_build_object('cancelled',true,'cancelReason',skipped.payload->>'reason','cancelMessage',skipped.payload->>'message','cancelledAt',skipped.occurred_at,'cancelledBy',ritim_audit_actor_name(skipped.tenant_id,skipped.site_id,skipped.id),'cancelledQuantity',CASE WHEN raw.payload->>'source'='final' THEN (skipped.payload->>'quantity')::bigint ELSE GREATEST(0,raw.quantity-raw.decided) END) END payload
- FROM (${production} UNION ALL ${finalControls} UNION ALL ${incoming} UNION ALL ${returns} UNION ALL ${supplier}) raw
+ FROM (${individualOutput?production.replace(groupedFinal,''):production} UNION ALL ${finalControls} UNION ALL ${incoming} UNION ALL ${returns} UNION ALL ${supplier}) raw
  LEFT JOIN LATERAL(SELECT sk.* FROM audit_events sk WHERE sk.tenant_id=$1 AND sk.site_id=$2 AND sk.entity_type='work_order' AND sk.entity_id::text=raw.payload->>'workOrderId' AND sk.event_type='production.quality_skipped'
  AND (raw.payload->>'source'='final' OR raw.payload->>'source'='output' AND sk.payload->'events' @> jsonb_build_array(jsonb_build_object('eventId',raw.id::text))) ORDER BY sk.occurred_at DESC,sk.id DESC LIMIT 1) skipped ON true`;
 const item=r=>({...r.payload,id:r.id,type:r.type,state:r.payload.cancelled?'cancelled':Number(r.pending)>0?'open':'completed',recordedAt:r.recorded,...Object.fromEntries(['quantity','decided','approved','rejected','rework'].map(k=>[k,Number(r[k])])),pending:Number(r.pending)});
 async function controlDetail(c,s,source,id,q={}){
  if(!['output','incoming','return','outsourcing','final'].includes(source)||Object.keys(q).some(k=>k!=='after'))fail(400,'INVALID_INPUT','Geçersiz kontrol kaydı');
  id=identifier(id);const after=q.after?identifier(q.after):null;
- const found=(await c.query(`WITH sources AS (${sourceSql()}) SELECT *,CASE WHEN payload->>'cancelled'='true' THEN 0 ELSE GREATEST(0,quantity-decided) END pending FROM sources WHERE id=$4 AND quantity>0 AND payload->>'source'=$5`,[s.tenantId,s.siteId,null,id,source])).rows[0];
+ const found=(await c.query(`WITH sources AS (${sourceSql(source==='output')}) SELECT *,CASE WHEN payload->>'cancelled'='true' THEN 0 ELSE GREATEST(0,quantity-decided) END pending FROM sources WHERE id=$4 AND quantity>0 AND payload->>'source'=$5`,[s.tenantId,s.siteId,null,id,source])).rows[0];
  if(!found)fail(404,'NOT_FOUND','Kontrol kaydı bulunamadı');
  const control=item(found),args=[s.tenantId,s.siteId,id];let decisions,action={limit:control.pending},documents=[],availableDocuments=[];
  // Actor names use existing scope-checked display functions, never a users grant.
