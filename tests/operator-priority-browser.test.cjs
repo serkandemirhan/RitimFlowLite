@@ -1,0 +1,19 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),{chromium}=require('playwright');
+test('priority polling updates badges and queue order without replacing input or an open dialog',async()=>{
+ const source=fs.readFileSync('integration/premium-api.js','utf8'),start=source.indexOf(' function syncOperatorPriority('),end=source.indexOf(' function workflowDocuments(',start),code=source.slice(start,end);
+ const queue=source.split('\n').find(x=>x.includes(' operatorQueue(){'));
+ const browser=await chromium.launch();try{const page=await browser.newPage({viewport:{width:393,height:844}});
+ await page.setContent('<div class="api-shell" data-screen="operator"><header class="workspace-header"><button><span class="operator-notification-count"></span></button></header><div class="operator-focus-heading"><span data-operator-priority="j1"></span><span data-operator-queue="j1"></span></div><input id="quantity" value="8"><section class="operator-job-group"><button class="operator-job-choice" data-operator-job="j1"><span data-operator-priority="j1"></span></button><button class="operator-job-choice" data-operator-job="j2"><span data-operator-priority="j2"></span></button></section><dialog id="draft"><textarea>Unsaved correction reason</textarea></dialog></div>');
+ await page.addStyleTag({path:'assets/css/ux-premium-workspace.css'});
+ await page.evaluate(code=>{
+  Object.assign(window,{notificationLoading:false,scope:{actorId:'operator'},isOperator:()=>true,el:id=>document.getElementById(id),h:x=>String(x??''),outcomeIcon:()=>'<svg></svg>',dispatchToday:()=>'',workspaceDate:x=>x,assignedJobs:[{id:'j1',workOrderNumber:'J1',machine:{code:'CNC-01'},queuePosition:2048},{id:'j2',workOrderNumber:'J2',machine:{code:'CNC-01'},queuePosition:1024}],notices:{items:[{work_order_id:'j1',priority:3,queue_rank:2,queue_position:2048,acknowledged_at:'seen'},{work_order_id:'j2',priority:0,queue_rank:1,queue_position:1024,acknowledged_at:'seen'}],priorityChanges:[{priority:3,part_name:'Mil',order_number:'S-01'}]}});
+  window.api={operatorNotifications:async()=>notices};eval(code+';window.poll=pollOperatorNotifications;');document.getElementById('draft').showModal();
+ },code);
+ await page.evaluate(()=>poll());assert.equal(await page.locator('#quantity').inputValue(),'8');assert.equal(await page.locator('textarea').inputValue(),'Unsaved correction reason');assert(await page.locator('dialog[open]').isVisible());
+ assert.equal(await page.locator('.operator-focus-heading [data-operator-priority]').innerText(),'Acil');assert.equal(await page.locator('[data-operator-queue]').innerText(),'Kuyruk: 2. sıra');assert.equal(await page.locator('.operator-notification-count').innerText(),'1');
+ assert.match(await page.locator('#operator-new-work-banner').innerText(),/Öncelik yükseltildi · Acil/);assert.equal(await page.locator('.operator-job-choice').first().getAttribute('data-operator-job'),'j2','Priority does not silently override the planned machine queue');
+ await page.evaluate(()=>{notices.priorityChanges=[];notices.items[0].priority=0;return poll()});assert.equal(await page.locator('.operator-focus-heading [data-operator-priority]').innerText(),'Normal');assert(await page.locator('#operator-new-work-banner').isHidden());
+ await page.evaluate(queue=>{window.busy=false;window.assignedListOpen=false;document.getElementById('draft').close();const list=document.createElement('details');list.className='operator-list-panel';list.innerHTML='<summary>İş değiştir</summary>';document.body.append(list);eval('({'+queue+'}).operatorQueue()')},queue);assert(await page.locator('.operator-list-panel').evaluate(e=>e.open));assert.equal(await page.locator('#quantity').inputValue(),'8');
+ assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+ }finally{await browser.close()}
+});

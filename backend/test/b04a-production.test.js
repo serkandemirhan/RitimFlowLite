@@ -85,6 +85,28 @@ test('B04A reconciled production using restricted runtime',async t=>{
    r=await call('POST',otherJob.prod+'/entry-corrections',{...body,eventId:otherRecord.json().eventId,quantity:1},'qe-other-denied',ot);assert.equal(r.statusCode,403,r.body);
    await admin.query(`UPDATE "${schema}".work_assignments SET released_at=now() WHERE work_order_id=$1`,[otherJob.j]);
   });
+  await t.test('operator sees actual machine rank and persistent, self-only priority increases',async()=>{
+   const x=await seed('PRIORITY',{assignedUser:other}),ahead=await seed('PRIORITY-AHEAD');
+   await admin.query(`UPDATE "${schema}".work_orders SET queue_position=CASE WHEN id=$1 THEN 2048 ELSE 1024 END WHERE id IN ($1,$2)`,[x.j,ahead.j]);
+   await admin.query(`UPDATE "${schema}".work_assignments SET machine_id=$1 WHERE work_order_id=$2`,[x.machineId,ahead.j]);
+   const notifications=base+'/operator/notifications';
+   let jobs=(await call('GET',base+'/operator/work-orders',null,null,ot)).json().workOrders;
+   assert.equal(jobs.find(j=>j.id===x.j).queueRank,2);assert.equal(jobs.find(j=>j.id===x.j).priority,0);
+   async function priority(value,key){const old=(await call('GET',x.root+'/editing')).json();const r=await call('POST',x.root+'/update',{version:old.version,orderedQuantity:x.amount,customerId:old.customerId,partId:old.partId,dueDate:old.dueDate,reference:old.reference,notes:old.notes,priority:value,reason:'Operator priority verification'},key);assert.equal(r.statusCode,200,r.body)}
+   await priority(1,'priority-low');assert.equal((await call('GET',notifications,null,null,ot)).json().priorityChanges.length,0);
+   await priority(2,'priority-high');let notices=(await call('GET',notifications,null,null,ot)).json();assert.equal(notices.priorityChanges.length,1);let n=notices.priorityChanges[0];assert.equal(n.priority,2);assert.equal(n.previous_priority,1);assert.equal(n.work_order_id,x.j);
+   assert.equal((await call('GET',notifications)).json().priorityChanges.length,0);
+   const acknowledge=notifications+'/'+n.id+'/priority/acknowledge';
+   assert.equal((await call('POST',acknowledge,{eventId:n.event_id},'priority-forbidden')).statusCode,403);
+   assert.equal((await call('GET',notifications,null,null,ot)).json().priorityChanges.length,1,'Unread notice persists over repeat requests');
+   assert.equal((await call('POST',acknowledge,{eventId:n.event_id},'priority-seen',ot)).statusCode,200);
+   assert.equal((await call('GET',notifications,null,null,ot)).json().priorityChanges.length,0);
+   await priority(3,'priority-urgent');notices=(await call('GET',notifications,null,null,ot)).json();assert.equal(notices.priorityChanges.length,1);assert.equal(notices.priorityChanges[0].priority,3);assert.notEqual(notices.priorityChanges[0].event_id,n.event_id);
+   jobs=(await call('GET',base+'/operator/work-orders',null,null,ot)).json().workOrders;assert.equal(jobs.find(j=>j.id===x.j).priority,3);
+   assert.equal(notices.items.find(j=>j.work_order_id===x.j).queue_rank,2);
+   await priority(0,'priority-lower');assert.equal((await call('GET',notifications,null,null,ot)).json().priorityChanges.length,0,'Lowering priority removes obsolete urgency');
+   await admin.query(`UPDATE "${schema}".work_assignments SET released_at=now() WHERE work_order_id IN ($1,$2)`,[x.j,ahead.j]);
+  });
   await t.test('pause timeline retains reason and resumes across multiple assigned machines',async()=>{
    const a=await seed('TIMELINE-A'),b=await seed('TIMELINE-B');
    assert.equal((await call('POST',a.prod+'/start',{},'timeline-a-start')).statusCode,200);
