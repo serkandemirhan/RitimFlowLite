@@ -15,7 +15,7 @@
   if(job.handoverNote){const note=document.createElement('aside');note.className='operator-handover-note';note.innerHTML='<strong>Devralınan iş</strong><span>'+h(job.handoverNote)+'</span>';heading.after(note);}
   const status=panel.querySelector('.operator-status.clarity-waiting strong');if(status){status.textContent=(job.status==='paused'?'Duraklatıldı':'Çalışıyor')+' · '+status.textContent;}
   const p=v.productionView;if(p){const quantities=panel.querySelector('.operator-quantity-summary');if(quantities){
-   const outputs=p.outputs||{},production=Number(outputs.pending||0)+Number(outputs.good||0),scrap=Number(outputs.scrap||0)+Number(outputs.setup_scrap||0),remaining=Math.max(0,job.plannedQuantity-(p.consumedQuantity||0));
+   const outputs=p.outputs||{},production=Number(outputs.pending||0)+Number(outputs.good||0),scrap=Number(outputs.scrap||0)+Number(outputs.setup_scrap||0),remaining=p.targetState?.missing??Math.max(0,job.plannedQuantity-(p.consumedQuantity||0));
    quantities.classList.add('operator-amounts');quantities.setAttribute('aria-label','İş emri miktarları');
    quantities.innerHTML=[['Hedef',job.plannedQuantity],['Üretim',production],['Hurda',scrap],['Kalan',remaining]].map(([label,value])=>'<div><span>'+label+'</span><strong>'+h(value)+'</strong></div>').join('');
   }}

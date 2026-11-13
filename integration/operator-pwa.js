@@ -1,6 +1,6 @@
 (function(root){'use strict';
  const h=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- const icons={today:'M3 10l9-7 9 7M5 9v12h14V9M9 21v-7h6v7',jobs:'M8 5h13M8 12h13M8 19h13M3 5h1M3 12h1M3 19h1',history:'M12 8v5l3 2M3 12a9 9 0 1 0 3-7M3 3v6h6',more:'M4 6h16M4 12h16M4 18h16',drawing:'M5 3h10l4 4v14H5zM14 3v5h5M8 13h8M8 17h5'};
+ const icons={today:'M3 10l9-7 9 7M5 9v12h14V9M9 21v-7h6v7',jobs:'M8 5h13M8 12h13M8 19h13M3 5h1M3 12h1M3 19h1',history:'M12 8v5l3 2M3 12a9 9 0 1 0 3-7M3 3v6h6',more:'M4 6h16M4 12h16M4 18h16',quality:'M21 21l-5-5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0',finish:'M5 12l4 4L20 5',drawing:'M5 3h10l4 4v14H5zM14 3v5h5M8 13h8M8 17h5'};
  const icon=k=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+(icons[k]||icons.more)+'"/></svg>';
  const tabs=[['today','Bugün'],['jobs','İşlerim'],['history','Geçmiş'],['more','Diğer']];
  let state={key:'',tab:'today',view:null},installEvent=null,registration=null,applyingUpdate=false;
@@ -13,14 +13,21 @@
  }
  function openJob(id){state.tab='today';root.RitimPremiumAPI.openAssigned(id);}
  function rank(j){return ({0:1,1:0,2:2,3:3})[j.priority??0];}
+ function jobState(j){return j.targetState?.state==='awaiting_quality'?'Kalite onayı bekliyor':j.targetState?.state==='needs_production'?'Eksik üretim bekliyor':({running:'Devam ediyor',paused:'Duraklatıldı',waiting:'Bekliyor',complete:'Tamamlandı',cancelled:'İptal edildi'})[j.status]||j.status;}
+ function jobRow(j){const useful=j.targetState?.useful??Math.max(0,(j.producedQuantity||0)-(j.attention?.productionScrap||0)-(j.attention?.rejected||0));return '<span class="op-job-identity"><strong>'+h(j.partName||j.partNumber||j.operation.name)+'</strong><small>'+h([j.workOrderNumber,j.machine?.code,j.operation.name].filter(Boolean).join(' · '))+'</small><span class="op-job-status" data-state="'+h(j.targetState?.state||j.status)+'">'+h(jobState(j))+'</span>'+(j.priority===3?'<span class="op-preview-priority priority-3">Acil</span>':'')+'</span><b class="op-job-progress" aria-label="'+useful+' / '+j.plannedQuantity+' adet">'+useful+'/'+j.plannedQuantity+' <span aria-hidden="true">›</span></b>';}
  function previews(){
   const v=state.view;if(!v)return;const jobs=v.assignedJobs.filter(j=>!['complete','cancelled'].includes(j.status));
-  const rows=jobs.filter(j=>j.id!==v.jobSelected).sort((a,b)=>rank(b)-rank(a)||(a.queueRank??Infinity)-(b.queueRank??Infinity));
-  const target=document.querySelector('.op-waiting-preview');if(!target)return;
-  target.replaceChildren();const title=node('header','','<h3>'+(v.jobSelected?'Diğer işlerim':'Çalışacağınız işi seçin')+' <span>'+rows.length+'</span></h3>');const all=node('button','op-text-button','Tümü ›');all.type='button';all.onclick=()=>select('jobs');title.append(all);target.append(title);
-  for(const j of rows.slice(0,5)){const b=node('button','op-preview-row','<span><strong>'+h(j.partName||j.partNumber||j.operation.name)+'</strong><small>'+h(j.machine?.code||'Makine atanmamış')+' · '+h(j.operation.name)+'</small></span><span><b>'+h(j.remainingQuantity??j.plannedQuantity)+' adet</b><small class="op-preview-priority priority-'+(j.priority??0)+'">'+h(['Normal','Düşük','Yüksek','Acil'][j.priority??0])+'</small></span>');b.type='button';b.dataset.pwaJob=j.id;b.onclick=()=>openJob(j.id);target.append(b);}
-  if(!rows.length)target.append(node('p','op-empty-note','Başka açık işiniz yok. Yeni atamalar bildirimlerde görünür.'));
-  const total=document.querySelector('.op-day-counts');if(total)total.textContent=jobs.filter(j=>j.status==='running').length+' çalışıyor · '+jobs.filter(j=>j.status==='paused').length+' duraklatıldı · '+jobs.filter(j=>j.status==='waiting').length+' bekliyor';
+  const target=document.querySelector('.op-waiting-preview');if(!target)return;target.hidden=!!v.jobSelected;if(v.jobSelected)return;
+  const query=(document.getElementById('operator-query')?.value||'').toLocaleLowerCase('tr-TR').trim(),machine=document.getElementById('operator-machine')?.value||'all';
+  const rows=jobs.filter(j=>(machine==='all'||(j.machine?.id||'none')===machine)&&[j.partName,j.workOrderNumber,j.machine?.code,j.operation.name].join(' ').toLocaleLowerCase('tr-TR').includes(query)).sort((a,b)=>rank(b)-rank(a)||(a.queueRank??Infinity)-(b.queueRank??Infinity));
+  target.replaceChildren();const title=node('header','','<h3>Bugünkü işlerim <span>'+rows.length+'</span></h3>');const filter=node('button','btn op-filter-button','Filtre');filter.type='button';filter.onclick=openFilters;title.append(filter);target.append(title);
+  for(const j of rows){const button=node('button','op-preview-row',jobRow(j));button.type='button';button.dataset.pwaJob=j.id;button.onclick=()=>openJob(j.id);target.append(button);}
+  if(!rows.length)target.append(node('p','op-empty-note',query||machine!=='all'?'Filtreye uygun iş bulunamadı.':'Size atanmış açık iş yok.'));
+ }
+ function openFilters(){document.getElementById('op-job-filters')?.showModal();}
+ function compactJobs(list,jobs){
+  for(const card of list.querySelectorAll('[data-operator-job]')){const j=jobs.find(x=>x.id===card.dataset.operatorJob);if(j)card.innerHTML=jobRow(j);}
+  const tools=list.querySelector('.operator-list-tools');if(tools){const d=node('dialog','operator-pause-dialog op-job-filters','<header><h2>İş filtreleri</h2><button class="btn" type="button" aria-label="Filtreleri kapat">×</button></header>');d.id='op-job-filters';d.querySelector('button').onclick=()=>d.close();d.append(tools);const apply=node('button','btn primary','Uygula');apply.type='button';apply.onclick=()=>{root.RitimPremiumAPI.operatorFilter();previews();d.close();};d.append(apply);tools.addEventListener('input',previews);tools.addEventListener('change',previews);document.getElementById('page').append(d);}
  }
  function blockedUpdate(){if(document.querySelector('dialog[open]'))return 'Önce açık işlemi tamamlayın veya kapatın.';if(state.view?.busy||document.getElementById('app')?.getAttribute('aria-busy')==='true')return 'İşlem sonucu bekleniyor.';if(document.getElementById('api-production-qty')?.value)return 'Girdiğiniz miktarı kaydedin veya temizleyin.';if(state.view?.pendingCount)return 'Sonucu belirsiz işlemleri önce doğrulayın.';return '';}
  function network(){
@@ -53,14 +60,14 @@
   panel.append(d);const button=node('button','btn primary op-production-launch','+ Üretim kaydet');button.type='button';button.disabled=!!state.view?.pendingCount;button.dataset.opProduction='';button.onclick=()=>{d.showModal();form.querySelector('#api-production-qty')?.focus();};return button;
  }
  function fastActions(panel){
-  const section=node('section','op-fast-actions','<h3>Hızlı işlemler</h3>'),production=productionDialog(panel);if(production)section.append(production);
+  const section=node('section','op-fast-actions'),production=productionDialog(panel);if(production)section.append(production);
   const secondary=panel.querySelector('.operator-secondary-actions');
   const scrap=secondary?.querySelector('button[onclick*="operator-scrap-dialog"]');if(scrap){scrap.classList.add('op-scrap-launch');section.append(scrap);}
   const grid=node('div','op-fast-grid');
   const drawing=panel.querySelector('.drawing-card .drawing-actions button');if(drawing){drawing.setAttribute('aria-label',drawing.getAttribute('aria-label')||'PDF çizimini aç');drawing.innerHTML=icon('drawing')+'<span>Teknik resim</span>';grid.append(drawing);}
-  const quality=secondary?.querySelector('button[onclick*="operator-quality-dialog"]');if(quality){quality.setAttribute('aria-label','Kalite kontrolü iste');quality.innerHTML='<span aria-hidden="true">✓</span><span>Kalite iste</span>';grid.append(quality);}
-  const finish=panel.querySelector('.operator-finish-ready button,.operator-finish-reason button');if(finish){finish.hidden=false;finish.setAttribute('aria-label','İş emrini bitir');grid.append(finish);}
-  if(grid.children.length)section.append(grid);if(section.children.length>1)(panel.querySelector('.operator-status,.operator-start-action')||panel.querySelector('.operator-quantity-summary')||panel.firstElementChild).after(section);
+  const quality=secondary?.querySelector('button[onclick*="operator-quality-dialog"]');if(quality){quality.setAttribute('aria-label','Kalite kontrolü iste');quality.innerHTML=icon('quality')+'<span>Kalite iste</span>';grid.append(quality);}
+  const finish=panel.querySelector('.operator-finish-ready button,.operator-finish-reason button');if(finish){finish.hidden=false;finish.setAttribute('aria-label','İş emrini bitir');finish.innerHTML=icon('finish')+'<span>İşi bitir</span>';grid.append(finish);}
+  if(grid.children.length)section.append(grid);if(section.children.length)(panel.querySelector('.operator-status,.operator-start-action')||panel.querySelector('.operator-quantity-summary')||panel.firstElementChild).after(section);
   if(secondary&&!secondary.querySelector('button'))secondary.remove();
  }
  function mount(v){
@@ -73,13 +80,19 @@
   const content=document.getElementById('page'),today=node('section','op-pane-today'),jobs=node('section','op-pane-jobs','<header class="op-section-heading"><h2>İşlerim</h2><p>Size atanmış işler · Makine, öncelik ve kuyruk sırası</p></header>'),historyPane=node('section','op-pane-history','<header class="op-section-heading"><h2>Geçmiş</h2><p>Seçili işin kayıtları ve tamamlanan işleriniz</p></header>'),more=morePane(v);
   [today,jobs,historyPane,more].forEach((pane,i)=>{pane.dataset.opPane=tabs[i][0];content.append(pane);});
   const list=studio.querySelector('.operator-list-panel'),completed=list?.querySelector('.operator-completed-list');if(completed){completed.querySelector('summary')?.addEventListener('click',()=>{state.tab='history';});historyPane.append(completed);}
-  if(list){list.open=true;jobs.append(list);}
+  if(list){list.open=true;compactJobs(list,v.assignedJobs);jobs.append(list);const filter=node('button','btn op-filter-button','Filtre');filter.type='button';filter.onclick=openFilters;jobs.querySelector('header').append(filter);}
   const history=studio.querySelector('.operator-history');if(history)historyPane.append(history);
-  const transitions=v.extras?.productionHistory?.transitions||[];if(transitions.length){const timeline=node('details','op-transition-history','<summary>Başlatma ve duruş geçmişi</summary>');for(const t of transitions)timeline.append(node('article','','<strong>'+h(({start:'Başlatıldı',pause:'Duraklatıldı',resume:'Devam edildi',complete:'Tamamlandı'})[t.action]||t.action)+'</strong><span>'+h(new Date(t.occurredAt).toLocaleString('tr-TR'))+'</span>'+(t.reason?'<p>'+h(t.reason)+'</p>':'')));historyPane.append(timeline);}
+  const transitions=v.extras?.productionHistory?.transitions||[];if(transitions.length){const timeline=node('details','op-transition-history','<summary>Başlatma ve duruş geçmişi</summary>');for(const t of transitions)timeline.append(node('article','','<strong>'+h(({start:'Başlatıldı',pause:'Duraklatıldı',resume:'Devam edildi',complete:'Tamamlandı',awaiting_quality:'Kalite onayı bekleniyor',needs_production:'Eksik üretime açıldı',completed:'Otomatik tamamlandı'})[t.action]||t.action)+'</strong><span>'+h(new Date(t.occurredAt).toLocaleString('tr-TR'))+'</span>'+(t.reason?'<p>'+h(t.reason)+'</p>':'')));historyPane.append(timeline);}
   if(!history&&!completed)historyPane.append(node('p','op-empty-note','İşlem geçmişini görmek için önce İşlerim bölümünden bir iş seçin.'));
   const grid=node('div','op-today-grid'),aside=node('aside','op-today-aside');today.append(node('p','op-day-counts'));today.append(grid);grid.append(studio,aside);
   const quality=studio.querySelector('.operator-quality-disclosure');if(quality){quality.open=true;quality.querySelector('summary').textContent='Kalite durumu';aside.append(quality);}
-  aside.append(node('section','op-waiting-preview'));const panel=studio.querySelector('.flow-production-panel');if(panel)fastActions(panel);
+  aside.append(node('section','op-waiting-preview'));studio.querySelector('.operator-welcome')?.remove();const panel=studio.querySelector('.flow-production-panel');if(panel){fastActions(panel);const x=v.productionView?.targetState;if(x?.lifecycle==='awaiting_quality'){
+   panel.querySelectorAll('.operator-status,.operator-start-action,.operator-pause-trigger,.op-production-launch,.op-scrap-launch,.operator-finish-ready,.operator-finish-reason,.op-fast-grid [aria-label="İş emrini bitir"]').forEach(e=>e.hidden=true);
+   const notice=node('div','op-target-notice','<strong>İstenen üretim hedefi tamamlandı</strong><p>'+h(x.pending)+' adet kalite onayı bekleniyor.</p>');notice.setAttribute('role','status');panel.querySelector('.operator-quantity-summary')?.after(notice);
+  }else if(x?.lifecycle==='needs_production'){
+   const notice=node('div','op-target-notice','<strong>Kalite sonucu: '+h(x.missing)+' adet eksik</strong><p>İş yeniden üretime açıldı. Devam etmeden önce malzeme ve makine uygunluğunu kontrol edin.</p>');notice.setAttribute('role','status');panel.querySelector('.operator-quantity-summary')?.after(notice);
+  }if(x?.bypassed)aside.prepend(node('p','op-shipped-without-quality',h(x.bypassed)+' adet kalite kontrolü yapılmadan sevk edildi. Bu miktar kalan kontrolü engellemez.'));}
+  if(!v.jobSelected)grid.classList.add('op-no-selection');
   const bottom=node('nav','op-bottom-nav');bottom.setAttribute('aria-label','Operatör uygulaması');for(const [id,label]of tabs){const button=node('button','',icon(id)+'<span>'+label+'</span>');button.type='button';button.dataset.opTab=id;button.onclick=()=>select(id);bottom.append(button);}main.append(bottom);
   const queueButton=studio.querySelector('.operator-queue-button');if(queueButton)queueButton.onclick=()=>select('jobs');
   previews();applyTab();network();
@@ -92,5 +105,5 @@
  if('serviceWorker'in navigator)navigator.serviceWorker.addEventListener('controllerchange',()=>{if(applyingUpdate)location.reload();});
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',register,{once:true});else register();
  new MutationObserver(()=>{const dialog=document.getElementById('op-production-dialog'),alert=document.getElementById('api-alert');if(dialog?.open&&alert?.textContent.trim()&&state.view?.pendingCount){dialog.close();alert.tabIndex=-1;alert.focus({preventScroll:true});}}).observe(document,{subtree:true,childList:true,attributes:true,attributeFilter:['open']});
- root.RitimOperatorPWA={mount,select,network,syncPriority(jobs){if(state.view){state.view.assignedJobs=jobs;previews();}},blockedUpdate};
+ root.RitimOperatorPWA={mount,select,network,syncPriority(jobs){if(state.view){state.view.assignedJobs=jobs;for(const card of document.querySelectorAll('.operator-job-choice')){const j=jobs.find(x=>x.id===card.dataset.operatorJob);if(j)card.innerHTML=jobRow(j);}previews();}},blockedUpdate};
 })(window);

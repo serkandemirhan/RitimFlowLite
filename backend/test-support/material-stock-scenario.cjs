@@ -22,7 +22,7 @@ module.exports=async function({call,base,admin,schema,ta,sa,tb,sb,operator,ot,id
  assert.deepEqual(await post('/inventory/receipts',receiptBody,'receipt'),receipt);
  const issue={productionId:a.po.id,lotId:receipt.lotId,sourceLocationId:container.id,quantity:2.5};
  assert.equal((await post('/inventory/raw-issues',issue,'pre-quality',409)).error.code,'QUALITY_APPROVAL_REQUIRED');
- await post('/inventory/lots/'+receipt.lotId+'/inspect',{outcome:'approved',quantity:10},'inspect');await post('/inventory/lots/'+receipt.lotId+'/inspect',{outcome:'rejected',quantity:2.5},'reject');
+ await post('/inventory/lots/'+receipt.lotId+'/inspect',{outcome:'approved',quantity:10},'inspect');await post('/inventory/lots/'+receipt.lotId+'/inspect',{outcome:'rejected',reason:'Damaged material',quantity:2.5},'reject');
  assert.equal((await post('/inventory/lots/'+receipt.lotId+'/inspect',{outcome:'approved',quantity:.1},'over-inspect',409)).error.code,'QUANTITY_EXCEEDED');
  assert.equal((await post('/inventory/raw-issues',{...issue,productionId:foreign.po.id},'wrong-customer',409)).error.code,'CUSTOMER_MISMATCH');
  assert.equal((await post('/inventory/raw-issues',{...issue,quantity:11},'over-approved',409)).error.code,'QUALITY_APPROVAL_REQUIRED');
@@ -38,12 +38,12 @@ module.exports=async function({call,base,admin,schema,ta,sa,tb,sb,operator,ot,id
  const inputs=(await call('GET',base+execution+'/balances')).json();assert.equal(inputs.inputMode,'raw');assert.equal(inputs.inputQuantity,20);assert.equal(inputs.materialReadiness,'partial');
  const output=await post(execution+'/results',{lotId:inputs.lots[0].lotId,kind:'pending',quantity:20},'results',201,ot);
  assert.equal((await stock()).quantity,7); // Recording products never deducts metres a second time.
- await post(execution+'/pause',{reason:'Material scenario pause'},'pause',200,ot);
+ assert.equal((await call('GET',base+execution+'/balances',null,null,ot)).json().status,'paused');
  assert.equal((await post('/inventory/raw-issues/'+issuedA.id+'/return',{destinationLocationId:container.id,quantity:3},'over-return',409)).error.code,'RETURN_EXCEEDED');
  await post('/inventory/raw-issues/'+issuedA.id+'/return',{destinationLocationId:container.id,quantity:1},'return');assert.equal((await stock()).quantity,8);
  const qa=await call('GET',base+'/orders/'+a.order.id+'/work-orders/'+a.job.id+'/quality');assert.equal(qa.statusCode,200,qa.body);
  const qualityOutput=qa.json().outputs[0];await post('/orders/'+a.order.id+'/work-orders/'+a.job.id+'/quality/decisions',{eventId:qualityOutput.eventId,lotId:qualityOutput.lotId,outputLotId:qualityOutput.outputLotId,outcome:'approved',quantity:20,evidence:'Scenario dimensional check'},'product-quality');
- await post(execution+'/complete',{},'complete',200,ot);
+ assert.equal((await call('GET',base+execution+'/balances',null,null,ot)).json().status,'complete');
  const vendor=await post('/outsourcing/suppliers',{code:'RAW-VENDOR',name:'Raw scenario coating'},'vendor');
  const supplierJob=a.po.workOrders.find(j=>j.kind==='external'),supplierPath='/production-orders/'+a.po.id+'/work-orders/'+supplierJob.id+'/supplier';
  const supplierBefore=(await call('GET',base+supplierPath)).json();assert.equal(supplierBefore.sources[0].available,20);

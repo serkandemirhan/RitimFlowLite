@@ -17,7 +17,7 @@ async function recordBypass(c,s,order,source,allocation,amount){
  if(!amount)return;const lot=source,policy=await context(c,s,lot.sourceWorkOrderId);
  if(!policy?.final_control_enabled||!policy.is_final||!policy.allow_uninspected_shipping||amount>lot.qualityPending)fail(409,'QUALITY_APPROVAL_REQUIRED','Son kalite kontrol onayı gerekli.');
  await c.query('INSERT INTO shipping_quality_bypasses(tenant_id,site_id,order_id,allocation_id,output_lot_id,work_order_id,production_event_id,quantity_pieces,actor_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)',[s.tenantId,s.siteId,order,allocation,source.lotId,lot.sourceWorkOrderId,lot.productionEventId,amount,s.identity.userId]);
- await audit(c,s,'shipping.without_final_control','order',order,{allocationId:allocation,outputLotId:source.lotId,quantity:amount,productionOrderId:policy.id});
+ await audit(c,s,'shipping.without_final_control','order',order,{allocationId:allocation,outputLotId:source.lotId,quantity:amount,productionOrderId:policy.id});await require('./operator-target').sync(c,s,lot.sourceWorkOrderId);
 }
 function routes(api){
  api.get('/sites/:tenantId/:siteId/shipping/rules',req=>scoped(req,(c,s)=>rules(c,s)));
@@ -28,7 +28,7 @@ function routes(api){
   const r=await cmd(req,'quality.final_control','quality.write',p,async c=>{const o=await lockedOrder(c,s,p.orderId);const task=(await c.query('SELECT * FROM final_control_tasks WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND id=$4',[s.tenantId,s.siteId,p.orderId,p.taskId])).rows[0];if(!task)fail(404,'NOT_FOUND','Son kontrol görevi bulunamadı.');await require('./after-sales').assertJob(c,s,o,task.work_order_id);
    const x=await require('./quality-disposition').source(c,s,p.orderId,task.work_order_id);if(p.quantity>x.rows.reduce((n,r)=>n+r.undisposed,0))fail(409,'DISPOSITION_EXCEEDED','Yalnızca elde kalan kontrolsüz miktar kontrol edilebilir.');let remaining=p.quantity;
    for(const row of x.rows){const n=Math.min(remaining,row.undisposed);if(!n)continue;const event=x.events.find(e=>e.id===row.eventId),id=crypto.randomUUID();await c.query('INSERT INTO output_dispositions(tenant_id,site_id,order_id,id,output_ledger_id,work_order_id,lot_id,production_event_id,output_kind,outcome,quantity_pieces,evidence,actor_id,output_lot_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)',[s.tenantId,s.siteId,p.orderId,id,event.ledger_id,task.work_order_id,row.lotId,row.eventId,event.kind,p.outcome,n,p.evidence,s.identity.userId,event.output_lot_id]);await require('./quality-documents').link(c,s,task.work_order_id,id,p.documentIds);await audit(c,s,'quality.disposition','work_order',task.work_order_id,{...p,decisionId:id,eventId:row.eventId,quantity:n,finalControl:true});remaining-=n;}
-   return {status:201,body:{id:p.taskId,quantity:p.quantity,outcome:p.outcome}};
+   await require('./operator-target').sync(c,s,task.work_order_id);return {status:201,body:{id:p.taskId,quantity:p.quantity,outcome:p.outcome}};
   });return reply.code(r.status).send(r.body);
  });
 }

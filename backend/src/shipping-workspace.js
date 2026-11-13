@@ -53,7 +53,7 @@ async function ready(c,s,q={},allItems=false){
   AND ($3='' OR strpos(lower(concat_ws(' ',o.order_number,o.customer,o.part_name,o.part_number)),lower($3))>0 OR EXISTS(SELECT 1 FROM order_items i WHERE i.tenant_id=o.tenant_id AND i.site_id=o.site_id AND i.order_id=o.id AND strpos(lower(concat_ws(' ',i.part_name,i.part_number)),lower($3))>0))
   AND (EXISTS(SELECT 1 FROM production_output_lots l JOIN work_orders w ON (w.tenant_id,w.site_id,w.id)=(l.tenant_id,l.site_id,l.work_order_id)
    JOIN operations op ON (op.tenant_id,op.site_id,op.id)=(w.tenant_id,w.site_id,w.operation_id)
-   WHERE l.tenant_id=o.tenant_id AND l.site_id=o.site_id AND l.order_id=o.id AND w.status='complete'
+   WHERE l.tenant_id=o.tenant_id AND l.site_id=o.site_id AND l.order_id=o.id AND w.status IN ('complete','paused')
    AND op.sequence=(SELECT count(*)-1 FROM operations r WHERE r.tenant_id=w.tenant_id AND r.site_id=w.site_id AND r.order_id=w.order_id AND r.production_order_id IS NOT DISTINCT FROM w.production_order_id))
    OR EXISTS(SELECT 1 FROM rma_releases r WHERE r.tenant_id=o.tenant_id AND r.site_id=o.site_id AND r.order_id=o.id)) ORDER BY o.id`,[s.tenantId,s.siteId,term.trim()]);
  const eligible=[];let unavailable=0;

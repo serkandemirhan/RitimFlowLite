@@ -16,7 +16,7 @@ module.exports=async({admin,schema,call,base,ta:tenant,sa:site,operator,operator
    if(mode==='waiting')return {productionOrderId:po,workOrderId:job,lotId:lot,quantity:amount};
    await post(root+'/production/start',{});const result=await post(root+'/production/results',{lotId:lot,kind:'pending',quantity:reported,separateQualityRequest:mode==='running'});
    if(mode==='running')return {...result,productionOrderId:po,workOrderId:job};
-   if(approved){await post(root+'/quality/decisions',{eventId:result.eventId,lotId:lot,outcome:'approved',quantity:amount,evidence:'Physical inspection'});await post(root+'/production/complete',{});}else if(finish)await post(root+'/production/complete',{});else await post(root+'/production/pause',{reason:'Awaiting quality'});
+   if(approved){await post(root+'/quality/decisions',{eventId:result.eventId,lotId:lot,outcome:'approved',quantity:amount,evidence:'Physical inspection'});if((await call('GET',base+root+'/production/balances',null,null,operatorToken)).json().status!=='complete')await post(root+'/production/complete',{});}else if(finish)await post(root+'/production/complete',{});else if((await call('GET',base+root+'/production/balances',null,null,operatorToken)).json().status==='running')await post(root+'/production/pause',{reason:'Awaiting quality'});
    return {...result,productionOrderId:po,workOrderId:job};
   }
   const running=await output(lines[0],20,{mode:'running',reported:2}),waiting=await output(lines[1],10,{mode:'waiting'}),paused=await output(lines[2],8,{approved:false}),completed=await output(lines[3],5);

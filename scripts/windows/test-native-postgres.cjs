@@ -144,6 +144,7 @@ async function main() {
     if(process.argv.includes('--cloud-upgrade')){await require('./verify-cloud-upgrade-sql.cjs')(url.toString());return;}
     if(process.argv.includes('--operator-access-ui')){await require('./verify-header-toolbar.cjs')(url.toString(),{operatorAccessOnly:true});return;}
     if(process.argv.includes('--existing-usernames-ui')){await require('./verify-header-toolbar.cjs')(url.toString(),{existingUsernamesOnly:true});return;}
+    if(process.argv.includes('--operator-target-ui')){await require('./verify-header-toolbar.cjs')(url.toString(),{operatorTargetOnly:true});return;}
     if(process.argv.includes('--operator-pwa-ui')){await require('./verify-header-toolbar.cjs')(url.toString(),{operatorPwaOnly:true});return;}
     if(process.argv.includes('--operator-lifecycle-ui')){await require('./verify-header-toolbar.cjs')(url.toString(),{operatorLifecycleOnly:true});return;}
     if(process.argv.includes('--operator-experience-ui')){await require('./verify-header-toolbar.cjs')(url.toString(),{operatorExperienceOnly:true});return;}

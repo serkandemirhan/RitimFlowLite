@@ -14,7 +14,7 @@ module.exports=async({admin,schema,call,base,ta:tenant,sa:site,operator,operator
    await seed.query("INSERT INTO reservations(tenant_id,site_id,order_id,id,work_order_id,lot_id,quantity_pieces,status) VALUES($1,$2,$3,$4,$5,$6,$7,'active')",[tenant,site,order,reservation,job,lot,amount]);
    await post('/orders/'+order+'/physical-receipts',{reservationId:reservation,quantity:amount});const root='/orders/'+order+'/work-orders/'+job;
    await post(root+'/production/start',{});const result=await post(root+'/production/results',{lotId:lot,kind:'pending',quantity:amount});
-   if(approved){await post(root+'/quality/decisions',{eventId:result.eventId,lotId:lot,outcome:'approved',quantity:amount,evidence:'Physical inspection'});await post(root+'/production/complete',{});}else if(finish)await post(root+'/production/complete',{});else await post(root+'/production/pause',{reason:'Awaiting quality'});
+   if(approved){await post(root+'/quality/decisions',{eventId:result.eventId,lotId:lot,outcome:'approved',quantity:amount,evidence:'Physical inspection'});assert.equal((await call('GET',base+root+'/production/balances',null,null,operatorToken)).json().status,'complete');}else assert.equal((await call('GET',base+root+'/production/balances',null,null,operatorToken)).json().status,'paused');
    return {...result,productionOrderId:po,workOrderId:job};
   }
   const a1=await output(lines[0],4),a2=await output(lines[0],6);await output(lines[1],20);const pending=await output(lines[2],8,{approved:false,finish:finalControlScenario});await output(lines[3],6,{final:false});

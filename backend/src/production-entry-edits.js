@@ -55,7 +55,7 @@ function routes(api){
    await c.query('INSERT INTO production_correction_decisions(tenant_id,site_id,request_id,approved,reason,actor_id,created_at) VALUES($1,$2,$3,true,$4,$5,clock_timestamp())',[s.tenantId,s.siteId,id,p.reason,s.identity.userId]);
    await require('./production-execution').reconciled(c,s,p.workOrderId);
    await audit(c,s,'production.entry.corrected','work_order',p.workOrderId,{...p,correctionId:id,previousQuantity:number(e.quantity),source:isManager(scope.roles)?'manager':'operator_five_minutes'});
-   return {status:200,body:{id,eventId:p.eventId,previousQuantity:number(e.quantity),quantity:p.quantity}};
+   await require('./operator-target').sync(c,s,p.workOrderId);return {status:200,body:{id,eventId:p.eventId,previousQuantity:number(e.quantity),quantity:p.quantity}};
   });return reply.code(result.status).send(result.body);
  });
 }
