@@ -101,3 +101,27 @@
 
 :is(.api-shell,.workflow-dialog,.master-drawer) .btn.primary:not(:disabled):not(.danger){background-color:var(--ui-primary);border-color:var(--ui-primary);color:#fff}
 :is(.api-shell,.workflow-dialog,.master-drawer) .btn.primary:not(:disabled):not(.danger):hover{background-color:#214db7;border-color:#214db7}
+
+/* Order document: metadata, product lines, aggregate, then supporting information. */
+.api-shell .order-document{max-width:1280px;margin-inline:auto}
+.order-document-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:1px solid var(--ui-border,#dce4ef);padding-bottom:16px;margin-bottom:16px}
+.order-document-heading h2{margin:2px 0 0}.order-document-heading>.btn{width:auto;flex:none}
+.order-document-metadata{display:grid;grid-template-columns:minmax(0,2fr) minmax(150px,1fr) minmax(160px,1fr);gap:16px;align-items:start}
+.order-document-metadata .formfield{margin:0}.order-document-metadata .master-quick-add{margin-top:6px}
+.order-document-section-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:18px 0 8px}.order-document-section-heading h3{margin:0;font-size:14px}.order-document-section-heading>span{font-size:12px;color:#536987}
+.order-document-table{table-layout:fixed;width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.order-document-table th,.order-document-table td{padding:10px 12px;text-align:left;border-bottom:1px solid #dce4ef;vertical-align:middle}
+.order-document-table thead th{background:#f3f6fa;font-size:11px;font-weight:600}.order-document-table th:first-child{width:48px}.order-document-table th:nth-child(2){width:34%}.order-document-table th:last-child{width:154px}
+.order-document-product{min-width:0}.order-document-product strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.order-document-product small{display:block;color:#536987;margin-top:3px;font-size:11px}
+.order-document-table .order-document-number{text-align:right;white-space:nowrap}.order-document-row-actions{white-space:nowrap}.order-document-row-actions .btn+.btn{margin-left:6px}
+.order-document-table tfoot th{width:auto!important;text-align:right;font-weight:600}.order-document-table tfoot td{text-align:right;background:#f3f6fa}.order-document-table tfoot strong{font-size:19px;color:#183b67}
+.order-document-add{padding-top:10px}.order-document-add>.btn{width:auto}.order-document-extra{margin-top:18px}.order-document-extra .formfield{margin-top:12px}.order-document-extra select{max-width:240px}.order-document-legacy{border-block:1px solid #dce4ef;padding-block:16px;margin-top:16px}
+@media(max-width:1023px){
+ .api-shell .order-document{padding:14px}.order-document-heading{gap:8px}.order-document-heading h2{font-size:17px;overflow-wrap:anywhere}.order-document-heading>.btn{font-size:11px;padding-inline:8px}
+ .order-document-metadata{grid-template-columns:1fr 1fr;gap:12px}.order-document-metadata>div:first-child{grid-column:1/-1}
+ .order-document-table,.order-document-table tbody,.order-document-table tfoot{display:block}.order-document-table thead{display:none}
+ .order-document-table tbody tr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 12px;border-top:1px solid #dce4ef;padding:12px 0}.order-document-table tbody td{display:block;border:0;padding:0;min-width:0;font-size:12px}
+ .order-document-table tbody td:first-child{display:none}.order-document-table tbody .order-document-product{grid-column:1/-1;margin-bottom:4px}.order-document-product strong{font-size:13px}.order-document-table tbody td[data-label]:not(.order-document-product)::before{content:attr(data-label);display:block;font-size:10px;color:#536987;margin-bottom:3px}
+ .order-document-table .order-document-number{text-align:left}.order-document-table tbody .order-document-row-actions{grid-column:1/-1;display:flex;gap:8px;margin-top:4px}.order-document-row-actions .btn{min-height:44px;flex:1}.order-document-row-actions .btn+.btn{margin:0}
+ .order-document-table tfoot tr{display:flex;align-items:center;justify-content:space-between;background:#f3f6fa;border-block:1px solid #dce4ef;padding:12px;gap:12px}.order-document-table tfoot th,.order-document-table tfoot td{border:0;padding:0;text-align:left;font-size:12px}.order-document-table tfoot strong{font-size:18px;white-space:nowrap}
+}
