@@ -15,7 +15,7 @@ test('cancellation requires final confirmation before creating any command',asyn
  const method=source.split('\n').find(l=>l.includes('async openExecutionControl(orderId,' )).trim().replace(/,$/,'');
  await p.evaluate(method=>{window.el=id=>document.getElementById(id);window.h=String;window.capable=()=>true;window.scope={};window.sent=0;window.api={executionControl:async()=>({label:'SOABC_000001',running:1,active:2,status:'open',token:'token'})};window.journal={begin:async x=>{sent++;return x},execute:async()=>{}};window.workflowDialog=(title,body)=>{const d=document.createElement('dialog');d.innerHTML=body;document.body.append(d);d.showModal();return d};window.RitimPremiumAPI=eval('({'+method+'})');RitimPremiumAPI.openOrder=async()=>{}},method);
  await p.evaluate(()=>RitimPremiumAPI.openExecutionControl('order',null,'cancel'));await p.locator('#execution-reason').fill('Customer cancelled');await p.locator('input[type=checkbox]').check();assert(await p.locator('button[type=submit]').isEnabled());
- let warning='';p.once('dialog',async d=>{warning=d.message();await d.dismiss()});await p.locator('button[type=submit]').click();assert.match(warning,/geri alınamaz/);assert.match(warning,/2 açık iş emri/);assert.equal(await p.evaluate(()=>sent),0);
+ let warning='';p.once('dialog',async d=>{warning=d.message();await d.dismiss()});await p.locator('button[type=submit]').click();assert.match(warning,/geçmişi korunur/);assert.match(warning,/2 açık iş emri/);assert.equal(await p.evaluate(()=>sent),0);
  p.once('dialog',d=>d.accept());await p.locator('button[type=submit]').click();assert.equal(await p.evaluate(()=>sent),1);
  }finally{await b.close()}
 });
