@@ -69,7 +69,8 @@ function describe({kind,target,body}){
  if(kind==='executionControl'){const id=identifier(target);if(!body.payload||typeof body.payload!=='object'||Array.isArray(body.payload))reject();return {capability:'orders.write',suffix:`/orders/${id}/execution-control`,payload:body.payload}}
  if(kind==='production'||kind==='quality'){
   const o=identifier(body.orderId),j=identifier(body.workOrderId);if(target!==j||!body.payload||typeof body.payload!=='object'||Array.isArray(body.payload))reject();
-  if(kind==='production'&&!['start','pause','resume','complete','results','request-quality'].includes(body.action))reject();
+  if(kind==='production'&&!['start','pause','resume','complete','results','request-quality','select-and-start'].includes(body.action))reject();
+  if(kind==='production'&&body.action==='select-and-start'){identifier(body.payload.machineId);if(body.payload.assignmentId!=null)identifier(body.payload.assignmentId);return {capability:'production.write',suffix:'/operator/select-and-start',payload:{...body.payload,orderId:o,workOrderId:j}}}
   return {capability:kind==='production'?'production.write':'quality.write',suffix:`/orders/${o}/work-orders/${j}/${kind==='production'?'production/'+body.action:'quality/decisions'}`,payload:body.payload}
  }
  if(kind==='operation'){

@@ -35,7 +35,7 @@ async function smoke(databaseUrl) {
     migration = new Pool({connectionString: roles.roleUrl('ritim_smoke_migration'), options: '-c search_path=ritim_smoke'});
     const applied = await migrate(migration);
     const repeat = await migrate(migration);
-    if (applied.length !== 68 || repeat.length !== 0) throw Error('Unexpected migration/repeat result');
+    if (applied.length !== 69 || repeat.length !== 0) throw Error('Unexpected migration/repeat result');
     const client = await migration.connect();
     try {
       await client.query('BEGIN');
@@ -55,7 +55,7 @@ async function smoke(databaseUrl) {
     const version = (await admin.query('SHOW server_version')).rows[0].server_version;
     const result = {serverVersion:version, migrations:applied.length, repeatMigrations:repeat.length, restrictedRuntime:true, checks};
     fs.writeFileSync(path.join(evidence,'runtime-smoke.json'), JSON.stringify(result,null,2)+'\n');
-    console.log('Native API smoke: 68 migrations, repeat 0, restricted runtime readiness 200, unauthenticated session 401');
+    console.log('Native API smoke: 69 migrations, repeat 0, restricted runtime readiness 200, unauthenticated session 401');
   } finally {
     if (app) await app.close();
     if (runtime) await runtime.end();
@@ -77,7 +77,7 @@ async function operationsSmoke(databaseUrl, privateDirectory) {
   finally {await before.end();}
   await ops.initialize(config,adminIdentity);
   await assert.rejects(ops.initialize(config,adminIdentity),/already exist/);
-  assert.equal((await ops.upgrade(config)).length,68);
+  assert.equal((await ops.upgrade(config)).length,69);
   assert.deepEqual(await ops.upgrade(config),[]);
   await ops.provision(config);
   await ops.ready(config);
@@ -142,11 +142,14 @@ async function main() {
     // Assert the target before fictional fixtures: new loopback cluster and dedicated database only.
     if (url.hostname !== '127.0.0.1' || url.pathname !== '/ritim_native_test') throw Error('Invalid disposable target');
     if(process.argv.includes('--cloud-upgrade')){await require('./verify-cloud-upgrade-sql.cjs')(url.toString());return;}
-    if(process.argv.includes('--operator-access-ui')){await require('./verify-header-toolbar.cjs')(url.toString(),{operatorAccessOnly:true});return;}
-    if(process.argv.includes('--existing-usernames-ui')){await require('./verify-header-toolbar.cjs')(url.toString(),{existingUsernamesOnly:true});return;}
+    if(process.argv.includes('--operations-upgrade')){await require('./verify-operations-upgrade.cjs')(url.toString());return;}
+    if(process.argv.includes('--operations-audit-recheck')){await require('./recheck-operations-audit.cjs')(url.toString());return;}
     if(process.argv.includes('--manager-pwa-ui')){await require('./verify-header-toolbar.cjs')(url.toString(),{managerPwaOnly:true});return;}
+    if(process.argv.includes('--operator-selection-ui')){await require('./verify-header-toolbar.cjs')(url.toString(),{operatorSelectionOnly:true});return;}
     if(process.argv.includes('--operator-target-ui')){await require('./verify-header-toolbar.cjs')(url.toString(),{operatorTargetOnly:true});return;}
     if(process.argv.includes('--operator-pwa-ui')){await require('./verify-header-toolbar.cjs')(url.toString(),{operatorPwaOnly:true});return;}
+    if(process.argv.includes('--operator-access-ui')){await require('./verify-header-toolbar.cjs')(url.toString(),{operatorAccessOnly:true});return;}
+    if(process.argv.includes('--existing-usernames-ui')){await require('./verify-header-toolbar.cjs')(url.toString(),{existingUsernamesOnly:true});return;}
     if(process.argv.includes('--operator-lifecycle-ui')){await require('./verify-header-toolbar.cjs')(url.toString(),{operatorLifecycleOnly:true});return;}
     if(process.argv.includes('--operator-experience-ui')){await require('./verify-header-toolbar.cjs')(url.toString(),{operatorExperienceOnly:true});return;}
     if(process.argv.includes('--final-control-ui')){await require('./verify-header-toolbar.cjs')(url.toString(),{finalControlOnly:true});return;}

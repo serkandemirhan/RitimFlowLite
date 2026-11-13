@@ -11,7 +11,7 @@ async function guard(req){
   const scope=await authorizeScope(c,{...s,capability:'site.read'});if(!operatorOnly(scope.roles))return;
   req.operatorRestricted=true;
   const route=req.routeOptions.url.replace('/api/v1/sites/:tenantId/:siteId','');
-  if(['/capabilities','/operator/work-orders','/operator/notifications','/workspace-preferences','/recovery'].includes(route))return;
+  if(['/operator/machine-choices','/operator/available-work','/capabilities','/operator/work-orders','/operator/notifications','/workspace-preferences','/recovery'].includes(route))return;
   if(['/master-data/:kind','/master-data/:kind/:recordId','/master-data/:kind/page'].includes(route)&&req.params.kind==='scrap-reasons')return;
   if(route==='/recovery/:recoveryId'&&uuid.test(req.params.recoveryId||''))return;
   const prefix='/orders/:orderId/work-orders/:workOrderId';

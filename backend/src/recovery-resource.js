@@ -45,7 +45,8 @@ async function authorizeRecoveryResource(client,scope,storedKind,command){
  if(job){const result=await client.query('SELECT 1 FROM work_orders WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND id=$4',[scope.tenantId,scope.siteId,order,identifier(job)]);if(!result.rowCount)denied()}
  if(command.kind==='production'||(command.kind==='operation'&&['drawingAck','operatorHandoff'].includes(b.command))){
   const assignments=await client.query('SELECT * FROM ritim_lock_assignments($1,$2,$3)',[scope.tenantId,scope.siteId,job]);
-  if(assignments.rowCount!==1||assignments.rows[0].user_id!==scope.identity.userId)denied();
+  if(command.kind==='production'&&b.action==='select-and-start'){const permission=await require('./operator-selection').level(client);if(permission==='standard'||assignments.rowCount>1)denied();const owner=assignments.rows[0]?.user_id;if(owner!==scope.identity.userId&&(owner||permission!=='claim'))denied();}
+  else if(assignments.rowCount!==1||assignments.rows[0].user_id!==scope.identity.userId)denied();
  }
  if(command.kind==='operation'&&['release','dispatch','receive'].includes(b.command)){
   const table=b.command==='receive'?'operation_dispatches':'output_reservation_events';
