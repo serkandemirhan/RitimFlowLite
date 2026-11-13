@@ -16,7 +16,7 @@ function data(req){return {identity:req.auth,tenantId:identifier(req.params.tena
 function payload(req){if(!req.body||Array.isArray(req.body)||typeof req.body!=='object')fail(400,'INVALID_INPUT','JSON object required');return req.body}
 function key(req){return req.headers['idempotency-key']}
 function cmd(req,kind,capability,p,fn){return executeCommand(req.server.pgPool,{...data(req),key:key(req),kind,payload:p,capability},fn)}
-async function scoped(req,fn,capability='orders.read'){const scope=data(req);return inTransaction(req.server.pgPool,async c=>{await authorizeScope(c,{...scope,capability});return fn(c,scope)})}
+async function scoped(req,fn,capability='orders.read'){if(req.operatorRestricted&&capability==='orders.read')capability='production.read';const scope=data(req);return inTransaction(req.server.pgPool,async c=>{await authorizeScope(c,{...scope,capability});return fn(c,scope)})}
 async function audit(c,s,type,entity,id,details){await c.query('INSERT INTO audit_events(tenant_id,site_id,id,actor_id,event_type,entity_type,entity_id,payload) VALUES($1,$2,$3,$4,$5,$6,$7,$8::jsonb)',[s.tenantId,s.siteId,crypto.randomUUID(),s.identity.userId,type,entity,id,JSON.stringify(details)])}
 async function lockedOrder(c,s,id){const r=await c.query('SELECT * FROM orders WHERE tenant_id=$1 AND site_id=$2 AND id=$3 FOR UPDATE',[s.tenantId,s.siteId,id]);if(!r.rowCount)fail(404,'NOT_FOUND','Order not found');return r.rows[0]}
 function number(n){const x=Number(n);if(!Number.isSafeInteger(x)||x<0)fail(409,'INTEGRITY_ERROR','Quantity is outside supported bounds');return x}
