@@ -1,0 +1,103 @@
+/* Shared form and action conventions. Lists retain their compact density. */
+:root{--ui-space-1:4px;--ui-space-2:8px;--ui-space-3:12px;--ui-space-4:16px;--ui-space-6:24px;--ui-border:#dce5ef;--ui-ink:#193450;--ui-muted:#64788f;--ui-primary:#285bd4;--ui-danger:#b42318}
+:is(.workflow-dialog,.master-drawer,.order-compose) :is(h2,h3,p,label,legend){text-align:left}
+:is(.workflow-dialog,.master-drawer){box-sizing:border-box;color:var(--ui-ink);border:1px solid var(--ui-border);border-radius:14px;max-height:calc(100dvh - 32px);overscroll-behavior:contain;scroll-padding:72px 0}
+.workflow-dialog:not(.master-drawer){width:640px;max-width:calc(100vw - 32px);padding:20px;overflow:auto}
+.workflow-dialog>header,.master-drawer form>header{display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:1px solid var(--ui-border);padding-bottom:12px;margin-bottom:16px;background:#fff}
+.workflow-dialog>header h2{font-size:18px;line-height:1.4;margin:0}
+.workflow-dialog>header>.btn,.master-drawer form>header>.btn{flex:0 0 40px;min-height:40px;padding:6px}
+.workflow-dialog form>.formfield,.master-drawer form>.formfield{display:grid;gap:6px;width:100%;min-width:0;margin:12px 0;font-size:13px}
+:is(.workflow-dialog,.master-drawer) :is(.input,.select){box-sizing:border-box;width:100%;min-width:0;min-height:42px}
+:is(.workflow-dialog,.master-drawer) textarea.input{min-height:80px;resize:vertical}
+:is(.workflow-dialog,.master-drawer) :is(input[type=checkbox],input[type=radio]){width:auto;min-height:0;flex-shrink:0}
+.workflow-dialog .quality-dialog-actions,.master-drawer form>footer{display:flex;align-items:center;justify-content:flex-end;gap:8px;border-top:1px solid var(--ui-border);padding-top:16px;margin-top:16px;background:#fff}
+.workflow-dialog .quality-dialog-actions>.btn{width:auto;flex:0 0 auto;min-height:40px}
+.execution-confirm{display:flex;gap:8px;align-items:flex-start;font-size:13px;line-height:1.5;margin:12px 0}
+.execution-confirm input{margin-top:4px}
+.execution-danger{background:var(--ui-danger);color:#fff;border-color:var(--ui-danger)}
+.execution-control-dialog #execution-explanation{font-size:13px;line-height:1.6;text-align:left}
+[role=alert]:empty{display:none}
+:is(.workflow-dialog,.master-drawer,.order-compose) :is(button,input,select,textarea,summary):focus-visible,.ui-action-menu>summary:focus-visible{outline:2px solid var(--ui-primary);outline-offset:3px}
+.api-shell .production-create-footer{display:flex;align-items:center;justify-content:flex-end;gap:12px;text-align:left}
+.api-shell .production-create-footer>span,.api-shell .production-create-footer>#batch-balance{margin-right:auto;text-align:left}
+.api-shell .production-create-footer>div:has(>button){display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.api-shell .refine-batch-heading{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;padding:16px}
+.api-shell .refine-batch-heading>button{grid-column:1/-1;justify-self:start}
+.api-shell .refine-batch-heading .production-compose-steps{margin:0;padding:0;background:transparent;border:0;box-shadow:none;gap:16px;min-width:0}
+.api-shell .refine-batch-heading .production-compose-steps li{flex:0 1 auto;font-size:12px}
+.api-shell .refine-parties .flow-heading p{max-width:70ch}
+.api-shell .p1-date-shortcuts{display:flex!important;flex-wrap:wrap;gap:6px;margin-top:6px}
+.api-shell .p1-date-shortcuts>.btn{width:auto!important;flex:1 1 auto;min-width:48px;max-width:100px}
+.api-shell form:has(#edit-reason) .formfield,.api-shell form:has(#edit-reason) .master-picker{min-width:0;width:100%}
+.api-shell form:has(#edit-reason) :is(input,select,textarea){box-sizing:border-box;max-width:100%;width:100%}
+.api-shell .order-actionbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.api-shell .order-actionbar>div{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto}
+.ui-action-menu{position:relative}
+.ui-action-menu>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.ui-action-menu>summary::after{content:'\2304'}
+.ui-action-menu>summary::-webkit-details-marker{display:none}
+.ui-action-menu-items{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:220px;max-width:calc(100vw - 32px);padding:6px;background:#fff;border:1px solid var(--ui-border);border-radius:10px;box-shadow:0 8px 24px #19345022;display:grid;gap:4px}
+.api-shell .ui-action-menu-items>.btn{width:100%;text-align:left;justify-content:flex-start;margin:0}
+.quality-control-information{margin:8px 0 12px;border-bottom:1px solid var(--ui-border);padding-bottom:10px;font-size:13px}
+.quality-control-information>summary{cursor:pointer;color:var(--ui-muted);padding:6px 0}
+.quality-control-information .quality-control-context{margin-top:12px}
+.quality-control-detail .quality-control-heading{margin-bottom:8px}
+.shipping-selected-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 0}
+.shipping-selected-summary h3{margin:0;overflow-wrap:anywhere}
+.shipping-quantity-history{font-size:12px;color:var(--ui-muted);margin:6px 0}
+.shipping-quantity-history>summary{cursor:pointer}
+.shipping-products-form .shipping-product-row{display:grid;grid-template-columns:minmax(0,1fr) 112px;align-items:center;gap:12px;padding:12px;border-radius:0;border-width:0 0 1px}
+.shipping-product-list{border:1px solid var(--ui-border);border-radius:10px;overflow:hidden}
+.shipping-products-form .shipping-product-row strong{display:block;overflow-wrap:anywhere}
+.shipping-products-form .shipping-product-row label{font-size:12px}
+.shipping-products-form .shipping-product-row input{width:100%;box-sizing:border-box;min-height:44px;margin-top:6px}
+.shipping-form-actions{position:sticky;bottom:0;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;padding:16px 0 4px;border-top:1px solid var(--ui-border);margin-top:12px;z-index:2}
+.shipping-form-actions>span{font-size:13px;font-weight:600}
+.api-shell .ui-transfer-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:end;max-width:800px}
+.api-shell .ui-transfer-form>.formfield{width:100%;min-width:0;margin:0}
+.api-shell .ui-transfer-form>:first-child{grid-column:1/-1}
+.api-shell .ui-transfer-form>.btn{grid-column:1/-1;justify-self:end}
+.team-actions-menu{position:relative;justify-self:end;min-width:0}
+.team-actions-menu>summary{cursor:pointer;padding:8px 12px;border:1px solid var(--ui-border);border-radius:8px;list-style:none;background:#fff;font-size:13px}
+.team-actions-menu>summary::after{content:' \2304'}
+.team-actions-menu>summary::-webkit-details-marker{display:none}
+#team .team-actions-menu .team-actions{display:grid;justify-content:stretch;gap:8px;margin-top:8px;padding:10px;border:1px solid var(--ui-border);border-radius:8px;background:#fff}
+#team .team-actions-menu form button{width:100%}
+#team .team-person:has(.team-actions-menu[open]){align-items:start}
+@media(min-width:1024px){.api-shell .shipping-products-form{max-width:960px}.api-shell .order-actionbar>.btn{margin-right:auto}.api-shell .order-compose .modal-foot{justify-content:flex-end}.api-shell .order-compose .modal-foot>.btn:first-child{margin-right:auto}}
+@media(max-width:1023px){
+ .workflow-dialog:not(.master-drawer){padding:16px;max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px)}
+ :is(.workflow-dialog,.master-drawer) :is(.btn,input.input,select.select){min-height:44px}
+ :is(.workflow-dialog,.master-drawer) :is(input.input,select.select,textarea.input){font-size:16px}
+ .workflow-dialog .quality-dialog-actions{position:sticky;bottom:-16px;padding:12px 0 max(12px,env(safe-area-inset-bottom));margin-bottom:-16px;z-index:2}
+ .workflow-dialog .quality-dialog-actions>.btn{flex:1;min-height:44px;white-space:normal}
+ .api-shell .production-create-footer{flex-wrap:wrap;gap:10px;justify-content:flex-end}
+ .api-shell .production-create-footer>#batch-balance,.api-shell .production-create-footer>span{flex-basis:100%;margin:0}
+ .api-shell .refine-batch-heading{grid-template-columns:minmax(0,1fr)}
+ .api-shell .refine-batch-heading .production-compose-steps{grid-column:1;justify-content:space-between;gap:8px}
+ .api-shell .refine-batch-heading .production-compose-steps li{flex:1;font-size:11px;min-width:0}
+ .api-shell .order-actionbar{flex-wrap:wrap;gap:8px}
+ .api-shell .order-actionbar>.btn{font-size:12px}
+ .api-shell .order-actionbar>div{gap:8px;flex-wrap:nowrap}
+ .api-shell .order-actionbar>div>.btn,.ui-action-menu>summary{font-size:12px;padding-inline:10px;min-height:44px}
+ .shipping-products-form .shipping-product-row{grid-template-columns:minmax(0,1fr) 96px;gap:10px}
+ .shipping-form-actions{flex-wrap:wrap;padding-bottom:max(12px,env(safe-area-inset-bottom))}
+ .shipping-form-actions>.btn{min-height:44px;flex:1}
+ .api-shell .ui-transfer-form{grid-template-columns:minmax(0,1fr)}
+ .api-shell .ui-transfer-form>.btn{width:100%}
+ .team-actions-menu{justify-self:stretch;grid-column:1/-1;width:100%}
+}
+
+.api-shell .production-create-footer.ergonomic-actions{flex-direction:row;height:auto;max-width:100%;min-width:0}
+.api-shell .production-create-footer.ergonomic-actions>.btn{flex:0 1 auto;white-space:normal}
+@media(max-width:1023px){.api-shell .production-create-footer.ergonomic-actions>div:last-child:has(>button){flex:1 1 100%;width:100%;min-width:0}.api-shell .production-create-footer.ergonomic-actions>div:last-child>.btn{flex:1 1 120px;min-width:0;white-space:normal}}
+
+.api-shell .refine-batch-footer>.btn:first-child{margin-right:auto}
+.operator-focus .operator-records{font-variant-numeric:tabular-nums}
+
+@media(min-width:1024px){.api-shell .refine-batches{max-width:1200px;margin-inline:auto}.api-shell .po-edit-panel{max-width:1100px;margin-inline:auto}}
+
+.api-shell .ui-transfer-form>#inventory-available{grid-column:1/-1;margin:0}.api-shell .ui-transfer-form>span[data-inventory-panel="move"]{grid-column:1/-1;justify-self:end}.api-shell .ui-transfer-form>[data-inventory-panel="move"] .formfield{width:100%;margin:0}@media(max-width:1023px){.api-shell .ui-transfer-form>span[data-inventory-panel="move"]{width:100%}.api-shell .ui-transfer-form>span[data-inventory-panel="move"]>.btn{width:100%}}
+
+:is(.api-shell,.workflow-dialog,.master-drawer) .btn.primary:not(:disabled):not(.danger){background-color:var(--ui-primary);border-color:var(--ui-primary);color:#fff}
+:is(.api-shell,.workflow-dialog,.master-drawer) .btn.primary:not(:disabled):not(.danger):hover{background-color:#214db7;border-color:#214db7}

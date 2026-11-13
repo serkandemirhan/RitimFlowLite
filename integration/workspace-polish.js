@@ -116,6 +116,18 @@
   const details=disclosure(metrics,'Teslimat ve süreç ayrıntıları','polish-order-checks');if(details&&stages)details.append(stages);
   if(v.orderClosing?.canClose){const jobs=v.orderSummary?.jobs||[],done=jobs.filter(j=>j.status==='complete').length,note=document.createElement('p');note.className='polish-quality-result';note.textContent='Kapatmaya hazır · '+v.orderClosing.netDelivered+'/'+v.orderClosing.orderedQuantity+' teslim'+(jobs.length?' · '+done+'/'+jobs.length+' iş tamamlandı':'');summary.querySelector('.flow-heading')?.after(note);}
  }
+
+ function standardize(v){
+  const bar=document.querySelector('.order-actionbar');
+  if(v.page==='detail'&&bar&&!bar.querySelector('.ui-action-menu')){
+   const actions=bar.querySelector(':scope>div');if(actions){const buttons=[...actions.querySelectorAll(':scope>button')].filter(b=>!b.classList.contains('primary'));if(buttons.length){const menu=document.createElement('details');menu.className='ui-action-menu';const summary=document.createElement('summary');summary.className='btn';summary.textContent='İşlemler';menu.append(summary);menu.addEventListener('keydown',e=>{if(e.key==='Escape'){menu.open=false;summary.focus()}});const body=document.createElement('div');body.className='ui-action-menu-items';body.append(...buttons);menu.append(body);actions.append(menu)}}
+   const duplicate=document.querySelector('.guidance-order-next .btn.primary[onclick*=orderNext]');if(duplicate&&actions?.querySelector('[onclick*=openBatches]')&&/üretim emri/i.test(duplicate.textContent))duplicate.remove();
+  }
+  const move=document.querySelector('#inv-destination');if(move){const label=move.closest('label');if(label?.firstChild?.nodeType===3)label.firstChild.textContent='Hedef konum';const panel=move.closest('[data-inventory-panel="move"]'),form=panel&&!panel.hidden?panel.parentElement:null;form?.classList.add('ui-transfer-form');const button=form?.querySelector('span[data-inventory-panel="move"] button');if(button)button.textContent='Transferi kaydet'}
+ }
+ function modalFocus(dialog){
+  if(!dialog||dialog.dataset.uiFocus)return;dialog.dataset.uiFocus='true';dialog.addEventListener('keydown',e=>{if(e.key!=='Tab')return;const items=[...dialog.querySelectorAll('button,input,select,textarea,a[href],[tabindex="0"]')].filter(x=>!x.disabled&&x.getClientRects().length);if(!items.length)return;const first=items[0],last=items[items.length-1];if(!dialog.contains(document.activeElement)){e.preventDefault();(e.shiftKey?last:first).focus();return}if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}});
+ }
  function mount(v){master(v);if(v.page==='inventory')inventory(v);if(v.poSupplier)supplier(v);if(v.page==='production-order')material(v);operator(v);shipping(v);quality(v);qualityDetail(v);order(v);}
- root.RitimWorkspacePolish={mount,unitInput};
+ root.RitimWorkspacePolish={mount,unitInput,standardize,modalFocus};
 })(typeof window==='undefined'?globalThis:window);

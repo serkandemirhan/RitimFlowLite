@@ -16,7 +16,7 @@ module.exports=async({page,context,origin,ready,call,base,ta,sa,admin,schema,ope
  const orderId=await page.locator('#shipping-ready-order').inputValue(),before=(await call('GET',base+'/orders/'+orderId+'/shipping')).json(),products=(await call('GET',base+'/orders/'+orderId+'/shipping/products')).json();
  const item=products.products.find(p=>p.readyQuantity>=2);assert(item);const quantity=Math.min(7,item.readyQuantity-1);
  await page.locator('[data-shipping-item="'+item.id+'"]').fill(String(quantity));const second=products.products.find(p=>p.id!==item.id&&p.readyQuantity>0);const secondQuantity=3;await page.locator('[data-shipping-item="'+second.id+'"]').fill(String(secondQuantity));const total=quantity+secondQuantity;await page.locator('#shipping-physical-confirm').check();
- await page.getByRole('button',{name:'Sevk et',exact:true}).click();await ready();await page.locator('.shipping-deliver-all').waitFor();
+ await page.getByRole('button',{name:'Sevkiyat çıkışını kaydet',exact:true}).click();await ready();await page.locator('.shipping-deliver-all').waitFor();
  const after=(await call('GET',base+'/orders/'+orderId+'/shipping')).json();assert.equal(after.totals.dispatched-before.totals.dispatched,total);assert.equal(after.totals.delivered,before.totals.delivered,'Physical exit is not delivery');assert.equal(after.shippingOrders.length,before.shippingOrders.length+1);
  const remaining=(await call('GET',base+'/orders/'+orderId+'/shipping/products')).json();assert.equal(remaining.products.find(p=>p.id===item.id).readyQuantity,item.readyQuantity-quantity);
  await page.screenshot({path:path.join(out,'dispatched-390.png'),fullPage:true});
