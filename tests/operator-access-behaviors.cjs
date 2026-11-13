@@ -26,7 +26,7 @@ module.exports=async h=>{
  for(const width of [1366,393,320]){
   await page.setViewportSize({width,height:900});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
   const nav=page.locator('.premium-sidebar nav');assert.equal(await nav.getByRole('button',{name:'Siparişler',exact:true}).count(),0);assert.equal(await nav.getByRole('button',{name:'Genel Bakış',exact:true}).count(),0);assert.equal(await nav.locator('button').count(),1);
-  assert.equal(await page.locator('.workspace-search').count(),0);if(width<1000){await page.getByRole('button',{name:'Ana menüyü aç'}).count();await page.locator('.api-mobile-menu summary').click();assert.equal(await page.locator('.api-mobile-nav button').count(),1);await page.locator('.api-mobile-menu summary').click();}
+  assert.equal(await page.locator('.workspace-search').count(),0);if(width<1000){if(await page.locator('.operator-pwa').count()){assert.equal(await page.locator('.op-bottom-nav button').count(),4);}else{await page.locator('.api-mobile-menu summary').click();assert.equal(await page.locator('.api-mobile-nav button').count(),1);await page.locator('.api-mobile-menu summary').click();}}
   await page.screenshot({path:path.join(out,'operator-'+width+'.png'),fullPage:true});
  }
  await page.evaluate(()=>RitimPremiumAPI.navigate('overview'));await ready();assert.equal(new URL(page.url()).searchParams.get('view'),'operator');

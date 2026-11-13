@@ -1,0 +1,6 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),{chromium}=require('playwright');
+(async()=>{const dir=path.resolve(__dirname,'../assets/pwa');fs.mkdirSync(dir,{recursive:true});const b=await chromium.launch();try{const p=await b.newPage();for(const [name,size]of [['operator-192',192],['operator-512',512],['operator-maskable-512',512],['operator-180',180]]){
+ const svg='<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><rect width="512" height="512" rx="0" fill="#173b61"/><rect x="92" y="92" width="328" height="328" rx="72" fill="#224f80"/><path d="M4 15V9h5l3 9 3-12h5" transform="translate(104 104) scale(12.66)" fill="none" stroke="#f6fbff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+ const png=await p.evaluate(async({svg,size})=>{const image=new Image();image.src='data:image/svg+xml;base64,'+btoa(svg);await image.decode();const canvas=document.createElement('canvas');canvas.width=canvas.height=size;canvas.getContext('2d').drawImage(image,0,0,size,size);return canvas.toDataURL('image/png').split(',')[1];},{svg,size});fs.writeFileSync(path.join(dir,name+'.png'),Buffer.from(png,'base64'));
+ }console.log('Operator PWA icons generated from the application brand vector.');}finally{await b.close()}})().catch(e=>{console.error(e.message);process.exitCode=1});

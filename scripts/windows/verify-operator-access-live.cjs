@@ -21,7 +21,7 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
   if(job){await p.evaluate(id=>RitimPremiumAPI.openAssigned(id),job.id);await ready();assert.equal(await p.locator('.operator-records div').count(),3);assert.equal((await c.request.get(base+'/orders/'+job.orderId)).status(),403);}
   for(const width of [1366,393,320]){
    await p.setViewportSize({width,height:900});assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert.equal(await p.locator('.premium-sidebar nav button').count(),1);assert.equal(await p.locator('.workspace-search').count(),0);
-   if(width<1000){await p.locator('.api-mobile-menu summary').click();assert.equal(await p.locator('.api-mobile-nav button').count(),1);await p.screenshot({path:path.join(out,'live-menu-'+width+'.png'),fullPage:true});await p.locator('.api-mobile-menu summary').click();}
+   if(width<1000){if(await p.locator('.operator-pwa').count()){assert.equal(await p.locator('.op-bottom-nav button').count(),4);await p.locator('.op-profile').click();await p.screenshot({path:path.join(out,'live-menu-'+width+'.png'),fullPage:true});await p.locator('[data-op-tab=today]').click();}else{await p.locator('.api-mobile-menu summary').click();assert.equal(await p.locator('.api-mobile-nav button').count(),1);await p.screenshot({path:path.join(out,'live-menu-'+width+'.png'),fullPage:true});await p.locator('.api-mobile-menu summary').click();}}
    await p.screenshot({path:path.join(out,'live-'+width+'.png'),fullPage:true});
   }
   assert(!reads.some(url=>/\/(orders|work-center|production-tracking)$/.test(url)));assert.deepEqual(errors,[]);assert.deepEqual(writes,[]);
