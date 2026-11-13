@@ -46,7 +46,7 @@
   for(const footer of root.querySelectorAll('.production-create-footer,.modal-foot,.order-actionbar'))footer.classList.add('ergonomic-actions');
   for(const box of root.querySelectorAll('.flow-metrics,.po-summary-facts'))box.classList.add('ergonomic-facts');
   for(const d of root.querySelectorAll('details')){const s=d.querySelector(':scope>summary');if(s&&/geçmiş|Ek bilgiler|belgeler/i.test(s.textContent))d.classList.add('ergonomic-secondary')}
-  if(page==='job'){const action=root.querySelector('#p1-job-warehouse');if(action){action.textContent='Malzeme teslim et';action.classList.add('primary')}}
+  if(page==='job'){const action=root.querySelector('#p1-job-warehouse');if(action){action.textContent='Malzeme teslim et';action.classList.remove('primary')}}
   if(page==='order-edit'){const reason=root.querySelector('#edit-reason');if(reason&&context.reasonRequired){reason.required=true;reason.setAttribute('aria-describedby','edit-reason-help');if(!root.querySelector('#edit-reason-help')){const help=document.createElement('small');help.id='edit-reason-help';help.textContent='Üretime bağlı siparişte değişiklik gerekçesi zorunludur.';reason.after(help)}}}
   const error=document.getElementById('api-alert');if(error?.textContent.trim()){error.classList.add('ergonomic-error');error.setAttribute('role','alert')}
   if(root.classList.contains('ergonomic-editor'))remember(root);
