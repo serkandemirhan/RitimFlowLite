@@ -46,6 +46,45 @@ test('B04A reconciled production using restricted runtime',async t=>{
    await assert.rejects(pool.query('DELETE FROM production_correction_requests'),{code:'42501'});
    await admin.query(`UPDATE "${schema}".work_assignments SET released_at=now() WHERE work_order_id=$1`,[x.j]);
   });
+  await t.test('five-minute own-entry edits, manager override, scrap, versioning and completion locks',async()=>{
+   const x=await seed('QUICK-EDIT',{assignedUser:other});
+   assert.equal((await call('POST',x.prod+'/start',{},'qe-start',ot)).statusCode,200);
+   const record=await call('POST',x.prod+'/results',{lotId:x.lot,kind:'pending',quantity:6,separateQualityRequest:true},'qe-create',ot);assert.equal(record.statusCode,201,record.body);
+   const eventId=record.json().eventId;
+   let body={eventId,version:null,quantity:2,reason:'Correct counted quantity'};
+   let r=await call('POST',x.prod+'/entry-corrections',body,'qe-edit',ot);assert.equal(r.statusCode,200,r.body);let version=r.json().id;
+   assert.equal((await call('POST',x.prod+'/entry-corrections',body,'qe-edit',ot)).json().id,version);
+   assert.equal((await call('GET',x.prod+'/balances')).json().consumedQuantity,2);
+   assert.equal((await call('POST',x.prod+'/entry-corrections',{...body,quantity:3},'qe-stale',ot)).statusCode,409);
+   r=await call('POST',x.prod+'/entry-corrections',{...body,version,quantity:8},'qe-increase',ot);assert.equal(r.statusCode,200,r.body);version=r.json().id;
+   assert.equal((await call('POST',x.prod+'/entry-corrections',{...body,version,quantity:21},'qe-too-much',ot)).statusCode,409);
+   r=await call('POST',x.prod+'/entry-corrections',{...body,version,quantity:0},'qe-zero',ot);assert.equal(r.statusCode,200,r.body);version=r.json().id;
+   r=await call('POST',x.prod+'/entry-corrections',{...body,version,quantity:3},'qe-restore',ot);assert.equal(r.statusCode,200,r.body);
+   assert.equal((await admin.query(`SELECT quantity_pieces FROM "${schema}".production_events WHERE id=$1`,[eventId])).rows[0].quantity_pieces,'6');
+   let history=(await call('GET',x.prod+'/history',null,null,ot)).json();assert.equal(history.events.find(e=>e.eventId===eventId).edit.canEdit,true);assert.equal(history.corrections.filter(e=>e.status==='approved').length,4);
+   const scrap=await call('POST',x.prod+'/results',{lotId:x.lot,kind:'scrap',quantity:2},'qe-scrap',ot);assert.equal(scrap.statusCode,201,scrap.body);
+   r=await call('POST',x.prod+'/entry-corrections',{...body,eventId:scrap.json().eventId,quantity:1},'qe-scrap-edit',ot);assert.equal(r.statusCode,200,r.body);
+   const raced=await call('POST',x.prod+'/results',{lotId:x.lot,kind:'pending',quantity:1,separateQualityRequest:true},'qe-race-record',ot);assert.equal(raced.statusCode,201,raced.body);
+   const raceId=raced.json().eventId,raceBody={...body,eventId:raceId};
+   const race=await Promise.all([call('POST',x.prod+'/entry-corrections',{...raceBody,quantity:2},'qe-race-a',ot),call('POST',x.prod+'/entry-corrections',{...raceBody,quantity:3},'qe-race-b',ot)]);assert.deepEqual(race.map(r=>r.statusCode).sort(),[200,409]);
+   const accepted=race.find(r=>r.statusCode===200).json();
+   assert.equal((await call('POST',x.prod+'/request-quality',{eventIds:[raceId]},'qe-request-quality',ot)).statusCode,201);
+   assert.equal((await call('POST',x.prod+'/entry-corrections',{...raceBody,version:accepted.id,quantity:0},'qe-inspected',ot)).statusCode,409);
+   // A backdated fixture is inserted, never updated: history is immutable.
+   const old=id();await admin.query(`INSERT INTO "${schema}".production_events(tenant_id,site_id,id,work_order_id,kind,quantity_pieces,actor_id,occurred_at) VALUES($1,$2,$3,$4,'setup_scrap',2,$5,now()-interval '6 minutes')`,[ta,sa,old,x.j,other]);
+   await admin.query(`INSERT INTO "${schema}".production_ledger(tenant_id,site_id,order_id,id,work_order_id,lot_id,production_event_id,kind,quantity_pieces,actor_id,event_kind) VALUES($1,$2,$3,$4,$5,$6,$7,'consume',2,$8,'setup_scrap'),($1,$2,$3,$9,$5,$6,$7,'setup_scrap',2,$8,'setup_scrap')`,[ta,sa,x.o,id(),x.j,x.lot,old,other,id()]);
+   r=await call('POST',x.prod+'/entry-corrections',{...body,eventId:old,quantity:1},'qe-expired',ot);assert.equal(r.statusCode,409,r.body);
+   r=await call('POST',x.prod+'/entry-corrections',{...body,eventId:old,quantity:1},'qe-admin');assert.equal(r.statusCode,200,r.body);
+   history=(await call('GET',x.prod+'/history',null,null,ot)).json();assert.equal(history.events.find(e=>e.eventId===old).edit.canEdit,false);
+   await admin.query(`UPDATE "${schema}".work_orders SET status='complete' WHERE id=$1`,[x.j]);
+   r=await call('POST',x.prod+'/entry-corrections',{...body,version:r.json().id,eventId:old,quantity:0},'qe-finished',ot);assert.equal(r.statusCode,409,r.body);
+   assert.equal((await call('GET',x.prod+'/history',null,null,ot)).json().events.every(e=>!e.edit.canEdit),true);
+   await admin.query(`UPDATE "${schema}".work_assignments SET released_at=now() WHERE work_order_id=$1`,[x.j]);
+   const otherJob=await seed('QE-OTHER');assert.equal((await call('POST',otherJob.prod+'/start',{},'qe-other-start')).statusCode,200);
+   const otherRecord=await call('POST',otherJob.prod+'/results',{lotId:otherJob.lot,kind:'scrap',quantity:2},'qe-other-record');
+   r=await call('POST',otherJob.prod+'/entry-corrections',{...body,eventId:otherRecord.json().eventId,quantity:1},'qe-other-denied',ot);assert.equal(r.statusCode,403,r.body);
+   await admin.query(`UPDATE "${schema}".work_assignments SET released_at=now() WHERE work_order_id=$1`,[otherJob.j]);
+  });
   await t.test('pause timeline retains reason and resumes across multiple assigned machines',async()=>{
    const a=await seed('TIMELINE-A'),b=await seed('TIMELINE-B');
    assert.equal((await call('POST',a.prod+'/start',{},'timeline-a-start')).statusCode,200);

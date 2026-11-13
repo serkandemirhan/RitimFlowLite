@@ -35,7 +35,7 @@ async function smoke(databaseUrl) {
     migration = new Pool({connectionString: roles.roleUrl('ritim_smoke_migration'), options: '-c search_path=ritim_smoke'});
     const applied = await migrate(migration);
     const repeat = await migrate(migration);
-    if (applied.length !== 65 || repeat.length !== 0) throw Error('Unexpected migration/repeat result');
+    if (applied.length !== 66 || repeat.length !== 0) throw Error('Unexpected migration/repeat result');
     const client = await migration.connect();
     try {
       await client.query('BEGIN');
@@ -55,7 +55,7 @@ async function smoke(databaseUrl) {
     const version = (await admin.query('SHOW server_version')).rows[0].server_version;
     const result = {serverVersion:version, migrations:applied.length, repeatMigrations:repeat.length, restrictedRuntime:true, checks};
     fs.writeFileSync(path.join(evidence,'runtime-smoke.json'), JSON.stringify(result,null,2)+'\n');
-    console.log('Native API smoke: 65 migrations, repeat 0, restricted runtime readiness 200, unauthenticated session 401');
+    console.log('Native API smoke: 66 migrations, repeat 0, restricted runtime readiness 200, unauthenticated session 401');
   } finally {
     if (app) await app.close();
     if (runtime) await runtime.end();
@@ -77,7 +77,7 @@ async function operationsSmoke(databaseUrl, privateDirectory) {
   finally {await before.end();}
   await ops.initialize(config,adminIdentity);
   await assert.rejects(ops.initialize(config,adminIdentity),/already exist/);
-  assert.equal((await ops.upgrade(config)).length,65);
+  assert.equal((await ops.upgrade(config)).length,66);
   assert.deepEqual(await ops.upgrade(config),[]);
   await ops.provision(config);
   await ops.ready(config);

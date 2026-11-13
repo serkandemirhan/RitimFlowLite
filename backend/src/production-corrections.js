@@ -16,10 +16,11 @@ async function eligible(c,s,order,job,event){
  return e;
 }
 async function history(c,s,job){
- const q=await c.query(`SELECT r.*,d.approved,d.reason decision_reason,d.actor_id decision_actor_id,d.created_at decided_at FROM production_correction_requests r LEFT JOIN production_correction_decisions d ON (d.tenant_id,d.site_id,d.request_id)=(r.tenant_id,r.site_id,r.id) WHERE r.tenant_id=$1 AND r.site_id=$2 AND r.work_order_id=$3 ORDER BY r.created_at,r.id`,[s.tenantId,s.siteId,job]);
- return q.rows.map(r=>({id:r.id,eventId:r.production_event_id,originalQuantity:number(r.original_quantity),quantity:number(r.quantity),reason:r.reason,actorId:r.actor_id,createdAt:r.created_at,status:r.approved===null?'pending':r.approved?'approved':'rejected',decisionReason:r.decision_reason,decisionActorId:r.decision_actor_id,decidedAt:r.decided_at}));
+ const q=await c.query(`SELECT r.*,ritim_job_history_actor_name(r.tenant_id,r.site_id,r.work_order_id,r.actor_id) actor_name,ritim_job_history_actor_name(r.tenant_id,r.site_id,r.work_order_id,d.actor_id) decision_actor_name,d.approved,d.reason decision_reason,d.actor_id decision_actor_id,d.created_at decided_at FROM production_correction_requests r LEFT JOIN production_correction_decisions d ON (d.tenant_id,d.site_id,d.request_id)=(r.tenant_id,r.site_id,r.id) WHERE r.tenant_id=$1 AND r.site_id=$2 AND r.work_order_id=$3 ORDER BY r.created_at,r.id`,[s.tenantId,s.siteId,job]);
+ return q.rows.map(r=>({id:r.id,eventId:r.production_event_id,originalQuantity:number(r.original_quantity),quantity:number(r.quantity),reason:r.reason,actorId:r.actor_id,actorName:r.actor_name,decisionActorName:r.decision_actor_name,createdAt:r.created_at,status:r.approved===null?'pending':r.approved?'approved':'rejected',decisionReason:r.decision_reason,decisionActorId:r.decision_actor_id,decidedAt:r.decided_at}));
 }
 function routes(api){
+ require('./production-entry-edits').routes(api);
  const prefix='/sites/:tenantId/:siteId/orders/:orderId/work-orders/:workOrderId/production';
  api.post(prefix+'/corrections',async(req,reply)=>{
   const s=data(req),b=payload(req),p={orderId:identifier(req.params.orderId),workOrderId:identifier(req.params.workOrderId),eventId:identifier(b.eventId),quantity:b.quantity,reason:reason(b.reason)};
