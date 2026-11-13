@@ -25,7 +25,7 @@
    wrap.addEventListener('mouseenter',show);wrap.addEventListener('mouseleave',hide);wrap.addEventListener('focusin',show);wrap.addEventListener('focusout',hide);wrap.addEventListener('keydown',e=>{if(e.key==='Escape')hide()});
    if(!wrap.querySelector('button,a,input'))wrap.tabIndex=0;
   }
-  for(const row of table.querySelectorAll('tbody tr')){
+  for(const row of table.classList.contains('orders-single-line')?[]:table.querySelectorAll('tbody tr')){
    const cells=[...row.querySelectorAll('td[data-column]')].filter(td=>td.dataset.column!=='action');
    if(!cells.length||row.querySelector('.grid-row-details'))continue;
    const host=cells.find(td=>!td.hidden);if(!host)continue;
