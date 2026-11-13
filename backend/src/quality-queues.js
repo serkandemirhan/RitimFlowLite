@@ -14,7 +14,7 @@ async function quality(c,s,q={}){const f=filters(q),args=[s.tenantId,s.siteId,f.
  JOIN operations op ON (op.tenant_id,op.site_id,op.id)=(w.tenant_id,w.site_id,w.operation_id)
  LEFT JOIN disposed d ON d.production_event_id=e.id
  LEFT JOIN production_output_lots ol ON (ol.tenant_id,ol.site_id,ol.production_event_id)=(e.tenant_id,e.site_id,e.id)
- WHERE e.tenant_id=$1 AND e.site_id=$2 AND e.kind IN ('good','pending') AND e.quantity_pieces>COALESCE(d.quantity,0) AND (NOT e.separate_quality_request OR EXISTS(SELECT 1 FROM production_quality_requests qr WHERE qr.tenant_id=e.tenant_id AND qr.site_id=e.site_id AND qr.production_event_id=e.id))
+ WHERE e.tenant_id=$1 AND e.site_id=$2 AND e.kind IN ('good','pending') AND NOT EXISTS(SELECT 1 FROM audit_events sk WHERE (sk.tenant_id,sk.site_id,sk.entity_id)=(w.tenant_id,w.site_id,w.id) AND sk.event_type='production.quality_skipped') AND e.quantity_pieces>COALESCE(d.quantity,0) AND (NOT e.separate_quality_request OR EXISTS(SELECT 1 FROM production_quality_requests qr WHERE qr.tenant_id=e.tenant_id AND qr.site_id=e.site_id AND qr.production_event_id=e.id))
  AND ($3='' OR strpos(lower(concat_ws(' ',w.work_order_number,o.order_number,o.customer,COALESCE((SELECT oi.part_name FROM production_orders item_po JOIN order_items oi ON (oi.tenant_id,oi.site_id,oi.id)=(item_po.tenant_id,item_po.site_id,item_po.order_item_id) WHERE (item_po.tenant_id,item_po.site_id,item_po.id)=(w.tenant_id,w.site_id,w.production_order_id)),o.part_name),op.name,e.id::text)),lower($3))>0)
  AND ($4::uuid IS NULL OR w.order_id=$4)) `;
  const count=(await c.query(sql+`SELECT (SELECT count(*) FROM candidates) total,(SELECT count(DISTINCT work_order_id) FROM candidates) jobs,

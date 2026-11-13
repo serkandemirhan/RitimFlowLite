@@ -53,5 +53,47 @@ module.exports=async h=>{
  const terminal=(await admin.query(`SELECT MAX(occurred_at) at FROM ${schema}.audit_events WHERE entity_id=$1 AND event_type='operator.lifecycle' AND payload->>'state'='completed'`,[job2])).rows[0].at;assert.equal(Date.parse(lastFinished.finishedAt),new Date(terminal).getTime());
  await page.locator('.op-bottom-nav').getByRole('button',{name:'Geçmiş',exact:true}).click();await ready();await page.locator('[data-completed-job="'+job2+'"]').waitFor({state:'visible'});assert.equal(await page.locator('.op-pane-history > header').count(),0);assert(!(await page.locator('.operator-completed-list > summary').isVisible()));assert.equal(await page.locator('.op-history-row').first().getAttribute('data-completed-job'),job2);assert.match(await page.locator('[data-completed-job="'+job+'"] .op-job-progress').innerText(),/5\/5/);assert.match(await page.locator('[data-completed-job="'+job2+'"] .op-completed-at').innerText(),/Tamamlanma:/);assert.match(await page.locator('[data-completed-job="'+job2+'"] .op-job-identity small').first().innerText(),/QT-CNC/);await snap('history');
  await page.locator('[data-completed-job="'+job+'"]').click();await ready();assert.equal(await page.locator('.operator-records dd').last().innerText(),firstFinished.workOrderNumber);
- fs.writeFileSync(path.join(out,'target-checks.json'),JSON.stringify({status:'PASS',disposableDatabase:true,physicalDevice:false,automaticQualityHold:true,rejectionReopens:true,rawReplacement:true,noDuplicateScrap:true,automaticCompletion:true,notifications:true,partialUninspectedShipping:true,remainingInspectionOnly:true,ruleSnapshot:true,historyList:true,completionDate:true,shots},null,2));console.log('Operator target PASS: compact queue, filters, automatic quality hold, rejected replacement, completion and notifications.');
+ // Explicit closure cancels only the outstanding inspection, preserving prior decisions.
+ async function pendingJob(finalEnabled){
+  const o=await post('/orders',{customerId:customer.id,items:[{partId:product.id,quantity:5}]});
+  const p=await post('/orders/'+o.id+'/production-orders',{quantity:5,orderItemId:o.items[0].id,operations:[{name:'CNC torna',kind:'internal'}]});
+  if(!finalEnabled)await admin.query(`UPDATE ${schema}.production_orders SET final_control_enabled=false WHERE id=$1`,[p.id]);
+  const plan=await post('/production-orders/'+p.id+'/state',{action:'plan',version:p.version,plannedDate:'2026-12-01'},undefined,200),j=plan.workOrders[0].id;
+  await admin.query(`INSERT INTO ${schema}.work_assignments(tenant_id,site_id,id,work_order_id,machine_id,user_id) VALUES($1,$2,$3,$4,$5,$6)`,[ta,sa,id(),j,machine.id,operator]);
+  const rec=await post('/inventory/receipts',{materialId:raw.id,locationId:parent.id,quantity:2,productionId:p.id,supplierRef:'Teslim',documentRef:'SKIP-'+id()});
+  await post('/inventory/lots/'+rec.lotId+'/inspect',{outcome:'approved',quantity:2});await post('/inventory/raw-issues',{productionId:p.id,lotId:rec.lotId,sourceLocationId:parent.id,quantity:2});await post('/production-orders/'+p.id+'/material-readiness',{readiness:'ready'},undefined,200);
+  const r='/orders/'+o.id+'/work-orders/'+j;await post(r+'/production/start',{},operatorToken,200);
+  const b=(await call('GET',base+r+'/production/balances',null,null,operatorToken)).json();
+  await post(r+'/production/complete',{skipQuality:true,reason:'Eksik hedef kapatılamaz'},operatorToken,409);
+  const e=await post(r+'/production/results',{lotId:b.lots[0].lotId,kind:'pending',quantity:5,separateQualityRequest:true},operatorToken);
+  if(!finalEnabled)await post(r+'/production/request-quality',{eventIds:[e.eventId]},operatorToken);
+  return {o,p,j,r,e};
+ }
+ const skipped=await pendingJob(true);
+ await post('/orders/'+skipped.o.id+'/final-controls/'+skipped.p.id+'/decisions',{quantity:1,outcome:'approved',evidence:'Önceki onay korunur'});
+ await page.evaluate(job=>RitimPremiumAPI.openAssigned(job),skipped.j);await ready();
+ const finish=page.getByRole('button',{name:'İş emrini bitir',exact:true});assert(await finish.isVisible());assert(await finish.isEnabled());
+ await finish.click();await page.locator('#op-quality-skip-confirm').waitFor();await snap('skip-confirm');await page.getByRole('button',{name:'Geri dön',exact:true}).click();
+ assert.equal((await call('GET',base+skipped.r+'/production/balances',null,null,operatorToken)).json().status,'paused');
+ await finish.click();await page.getByRole('button',{name:'Kaliteyi atla ve bitir',exact:true}).click();await page.waitForFunction(()=>document.querySelector('.op-target-notice')?.textContent.includes('atlanarak kapatıldı'));await ready();await snap('skip-completed');
+ const skippedState=(await call('GET',base+skipped.r+'/production/balances',null,null,operatorToken)).json();assert.equal(skippedState.status,'complete');assert.equal(skippedState.targetState.lifecycle,'completed_without_quality');assert.equal(skippedState.targetState.approved,1);assert.equal(skippedState.targetState.pending,4);
+ const cancelled=(await call('GET',base+'/quality/controls/final/'+skipped.p.id)).json();assert.equal(cancelled.control.state,'cancelled');assert.equal(cancelled.control.pending,0);assert.equal(cancelled.control.cancelledQuantity,4);assert.equal(cancelled.control.approved,1);assert.equal(cancelled.action.limit,0);
+ assert.equal((await post('/orders/'+skipped.o.id+'/final-controls/'+skipped.p.id+'/decisions',{quantity:1,outcome:'approved',evidence:'Eski ekran'},undefined,409)).error.code,'QUALITY_CONTROL_CANCELLED');
+ await post(skipped.r+'/production/request-quality',{eventIds:[skipped.e.eventId]},operatorToken,409);
+ assert.equal((await call('GET',base+'/orders/'+skipped.o.id+'/shipping/products')).json().readyQuantity,1,'Skipping inspection must not approve or release unchecked products');
+ const skipAudit=(await admin.query(`SELECT payload,actor_id FROM ${schema}.audit_events WHERE entity_id=$1 AND event_type='production.quality_skipped'`,[skipped.j])).rows;assert.equal(skipAudit.length,1);assert.equal(skipAudit[0].actor_id,operator);assert.equal(skipAudit[0].payload.quantity,4);
+ const managerContext=await h.browser.newContext();await managerContext.addCookies([{name:'pages_session',value:h.session,url:origin,httpOnly:true,sameSite:'Lax'}]);const qualityPage=await managerContext.newPage();
+ await qualityPage.goto(origin+'/?view=quality-control&controlSource=final&control='+skipped.p.id);
+ await qualityPage.waitForFunction(()=>document.getElementById('api-scope')||document.querySelector('.quality-control-detail'));
+ if(await qualityPage.locator('#api-scope').count()){const session=await(await managerContext.request.get(origin+'/api/v1/session')).json();await qualityPage.locator('#api-scope').selectOption(String(session.memberships.findIndex(m=>m.siteId===sa)));await qualityPage.getByRole('button',{name:'Devam',exact:true}).click()}
+ await qualityPage.locator('.quality-cancellation-notice').waitFor();assert.match(await qualityPage.locator('.quality-cancellation-notice').innerText(),/operatör tarafından kapatıldı/);assert.equal(await qualityPage.locator('.quality-decision-form').count(),0);
+ for(const width of [360,393,768,1440]){await qualityPage.setViewportSize({width,height:900});assert(await qualityPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));const file='target-cancelled-control-'+width+'.png';await qualityPage.screenshot({path:path.join(out,file),fullPage:true});shots.push(file)}await managerContext.close();
+  const regular=await pendingJob(false),closeKey=id();
+ await post(regular.r+'/production/complete',{},operatorToken,409);
+ await post(regular.r+'/production/complete',{skipQuality:true,reason:'Operatör kontrolü atlayarak kapattı'},operatorToken,200,closeKey);await post(regular.r+'/production/complete',{skipQuality:true,reason:'Operatör kontrolü atlayarak kapattı'},operatorToken,200,closeKey);
+ assert.equal((await post(regular.r+'/quality/decisions',{eventId:regular.e.eventId,lotId:(await call('GET',base+regular.r+'/production/balances',null,null,operatorToken)).json().lots[0].lotId,outcome:'approved',quantity:1,evidence:'İptal edilmiş görev'},undefined,409)).error.code,'QUALITY_CONTROL_CANCELLED');
+ const outputCancelled=(await call('GET',base+'/quality/controls/output/'+regular.e.eventId)).json();assert.equal(outputCancelled.control.cancelled,true);assert.equal(outputCancelled.control.pending,0);assert.equal(outputCancelled.control.cancelledQuantity,5);
+ assert.equal((await admin.query(`SELECT COUNT(*) n FROM ${schema}.audit_events WHERE entity_id=$1 AND event_type='production.quality_skipped'`,[regular.j])).rows[0].n,'1');
+ const open=(await call('GET',base+'/quality/controls?state=open&limit=100')).json();assert(!JSON.stringify(open).includes(skipped.p.id));assert(!JSON.stringify(open).includes(regular.e.eventId));const closed=(await call('GET',base+'/quality/controls?state=completed&limit=100')).json().items;assert(closed.some(x=>x.id===skipped.p.id&&x.state==='cancelled'));assert(closed.some(x=>x.id===regular.e.eventId&&x.state==='cancelled'));
+  fs.writeFileSync(path.join(out,'target-checks.json'),JSON.stringify({status:'PASS',disposableDatabase:true,physicalDevice:false,automaticQualityHold:true,rejectionReopens:true,rawReplacement:true,noDuplicateScrap:true,automaticCompletion:true,notifications:true,partialUninspectedShipping:true,remainingInspectionOnly:true,ruleSnapshot:true,historyList:true,completionDate:true,manualQualitySkip:true,cancelledControls:true,priorDecisionsPreserved:true,staleDecisionBlocked:true,idempotentClosure:true,shots},null,2));console.log('Operator target PASS: compact queue, filters, automatic quality hold, rejected replacement, completion and notifications.');
 };

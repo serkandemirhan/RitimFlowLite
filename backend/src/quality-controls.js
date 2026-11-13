@@ -55,31 +55,35 @@ const supplier=`SELECT r.id,'supplier' type,r.created_at recorded,r.quantity_pie
  JOIN operations op ON (op.tenant_id,op.site_id,op.id)=(j.tenant_id,j.site_id,j.operation_id)
  LEFT JOIN LATERAL(SELECT SUM(quantity_pieces) decided,SUM(quantity_pieces) FILTER(WHERE outcome='approved') approved,SUM(quantity_pieces) FILTER(WHERE outcome='rejected') rejected,MAX(created_at) last_decision FROM outsourcing_inspections WHERE tenant_id=r.tenant_id AND site_id=r.site_id AND return_id=r.id) i ON true WHERE r.tenant_id=$1 AND r.site_id=$2`;
 async function controls(c,s,q={}){
- const f=filters(q),sql=`WITH sources AS (${production} UNION ALL ${finalControls} UNION ALL ${incoming} UNION ALL ${returns} UNION ALL ${supplier}), candidates AS (
- SELECT *,GREATEST(0,quantity-decided) pending FROM sources WHERE quantity>0), filtered AS (
- SELECT * FROM candidates WHERE ($4='all' OR type=$4) AND (($5='open' AND pending>0) OR ($5='completed' AND pending=0 AND decided>0))
+ const f=filters(q),sql=`WITH sources AS (${sourceSql()}), candidates AS (
+ SELECT *,CASE WHEN payload->>'cancelled'='true' THEN 0 ELSE GREATEST(0,quantity-decided) END pending FROM sources WHERE quantity>0), filtered AS (
+ SELECT * FROM candidates WHERE ($4='all' OR type=$4) AND (($5='open' AND pending>0) OR ($5='completed' AND pending=0 AND (decided>0 OR payload->>'cancelled'='true')))
  AND ($6='' OR strpos(lower(concat_ws(' ',payload->>'description',payload->>'reference',payload->>'orderNumber',payload->>'customer',payload->>'supplier',payload->>'operation')),lower($6))>0))`;
  const args=[s.tenantId,s.siteId,null,f.type,f.state,f.query];
  const result=(await c.query(sql+`SELECT (SELECT count(*) FROM filtered) total,
  EXISTS(SELECT 1 FROM candidates WHERE id=$7) cursor_valid,
  COALESCE((SELECT jsonb_agg(p ORDER BY p.id) FROM (SELECT * FROM filtered WHERE ($7::uuid IS NULL OR id>$7) ORDER BY id LIMIT $8) p),'[]'::jsonb) page`,[...args,f.after,f.limit+1])).rows[0];
  if(f.after&&!result.cursor_valid)fail(400,'INVALID_INPUT','Sayfa konumu bu iş yerinde bulunamadı');
- const rows=result.page.slice(0,f.limit),items=rows.map(r=>({...r.payload,id:r.id,type:r.type,state:f.state,recordedAt:r.recorded,...Object.fromEntries(['quantity','decided','approved','rejected','rework','pending'].map(k=>[k,Number(r[k])]))}));
+ const rows=result.page.slice(0,f.limit),items=rows.map(r=>({...r.payload,id:r.id,type:r.type,state:r.payload.cancelled?'cancelled':f.state,recordedAt:r.recorded,...Object.fromEntries(['quantity','decided','approved','rejected','rework','pending'].map(k=>[k,Number(r[k])]))}));
  return {items,total:Number(result.total),type:f.type,state:f.state,query:f.query,nextAfter:result.page.length>f.limit?items.at(-1).id:null};
 }
-const sourceSql=()=>`${production} UNION ALL ${finalControls} UNION ALL ${incoming} UNION ALL ${returns} UNION ALL ${supplier}`;
-const item=r=>({...r.payload,id:r.id,type:r.type,state:Number(r.pending)>0?'open':'completed',recordedAt:r.recorded,...Object.fromEntries(['quantity','decided','approved','rejected','rework'].map(k=>[k,Number(r[k])])),pending:Number(r.pending)});
+const sourceSql=()=>`SELECT raw.id,raw.type,raw.recorded,raw.quantity,raw.decided,raw.approved,raw.rejected,raw.rework,
+ CASE WHEN skipped.id IS NULL THEN raw.payload ELSE raw.payload||jsonb_build_object('cancelled',true,'cancelReason',skipped.payload->>'reason','cancelMessage',skipped.payload->>'message','cancelledAt',skipped.occurred_at,'cancelledBy',ritim_audit_actor_name(skipped.tenant_id,skipped.site_id,skipped.id),'cancelledQuantity',CASE WHEN raw.payload->>'source'='final' THEN (skipped.payload->>'quantity')::bigint ELSE GREATEST(0,raw.quantity-raw.decided) END) END payload
+ FROM (${production} UNION ALL ${finalControls} UNION ALL ${incoming} UNION ALL ${returns} UNION ALL ${supplier}) raw
+ LEFT JOIN LATERAL(SELECT sk.* FROM audit_events sk WHERE sk.tenant_id=$1 AND sk.site_id=$2 AND sk.entity_type='work_order' AND sk.entity_id::text=raw.payload->>'workOrderId' AND sk.event_type='production.quality_skipped'
+ AND (raw.payload->>'source'='final' OR raw.payload->>'source'='output' AND sk.payload->'events' @> jsonb_build_array(jsonb_build_object('eventId',raw.id::text))) ORDER BY sk.occurred_at DESC,sk.id DESC LIMIT 1) skipped ON true`;
+const item=r=>({...r.payload,id:r.id,type:r.type,state:r.payload.cancelled?'cancelled':Number(r.pending)>0?'open':'completed',recordedAt:r.recorded,...Object.fromEntries(['quantity','decided','approved','rejected','rework'].map(k=>[k,Number(r[k])])),pending:Number(r.pending)});
 async function controlDetail(c,s,source,id,q={}){
  if(!['output','incoming','return','outsourcing','final'].includes(source)||Object.keys(q).some(k=>k!=='after'))fail(400,'INVALID_INPUT','Geçersiz kontrol kaydı');
  id=identifier(id);const after=q.after?identifier(q.after):null;
- const found=(await c.query(`WITH sources AS (${sourceSql()}) SELECT *,GREATEST(0,quantity-decided) pending FROM sources WHERE id=$4 AND quantity>0 AND payload->>'source'=$5`,[s.tenantId,s.siteId,null,id,source])).rows[0];
+ const found=(await c.query(`WITH sources AS (${sourceSql()}) SELECT *,CASE WHEN payload->>'cancelled'='true' THEN 0 ELSE GREATEST(0,quantity-decided) END pending FROM sources WHERE id=$4 AND quantity>0 AND payload->>'source'=$5`,[s.tenantId,s.siteId,null,id,source])).rows[0];
  if(!found)fail(404,'NOT_FOUND','Kontrol kaydı bulunamadı');
  const control=item(found),args=[s.tenantId,s.siteId,id];let decisions,action={limit:control.pending},documents=[],availableDocuments=[];
  // Actor names use existing scope-checked display functions, never a users grant.
  const auditActor=(alias,event)=>`(SELECT ritim_audit_actor_name(a.tenant_id,a.site_id,a.id) FROM audit_events a WHERE a.tenant_id=${alias}.tenant_id AND a.site_id=${alias}.site_id AND a.actor_id=${alias}.actor_id AND a.event_type='${event}' AND a.payload->>'id'=${alias}.id::text ORDER BY a.occurred_at,a.id LIMIT 1)`;
  if(source==='final'){
   decisions=`SELECT d.id,d.outcome,d.quantity_pieces quantity,d.evidence note,NULL::text reason,d.occurred_at created_at,ritim_quality_actor_name(d.tenant_id,d.site_id,d.id) actor_name,'[]'::jsonb documents FROM output_dispositions d JOIN final_control_tasks t ON (t.tenant_id,t.site_id,t.work_order_id)=(d.tenant_id,d.site_id,d.work_order_id) WHERE d.tenant_id=$1 AND d.site_id=$2 AND t.id=$3`;
-  availableDocuments=(await c.query("SELECT id,filename FROM work_documents WHERE tenant_id=$1 AND site_id=$2 AND work_order_id=$3 AND context='quality' ORDER BY created_at,id",[s.tenantId,s.siteId,control.workOrderId])).rows;const x=await require('./quality-disposition').source(c,s,control.orderId,control.workOrderId);if(x.rows.reduce((n,r)=>n+r.undisposed,0)!==control.pending)fail(409,'INTEGRITY_ERROR','Son kontrol miktarı doğrulanamadı.');
+  availableDocuments=(await c.query("SELECT id,filename FROM work_documents WHERE tenant_id=$1 AND site_id=$2 AND work_order_id=$3 AND context='quality' ORDER BY created_at,id",[s.tenantId,s.siteId,control.workOrderId])).rows;const x=await require('./quality-disposition').source(c,s,control.orderId,control.workOrderId);if(!control.cancelled&&x.rows.reduce((n,r)=>n+r.undisposed,0)!==control.pending)fail(409,'INTEGRITY_ERROR','Son kontrol miktarı doğrulanamadı.');
  }else if(source==='output'){
   if(control.type==='supplier'){const supplier=(await c.query("SELECT s.name FROM production_output_lots l JOIN production_supplier_events r ON (r.tenant_id,r.site_id,r.returned_lot_id)=(l.tenant_id,l.site_id,l.input_lot_id) AND r.kind='return' JOIN production_supplier_events d ON (d.tenant_id,d.site_id,d.id)=(r.tenant_id,r.site_id,r.dispatch_id) JOIN outsourcing_suppliers s ON (s.tenant_id,s.site_id,s.id)=(d.tenant_id,d.site_id,d.supplier_id) WHERE l.tenant_id=$1 AND l.site_id=$2 AND l.production_event_id=$3",args)).rows[0];if(supplier)control.supplier=supplier.name}
   decisions=`SELECT d.id,d.outcome,d.quantity_pieces quantity,d.evidence note,NULL::text reason,d.occurred_at created_at,ritim_quality_actor_name(d.tenant_id,d.site_id,d.id) actor_name,${require('./quality-documents').projection('d')} documents FROM output_dispositions d WHERE d.tenant_id=$1 AND d.site_id=$2 AND d.production_event_id=$3`;
