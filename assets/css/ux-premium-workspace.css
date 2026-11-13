@@ -1852,6 +1852,10 @@ button.workspace-filter-chip{cursor:pointer;min-height:32px}.workspace-filter-dr
 .operator-heading-actions .operator-queue-button{font-size:12px;white-space:nowrap;padding:8px}
 .operator-start-action{margin:8px 0 12px}
 .operator-start-blocker{margin:8px 0 0;color:#735322;font-size:13px;line-height:1.5}
+.operator-studio .operator-status>.operator-pause-trigger{margin-left:auto;min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:650;padding:8px 12px}
+.operator-status>.operator-pause-trigger svg{width:18px;height:18px}
+.operator-studio .operator-status[data-state=running]{padding:0 8px;margin:8px 0;min-height:44px}
+.operator-studio .operator-job-actions:not(:has(>.operator-pause-trigger)){grid-template-columns:1fr!important}
 .notification-actions{display:flex;gap:6px;flex-wrap:wrap}
 .notification-priority{background:#fff7e9;border:1px solid #eed1a2;border-radius:10px;padding:12px;flex-wrap:wrap}
 .api-shell[data-screen=operator]:has(.operator-focus-heading) .operator-new-work-banner[data-kind=priority]>div>span{display:block;overflow-wrap:anywhere}
