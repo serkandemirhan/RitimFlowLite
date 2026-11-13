@@ -49,6 +49,34 @@ test('managed users: username login, scoped creation, replay, suspension of acti
   assert.equal((await post({action:'activate',userId:worker.id,version:await version()})).statusCode,303);assert.equal((await login('worker.one',password)).headers.location,'/');
   // Shared identities must not be frozen globally by one workspace owner.
   await seed.query("INSERT INTO site_memberships(tenant_id,site_id,user_id,role) VALUES($1,$2,$3,'viewer')",[other,otherSite,worker.id]);assert.equal((await post({action:'suspend',userId:worker.id,version:await version()})).statusCode,403);
+  // Existing identity gets an alias; no identity-provider write or history replacement.
+  providerUsers.set('operator',{id:'operator',email:'existing.operator@example.test',password});
+  const usersBefore=(await seed.query('SELECT * FROM users WHERE id=$1',[operator])).rows;
+  const membershipsBefore=(await seed.query('SELECT * FROM site_memberships WHERE user_id=$1 ORDER BY site_id,role',[operator])).rows;
+  const historical=id();await seed.query("INSERT INTO audit_events(tenant_id,site_id,id,actor_id,event_type,entity_type,entity_id,payload) VALUES($1,$2,$3,$4,'fixture.history','user',$4,'{}')",[tenant,site,historical,operator]);
+  assert.equal((await login('existing.operator@example.test',password)).headers.location,'/');
+  const alias={action:'assign-username',userId:operator,username:'Legacy.Operator',version:await version(),key:id()};
+  assert.equal((await post(alias,'operator')).statusCode,403);
+  assert.equal((await post({...alias,userId:outsider})).statusCode,403);
+  assert.equal((await post({...alias,userId:manager})).statusCode,403);
+  assert.equal((await post({...alias,username:'bad name'})).statusCode,400);
+  assert.equal((await post({...alias,username:'worker.one'})).statusCode,409);
+  const callsBeforeAlias=calls.length;r=await post(alias);assert.equal(r.statusCode,303,r.body);assert.equal(calls.length,callsBeforeAlias,'Assigning an alias never changes identity credentials');
+  assert.equal((await post(alias)).statusCode,303,'Exact command replay succeeds without rebinding');
+  assert.equal((await read()).members.find(x=>x.id===operator).username,'legacy.operator');
+  assert.deepEqual((await seed.query('SELECT * FROM users WHERE id=$1',[operator])).rows,usersBefore);
+  assert.deepEqual((await seed.query('SELECT * FROM site_memberships WHERE user_id=$1 ORDER BY site_id,role',[operator])).rows,membershipsBefore);
+  assert.equal((await seed.query('SELECT actor_id FROM audit_events WHERE id=$1',[historical])).rows[0].actor_id,operator);
+  assert.equal((await post({...alias,key:id(),username:'other.alias',version:await version()})).statusCode,409,'Existing usernames cannot be overwritten');
+  r=await login('LEGACY.OPERATOR',password);assert.equal(r.headers.location,'/');const legacyCookies=r.headers['set-cookie'].map(x=>x.split(';')[0]).join('; ');
+  assert.equal((await login('legacy.operator','wrong-password')).headers.location,'/auth/login?failed=1');
+  assert.equal((await login('existing.operator@example.test',password)).headers.location,'/','Previous email login remains available');
+  assert.equal((await app.inject({url:'/api/v1/session',headers:{cookie:legacyCookies}})).statusCode,200);
+  assert.equal((await post({action:'suspend',userId:operator,version:await version()})).statusCode,303);
+  assert.equal((await login('legacy.operator',password)).headers.location,'/auth/login?failed=1');
+  assert.equal((await app.inject({url:'/api/v1/session',headers:{cookie:legacyCookies}})).statusCode,401);
+  assert.equal((await post({action:'activate',userId:operator,version:await version()})).statusCode,303);
+  assert.equal((await login('legacy.operator',password)).headers.location,'/');
   const audit=await seed.query('SELECT payload::text FROM audit_events');assert(!JSON.stringify(audit.rows).includes(password));const replay=await seed.query('SELECT response_body::text FROM idempotency_records');assert(!JSON.stringify(replay.rows).includes(password));
  }finally{if(app)await app.close();if(pool)await pool.end();if(seed)await seed.end();await admin.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE`);await admin.query(`DROP ROLE IF EXISTS ${role}`);await admin.end();}
 });

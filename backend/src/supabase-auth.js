@@ -44,9 +44,10 @@ function makeSupabaseBff({url,publishableKey,appOrigin,pool,verifier,recoveryEna
    let email=login.trim();
    if(!email.includes('@')){
     if(!/^[a-z0-9][a-z0-9._-]{2,39}$/i.test(email))return reply.code(303).redirect('/auth/login?failed=1');
-    const found=await pool.query('SELECT ritim_username_identity($1) AS subject',[email.toLowerCase()]);
-    if(!found.rows[0]?.subject)return reply.code(303).redirect('/auth/login?failed=1');
-    email=require('./workspace-users').email(found.rows[0].subject);
+    const found=await pool.query('SELECT ritim_username_login($1) AS account',[email.toLowerCase()]);
+    if(!found.rows[0]?.account?.subject)return reply.code(303).redirect('/auth/login?failed=1');
+    const account=found.rows[0].account;email=account.existingIdentity?await require('./workspace-users').existingEmail({url,secretKey,fetcher},account.subject):require('./workspace-users').email(account.subject);
+    if(!email)return reply.code(303).redirect('/auth/login?failed=1');
    }
    const r=await authRequest('/token?grant_type=password',{email,password});
    if(!r.ok){if(r.status>=500)throw new HttpError(503,'AUTH_UNAVAILABLE','Kimlik hizmeti kullanilamiyor.');return reply.code(303).redirect('/auth/login?failed=1')}

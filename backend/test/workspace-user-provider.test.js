@@ -1,6 +1,16 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
 const {provider,email,username}=require('../src/workspace-users');
+test('existing identity lookup is read-only and refuses mismatched, missing or unavailable identities',async()=>{
+ const {existingEmail}=require('../src/workspace-users');let calls=0;
+ const options={url:'https://identity.example',secretKey:'fixture-secret',fetcher:async(url,request)=>{calls++;assert.equal(request.method,'GET');assert.equal(request.body,undefined);assert.equal(url,'https://identity.example/auth/v1/admin/users/existing');return new Response(JSON.stringify({id:'existing',email:'old@example.test'}));}};
+ assert.equal(await existingEmail(options,'existing'),'old@example.test');assert.equal(calls,1);
+ assert.equal(await existingEmail({...options,fetcher:async()=>new Response(JSON.stringify({id:'other',email:'old@example.test'}))},'existing'),null);
+ assert.equal(await existingEmail({...options,fetcher:async()=>new Response('{}',{status:404})},'existing'),null);
+ await assert.rejects(existingEmail({...options,secretKey:null},'existing'),{statusCode:503});
+ await assert.rejects(existingEmail({...options,fetcher:async()=>{throw Error('private connection details')}},'existing'),{statusCode:503});
+ await assert.rejects(existingEmail({...options,fetcher:async()=>new Response('{}',{status:503})},'existing'),{statusCode:503});
+});
 const p={userId:'df304cdf-6bed-46c3-b56f-a9880010da82',tenantId:'tenant',name:'Operator'},url='https://example.supabase.co';
 test('managed provider creates confirmed password credentials without sending mail',async()=>{
  const calls=[],create=provider({url,secretKey:'test-secret',fetcher:async(u,o)=>{calls.push({u,...o});return new Response(JSON.stringify(o.method==='GET'?{}:{id:p.userId}),{status:o.method==='GET'?404:200})}});
