@@ -49,7 +49,7 @@ async function detail(c,s,requestId){
  const messages=(await c.query('SELECT id,side,internal,body,status,created_at "createdAt" FROM portal_messages WHERE tenant_id=$1 AND site_id=$2 AND request_id=$3 AND (NOT $4 OR NOT internal) ORDER BY created_at,id',[...args(s),r.id,!!s.external])).rows;
  const files=(await c.query(`SELECT f.id,f.message_id "messageId",f.filename,f.mime,f.category,octet_length(f.content) size FROM portal_files f JOIN portal_messages m ON (m.tenant_id,m.site_id,m.id)=(f.tenant_id,f.site_id,f.message_id) WHERE f.tenant_id=$1 AND f.site_id=$2 AND f.request_id=$3 AND f.revoked_at IS NULL AND (NOT $4 OR NOT m.internal) ORDER BY f.created_at,f.id`,[...args(s),r.id,!!s.external])).rows;
  const revisions=(await c.query('SELECT number,before_state "before",after_state "after",reason,created_at "createdAt" FROM portal_revisions WHERE tenant_id=$1 AND site_id=$2 AND request_id=$3 ORDER BY number',[...args(s),r.id])).rows;
- return {request:publicRequest(r),messages,files,revisions};
+ return {request:publicRequest(r),messages,files:s.external&&!s.permissions?.videos?files.filter(f=>!f.mime.startsWith('video/')):files,revisions};
 }
 async function message(c,s,r,b){
  if(b.internal!==undefined&&typeof b.internal!=='boolean')fail(400,'INVALID_INPUT','Not türü geçersiz.');
@@ -89,6 +89,7 @@ async function download(c,s,fileId){
  const f=(await c.query('SELECT * FROM portal_files WHERE tenant_id=$1 AND site_id=$2 AND id=$3 AND revoked_at IS NULL',[...args(s),identifier(fileId)])).rows[0];
  if(!f||s.external&&f.order_id!==s.orderId)fail(404,'NOT_FOUND','Dosya bulunamadı.');
  if(s.external){
+  if(f.mime.startsWith('video/')&&!s.permissions?.videos)fail(404,'NOT_FOUND','Dosya bulunamadı.');
   if(f.request_id){if(!s.permissions.requests)fail(404,'NOT_FOUND','Dosya bulunamadı.');await requestRow(c,s,f.request_id);const m=(await c.query('SELECT internal FROM portal_messages WHERE tenant_id=$1 AND site_id=$2 AND id=$3',[...args(s),f.message_id])).rows[0];if(!m||m.internal)fail(404,'NOT_FOUND','Dosya bulunamadı.');}
   else if(!canFile(s,f))fail(404,'NOT_FOUND','Dosya bulunamadı.');
  }

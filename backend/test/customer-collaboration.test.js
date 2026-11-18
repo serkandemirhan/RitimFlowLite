@@ -34,10 +34,13 @@ test('portal conversations, permissions, attachments and approved revisions are 
    for(let n=0;n<2;n++){r=await api('POST',external()+'/requests/'+requestId+'/files',{id:id(),messageId,filename:'drawing'+n+'.pdf',mime:'application/pdf',contentBase64:Buffer.from('%PDF-1.4 fixture '+n).toString('base64')},'customer');assert.equal(r.statusCode,200,r.body);}
    r=await api('GET',internal+'/requests');assert.equal(r.statusCode,200,r.body);assert.equal(r.json().requests[0].unread,true);
    r=await api('GET',external()+'/requests/'+requestId,undefined,'customer');assert.equal(r.json().files.length,2);assert.equal(r.json().request.version,3);
+   const clip=id();r=await api('POST',external()+'/requests/'+requestId+'/files',{id:clip,messageId,filename:'private-clip.mp4',mime:'video/mp4',contentBase64:Buffer.from('0000ftypisom').toString('base64')},'customer');assert.equal(r.statusCode,200,r.body);
+   assert.equal((await api('GET',external()+'/files/'+clip,undefined,'customer')).statusCode,404);
+   r=await api('GET',external()+'/requests/'+requestId,undefined,'customer');assert.equal(r.json().files.length,2);
    const duplicate=await api('POST',external()+'/requests',{id:requestId,messageId,title:'Duplicate',kind:'question',body:'Retry'},'customer');assert.equal(duplicate.statusCode,409);
   });
   await t.test('internal notes and their files never appear to customers',async()=>{
-   const mid=id();let r=await api('POST',internal+'/requests/'+requestId+'/messages',{id:mid,version:3,internal:true,body:'PRIVATE STAFF NOTE'});assert.equal(r.statusCode,200,r.body);
+   const mid=id();let r=await api('POST',internal+'/requests/'+requestId+'/messages',{id:mid,version:4,internal:true,body:'PRIVATE STAFF NOTE'});assert.equal(r.statusCode,200,r.body);
    const fid=id();r=await api('POST',internal+'/requests/'+requestId+'/files',{id:fid,messageId:mid,filename:'internal.pdf',mime:'application/pdf',contentBase64:Buffer.from('%PDF-1.4 private').toString('base64')});assert.equal(r.statusCode,200,r.body);
    r=await api('GET',external()+'/requests/'+requestId,undefined,'customer');assert(!r.body.includes('PRIVATE STAFF NOTE'));assert(!r.body.includes('internal.pdf'));assert.equal((await api('GET',external()+'/files/'+fid,undefined,'customer')).statusCode,404);
    assert.equal((await api('POST',external()+'/requests/'+requestId+'/messages',{id:id(),version:5,body:'invalid',internal:true},'customer')).statusCode,403);
@@ -45,11 +48,11 @@ test('portal conversations, permissions, attachments and approved revisions are 
    assert.equal((await api('GET',external()+'/requests/'+requestId,undefined,'other')).statusCode,404);
   });
   await t.test('status and public notes reflect on customer; approval does not apply',async()=>{
-   let r=await api('POST',internal+'/requests/'+requestId+'/messages',{id:id(),version:5,status:'approved',body:'Approved for next planning cycle'});assert.equal(r.statusCode,200,r.body);
+   let r=await api('POST',internal+'/requests/'+requestId+'/messages',{id:id(),version:6,status:'approved',body:'Approved for next planning cycle'});assert.equal(r.statusCode,200,r.body);
    r=await api('GET',external()+'/requests/'+requestId,undefined,'customer');assert.equal(r.json().request.status,'approved');assert(r.body.includes('Approved for next planning cycle'));
    assert.equal((await seed.query('SELECT ordered_qty FROM orders WHERE id=$1',[order])).rows[0].ordered_qty,'100');
    assert.equal((await api('POST',internal+'/requests/'+requestId+'/messages',{id:id(),version:5,body:'stale'})).statusCode,409);
-   r=await api('POST',internal+'/requests/'+requestId+'/apply',{id:id(),version:6,body:'Production impact reviewed',impactReviewed:true});assert.equal(r.statusCode,200,r.body);assert.equal(r.json().revision,1);
+   r=await api('POST',internal+'/requests/'+requestId+'/apply',{id:id(),version:7,body:'Production impact reviewed',impactReviewed:true});assert.equal(r.statusCode,200,r.body);assert.equal(r.json().revision,1);
    r=await api('GET',external()+'/requests/'+requestId,undefined,'customer');assert.equal(r.json().request.status,'applied');assert.equal(r.json().revisions.length,1);
    assert.equal((await seed.query('SELECT ordered_qty FROM orders WHERE id=$1',[order])).rows[0].ordered_qty,'120');
    assert.equal((await api('POST',internal+'/requests/'+requestId+'/apply',{id:id(),version:6,body:'Duplicate',impactReviewed:true})).statusCode,409);
