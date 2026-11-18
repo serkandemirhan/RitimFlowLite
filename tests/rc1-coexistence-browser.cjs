@@ -3,13 +3,14 @@ const { chromium }=require('playwright');
 const { execFileSync,spawnSync }=require('node:child_process');
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),http=require('node:http'),assert=require('node:assert/strict');
 const {completed}=require('./p0-fixtures.cjs');
+const {trackPage}=require('./browser-transactions.cjs');
 const root=path.resolve(process.env.RITIM_APP_ROOT||path.join(__dirname,'..'));
 const legacyCommit='a28d5621f175f2e3f5f101396807d9eba60c4ff7';
 const legacyKey='ritimLiteAnonymousDemoV1',demoKey='ritimFlowLite:fictional-demo:v1';
 (async()=>{
  const temp=fs.mkdtempSync(path.join(os.tmpdir(),'ritim-old-artifact-'));
  const archive=execFileSync('git',['archive',legacyCommit],{cwd:path.resolve(__dirname,".."),maxBuffer:50*1024*1024});
- const unpack=spawnSync('tar',['-x','-C',temp],{input:archive}); if(unpack.status!==0)throw Error('Unable to extract legacy artifact');
+ const unpack=spawnSync('tar',['-x','-f','-','-C',temp],{input:archive}); if(unpack.status!==0)throw Error('Unable to extract legacy artifact: '+(unpack.error?.message||unpack.stderr?.toString()||unpack.status));
  const server=http.createServer((req,res)=>{
   const u=new URL(req.url,'http://localhost'); const old=u.pathname.startsWith('/old/');
   let rel=old?u.pathname.slice(5):u.pathname.slice(1);if(!rel)rel='index.html';
@@ -23,6 +24,7 @@ const legacyKey='ritimLiteAnonymousDemoV1',demoKey='ritimFlowLite:fictional-demo
  const context=await browser.newContext();let errors=[];
  try {
   const old=await context.newPage(),demo=await context.newPage();
+  await trackPage(demo);
   for(const p of [old,demo])p.on('pageerror',e=>errors.push(e.message));
   const base=`http://127.0.0.1:${server.address().port}`;
   await old.goto(base+'/old/');await old.waitForSelector('#page');
@@ -37,6 +39,9 @@ const legacyKey='ritimLiteAnonymousDemoV1',demoKey='ritimFlowLite:fictional-demo
   await demo.evaluate(()=>{openWizard();Object.assign(wizard,{id:'SIP-P0',customer:'Kurgusal Test Firma',part:'Test Parçası',partNo:'TEST',qty:20,due:'2026-12-01',route:['İmalat'],step:3});renderModal();});
   await demo.getByRole('button',{name:'Siparişi Kaydet',exact:true}).click();
   await demo.waitForFunction(()=>state.orders.some(o=>o.id==='SIP-P0'));
+  await demo.evaluate(()=>openOrder('SIP-P0'));
+  await demo.locator('#demo-route-name').selectOption('İmalat');
+  await demo.getByRole('button',{name:'Rotayı Kaydet',exact:true}).click();
   const planned=await demo.evaluate(()=>RitimCommands.submit('planning.create',{order:'SIP-P0',id:'WO-P0',operation:0,qty:20,machine:'',machines:MACHINES.map(m=>m.id)}));
   assert.equal(planned.ok,true,JSON.stringify(planned));
   const fixture=completed(); fixture.jobs[0].machine='';
