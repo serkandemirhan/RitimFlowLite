@@ -56,6 +56,9 @@ async function isolated(seed, width, fn, suffix = "") {
       kind: "requestfailed",
       url: r.url(),
       message: r.failure()?.errorText,
+      // Native PDF viewers can cancel an extra range request when a verified
+      // document is explicitly closed. Failures before successful loading count.
+      expectedNavigationCancellation: p.__closedVerifiedPdf === r.url() && r.failure()?.errorText === 'net::ERR_ABORTED',
     }),
   );
   p.on("response", (r) => {
@@ -268,6 +271,10 @@ async function picture(p, name) {
             .evaluate((e) => e.style.transform),
           "scale(1.25)",
         );
+        const downloaded=await p.request.get(response.url());
+        assert.equal(downloaded.ok(),true);
+        assert((await downloaded.body()).equals(fs.readFileSync(path.join(root,'teknikResim.pdf'))),'drawing bytes must match the fixture');
+        p.__closedVerifiedPdf=response.url();
         await p.getByRole("button", { name: "Kapat", exact: true }).click();
         assert.equal(await p.evaluate(() => chosenJob), s.jobs[0].id);
       });
@@ -456,7 +463,7 @@ async function picture(p, name) {
   const applicationErrors = telemetry.filter(
     (e) =>
       e.kind === "pageerror" ||
-      (e.kind === "requestfailed" &&
+      (e.kind === "requestfailed" && !e.expectedNavigationCancellation &&
         !e.url.startsWith("chrome-extension://")) ||
       (e.kind === "http" && !e.url.endsWith("/favicon.ico")),
   );
