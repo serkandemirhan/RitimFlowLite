@@ -1,5 +1,20 @@
 # Customer portal v1 (review candidate, not deployed)
 
+
+## Integration review (2026-11-18)
+
+- Renamed the unshipped portal migration to **076**: versions 070?074 are already used by the deployed platform and 075 is reserved for the local hybrid pilot. No previously applied migration was edited.
+- Fixed accessible names on sharing form controls; the original exact-label browser test failed before this correction.
+- On the GitHub 069 baseline plus 076: **284 backend tests passed**, zero failures/skips; **292 domain tests passed**; pinned Playwright Chromium desktop/mobile test passed; cloud build passed. Native PostgreSQL 18.6 readiness and real backup/restore passed.
+- Browser coverage uses mocked API responses and simulated EventSource; PostgreSQL/API tests separately exercise live streams and revocation. It does not prove real identity-provider onboarding, Vercel proxy buffering or physical-device operation.
+- Screenshots overwrite the fixed artifacts/customer-portal directory (customer and sharing, mobile and desktop). Backend evidence stays in artifacts/native-postgres.
+
+### Release blocked by baseline drift
+
+A read-only check of the configured cloud database found versions 001?074, while origin/main contains 001?069. Main pushes trigger Vercel deployments. Do not merge this branch into main or run its standalone migrator against that database: the current migrator deliberately rejects unknown versions 070?074 and readiness requires exact migration parity. First reconcile the deployed platform implementation and its migration history with main, then rebase this portal change, retest, back up, migrate and reprovision the restricted runtime before routing traffic. Do not delete migration history or bypass readiness to make the deployment pass. The local 075 hybrid pilot is not implicitly approved for production by this portal change.
+
+The current development workspace also has the portal integrated alongside platform/hybrid changes; those unrelated changes are intentionally not included in this feature branch. No live grants, accounts or production data were changed during review.
+
 ## Scope
 
 The customer portal is a separate, read-only view of explicitly shared orders. It does not grant the internal `viewer` role or any site membership. The existing internal production application remains unchanged.
@@ -26,12 +41,12 @@ The selected order uses server-sent events. The server checks current data and a
 ## Migration and release
 
 1. Back up the target database according to existing procedures.
-2. Apply additive migration `070_customer_portal.sql` with the migration owner and reprovision the restricted runtime using the existing provisioning command. Do not edit checksums of older migrations.
+2. Apply additive migration `076_customer_portal.sql` with the migration owner and reprovision the restricted runtime using the existing provisioning command. Do not edit checksums of older migrations.
 3. Verify `/health/ready`, tenant-admin sharing, a customer with no internal memberships, and cross-customer rejection in staging.
 4. Run database and browser gates below and review mobile/desktop output.
 5. Obtain release approval separately. This PR does not merge or deploy itself.
 
-Do not remove migration 070 after it has been recorded by the migrator. Feature rollback should remove UI access and revoke grants while retaining migration history; coordinate an explicit additive database rollback if needed.
+Do not remove migration 076 after it has been recorded by the migrator. Feature rollback should remove UI access and revoke grants while retaining migration history; coordinate an explicit additive database rollback if needed.
 
 ## Verification commands
 
