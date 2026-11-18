@@ -386,31 +386,18 @@ async function picture(p, name) {
       }),
   );
   await run(
-    "B07: UX05 inspection, rework and handover preserve quantities",
+    "B07: UX05 inspection and handover preserve quantities without operator rework",
     () =>
       isolated(fresh(), 390, async (p) => {
         await receive(p, 20);
         await result(p, "pending", 20);
         for (const [id, n] of [
-          ["ux05-ig", 12],
-          ["ux05-is", 3],
-          ["ux05-ir", 5],
+          ["ux05-ig", 16],
+          ["ux05-is", 4],
         ])
           await p.locator("#" + id).fill(String(n));
         await p
           .getByRole("button", { name: /^Kontrol Sonucunu Onayla/ })
-          .click();
-        // P1 rework now requires an explicit execution record before reinspection.
-        await p.evaluate(()=>go('quality'));
-        await p.getByRole('button',{name:'Yeniden İşlemeyi Kaydet',exact:true}).click();
-        await p.getByRole('button',{name:'Kalite Sonucunu Gir',exact:true}).click();
-        await p.locator("#ux05-rg").fill("4");
-        await p.locator("#ux05-rs").fill("1");
-        await p
-          .getByRole("button", {
-            name: "Rework Kontrolünü Onayla",
-            exact: true,
-          })
           .click();
         assert.deepEqual(
           await p.evaluate(() => [

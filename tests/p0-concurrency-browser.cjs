@@ -380,13 +380,18 @@ async function race(a, b, kind, argsA, argsB) {
         assert.equal((await ship(b, 5, "SHIP", "busy")).code, "LOCK_BUSY");
         assert.equal(await b.evaluate(() => localStorage.getItem(KEY)), before);
         await a.close();
-        // Closing a renderer and releasing its browser-process lock are asynchronous.
-        // Observe release before retrying; never bypass the actual exclusive lock.
-        await b.waitForFunction(async () => {
-          const locks = await navigator.locks.query();
-          return !locks.held.some(lock => lock.name === RitimTransactions.lockName(KEY));
-        }, null, { timeout: 7000 });
-        assert.equal((await ship(b, 5, "SHIP", "busy")).ok, true);
+        // Renderer shutdown and browser-process lock release are asynchronous;
+        // query() can report no holder before ifAvailable grants the next lock.
+        // Retry only LOCK_BUSY with the same id, proving each refusal is read-only.
+        const deadline = Date.now() + 7000;
+        let retried;
+        do {
+          retried = await ship(b, 5, "SHIP", "busy");
+          if (retried.code !== "LOCK_BUSY") break;
+          assert.equal(await b.evaluate(() => localStorage.getItem(KEY)), before);
+          await b.waitForTimeout(50);
+        } while (Date.now() < deadline);
+        assert.equal(retried.ok, true, JSON.stringify(retried));
         const s = await snapshot(b);
         assert.equal(s.transactionState.revision, 1);
       }),

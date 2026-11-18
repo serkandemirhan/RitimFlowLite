@@ -41,7 +41,7 @@ function inspect(root) {
     for (const m of html.matchAll(/(?:src|href)="([^"#]+)"/g)) {
       const ref = m[1].split('?')[0];
       if (/^(data:|https?:|blob:)/.test(ref)) continue;
-      assert(config.assets.includes(ref), `Undeclared local dependency: ${ref}`);
+      assert(config.assets.includes(ref.replace(/^\//,'')), `Undeclared local dependency: ${ref}`);
     }
   }
   return {inputs, scripts};
@@ -56,7 +56,7 @@ function plan(root) {
     if (item.source.endsWith('.html')) {
       let html = bytes.toString('utf8');
       html = html.replace(/<(script|link)\b[^>]*>/g, tag => tag.replace(/\b(src|href)="([^"?]+)(?:\?[^"]*)?"/, (all,attr,ref) => {
-        const dep = map.get(ref);
+        const dep = map.get(ref.replace(/^\//,''));
         if (!dep) return all;
         const sri = Buffer.from(dep.sha256,'hex').toString('base64');
         return `${attr}="${dep.target}" integrity="sha256-${sri}" crossorigin="anonymous"`;

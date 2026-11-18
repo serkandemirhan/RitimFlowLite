@@ -38,14 +38,14 @@ test('managed users: username login, scoped creation, replay, suspension of acti
   assert.equal((await post({...body,version:await version(),key:id()})).statusCode,409);assert.equal(providerUsers.size,1);
   const login=(name,pw)=>app.inject({method:'POST',url:'/auth/login',headers:{origin},payload:{email:name,password:pw}});
   r=await login('WORKER.ONE',password);assert.equal(r.statusCode,303);assert.equal(r.headers.location,'/');const workerCookies=r.headers['set-cookie'].map(x=>x.split(';')[0]).join('; ');
-  assert.equal((await login('worker.one','wrong-password')).headers.location,'/auth/login?failed=1');assert.equal((await login('missing.user',password)).headers.location,'/auth/login?failed=1');
+  assert.equal((await login('worker.one','wrong-password')).statusCode,401);assert.equal((await login('missing.user',password)).statusCode,401);
   assert.equal((await app.inject({url:'/api/v1/session',headers:{cookie:workerCookies}})).statusCode,200);
   assert.equal((await post({action:'suspend',userId:manager,version:await version()})).statusCode,403,'Manager cannot freeze own account');
   assert.equal((await post({action:'suspend',userId:outsider,version:await version()})).statusCode,403,'Cannot freeze foreign account');
   r=await post({action:'suspend',userId:worker.id,version:await version()});assert.equal(r.statusCode,303,r.body);
   assert.equal((await app.inject({url:'/api/v1/session',headers:{cookie:workerCookies}})).statusCode,401,'Previously issued session is immediately refused');
   assert.equal((await app.inject({url:`/api/v1/sites/${tenant}/${site}/operator/work-orders`,headers:{cookie:workerCookies}})).statusCode,401);
-  assert.equal((await login('worker.one',password)).headers.location,'/auth/login?failed=1');assert((await read()).members.find(x=>x.id===worker.id).disabled);
+  assert.equal((await login('worker.one',password)).statusCode,401);assert((await read()).members.find(x=>x.id===worker.id).disabled);
   assert.equal((await post({action:'activate',userId:worker.id,version:await version()})).statusCode,303);assert.equal((await login('worker.one',password)).headers.location,'/');
   // Shared identities must not be frozen globally by one workspace owner.
   await seed.query("INSERT INTO site_memberships(tenant_id,site_id,user_id,role) VALUES($1,$2,$3,'viewer')",[other,otherSite,worker.id]);assert.equal((await post({action:'suspend',userId:worker.id,version:await version()})).statusCode,403);
@@ -69,11 +69,11 @@ test('managed users: username login, scoped creation, replay, suspension of acti
   assert.equal((await seed.query('SELECT actor_id FROM audit_events WHERE id=$1',[historical])).rows[0].actor_id,operator);
   assert.equal((await post({...alias,key:id(),username:'other.alias',version:await version()})).statusCode,409,'Existing usernames cannot be overwritten');
   r=await login('LEGACY.OPERATOR',password);assert.equal(r.headers.location,'/');const legacyCookies=r.headers['set-cookie'].map(x=>x.split(';')[0]).join('; ');
-  assert.equal((await login('legacy.operator','wrong-password')).headers.location,'/auth/login?failed=1');
+  assert.equal((await login('legacy.operator','wrong-password')).statusCode,401);
   assert.equal((await login('existing.operator@example.test',password)).headers.location,'/','Previous email login remains available');
   assert.equal((await app.inject({url:'/api/v1/session',headers:{cookie:legacyCookies}})).statusCode,200);
   assert.equal((await post({action:'suspend',userId:operator,version:await version()})).statusCode,303);
-  assert.equal((await login('legacy.operator',password)).headers.location,'/auth/login?failed=1');
+  assert.equal((await login('legacy.operator',password)).statusCode,401);
   assert.equal((await app.inject({url:'/api/v1/session',headers:{cookie:legacyCookies}})).statusCode,401);
   assert.equal((await post({action:'activate',userId:operator,version:await version()})).statusCode,303);
   assert.equal((await login('legacy.operator',password)).headers.location,'/');

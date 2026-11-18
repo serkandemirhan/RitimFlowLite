@@ -56,6 +56,9 @@ async function isolated(seed, width, fn, suffix = "") {
       kind: "requestfailed",
       url: r.url(),
       message: r.failure()?.errorText,
+      // Native PDF viewers can cancel an extra range request when a verified
+      // document is explicitly closed. Failures before successful loading count.
+      expectedNavigationCancellation: p.__closedVerifiedPdf === r.url() && r.failure()?.errorText === 'net::ERR_ABORTED',
     }),
   );
   p.on("response", (r) => {
@@ -158,6 +161,8 @@ async function picture(p, name) {
   base = `http://127.0.0.1:${server.address().port}/`;
   browser = await chromium.launch({
     headless: true,
+    // Use the bundled full Chromium PDF viewer, not headless-shell's download path.
+    channel: 'chromium',
     executablePath:
       process.env.AUDIT_CHROME || undefined,
   });
@@ -266,6 +271,10 @@ async function picture(p, name) {
             .evaluate((e) => e.style.transform),
           "scale(1.25)",
         );
+        const downloaded=await p.request.get(response.url());
+        assert.equal(downloaded.ok(),true);
+        assert((await downloaded.body()).equals(fs.readFileSync(path.join(root,'teknikResim.pdf'))),'drawing bytes must match the fixture');
+        p.__closedVerifiedPdf=response.url();
         await p.getByRole("button", { name: "Kapat", exact: true }).click();
         assert.equal(await p.evaluate(() => chosenJob), s.jobs[0].id);
       });
@@ -428,10 +437,10 @@ async function picture(p, name) {
           .getByRole("button", { name: "Yeniden İşlemeyi Kaydet", exact: true })
           .click();
         await p
-          .getByRole("button", { name: "Kalite Sonucunu Gir", exact: true })
+          .locator("summary").filter({hasText:"Kalite Sonucunu Gir"})
           .click();
-        await p.locator("#ux05-rg").fill("4");
-        await p.locator("#ux05-rs").fill("1");
+        await p.locator("[id^=qc-good-]").fill("4");
+        await p.locator("[id^=qc-scrap-]").fill("1");
         await p
           .getByRole("button", {
             name: "Rework Kontrolünü Onayla",
@@ -454,7 +463,7 @@ async function picture(p, name) {
   const applicationErrors = telemetry.filter(
     (e) =>
       e.kind === "pageerror" ||
-      (e.kind === "requestfailed" &&
+      (e.kind === "requestfailed" && !e.expectedNavigationCancellation &&
         !e.url.startsWith("chrome-extension://")) ||
       (e.kind === "http" && !e.url.endsWith("/favicon.ico")),
   );
