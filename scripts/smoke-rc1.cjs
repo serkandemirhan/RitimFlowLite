@@ -32,7 +32,8 @@ const {build,sha} = require('./build-rc1.cjs');
     assert(await page.evaluate(()=>['RitimPersistence','RitimTransactions','RitimIntegrity','RitimQuantities'].every(k=>!!window[k])));
     assert.equal(await page.evaluate(()=>localStorage.getItem('ritimLiteAnonymousDemoV1')),null);
     const loaded=await page.locator('script[src],link[rel=stylesheet]').evaluateAll(nodes=>nodes.map(n=>new URL(n.src||n.href).pathname));
-    assert.deepEqual(loaded.sort(),built.manifest.assets.filter(x=>/\.(js|css)$/.test(x.target) && x.source!=='assets/js/legacy-archive.js').map(x=>'/'+x.target).sort());
+    const portalSources=new Set(['assets/js/customer-portal.js','assets/js/customer-collaboration.js','assets/css/customer-portal.css','assets/css/customer-collaboration.css']);
+    assert.deepEqual(loaded.sort(),built.manifest.assets.filter(x=>/\.(js|css)$/.test(x.target) && x.source!=='assets/js/legacy-archive.js' && !portalSources.has(x.source)).map(x=>'/'+x.target).sort());
     for(const item of built.manifest.assets) {
       const response=await context.request.get(base+'/'+item.target);
       assert.equal(response.status(),200);
@@ -43,6 +44,14 @@ const {build,sha} = require('./build-rc1.cjs');
     assert(await page.evaluate(()=>['ship','openShipment','saveEdit','createJob','resetDemo'].every(k=>typeof window[k]==='undefined')));
     assert.equal(await page.evaluate(()=>localStorage.getItem('ritimFlowLiteDemo')),'original raw archive');
     assert.equal(await page.evaluate(()=>localStorage.getItem('ritimLiteAnonymousDemoV1')),null);
+    // The standalone portal shells load their own assets, not the production console bundle.
+    await page.route('**/api/v1/**',route=>route.fulfill({json:{identity:{id:'static-smoke'},memberships:[],orders:[]}}));
+    for(const entry of ['customer-portal.html','customer-sharing.html']){
+      await page.goto(base+'/'+entry);
+      await page.waitForFunction(()=>!!window.RitimPortalCollaboration);
+      const portalLoaded=await page.locator('script[src],link[rel=stylesheet]').evaluateAll(nodes=>nodes.map(n=>new URL(n.src||n.href).pathname));
+      assert.deepEqual(portalLoaded.sort(),built.manifest.assets.filter(x=>portalSources.has(x.source)).map(x=>'/'+x.target).sort());
+    }
     assert.deepEqual(errors,[]);
     assert(requests.filter(r=>r.status===404).every(r=>r.path==='/favicon.ico'));
     assert(consoles.every(c=>c.location.url===base+'/favicon.ico' && c.message.includes('404')),'Unexpected console error');
