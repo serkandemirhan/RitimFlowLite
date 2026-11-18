@@ -38,6 +38,11 @@ async function document(c,s,id){
 }
 async function manage(c,action,p){try{return (await c.query('SELECT ritim_portal_manage($1,$2::jsonb) result',[action,JSON.stringify(p)])).rows[0].result;}catch(e){if(e.code==='42501')fail(403,'FORBIDDEN','Firma yöneticisi yetkisi gerekli.');if(e.code==='P0002')fail(404,'NOT_FOUND','Hesap veya sipariş bulunamadı.');throw e;}}
 function routes(api){
+ api.addHook('preHandler',async req=>{
+  if(!req.routeOptions.url.includes('/customer-portal/'))return;
+  const r=await req.server.pgPool.query("SELECT EXISTS(SELECT 1 FROM ritim_schema_versions() WHERE version='076') AND to_regprocedure('ritim_portal_access(uuid,uuid)') IS NOT NULL available");
+  if(!r.rows[0]?.available)fail(503,'FEATURE_NOT_ENABLED','Müşteri paneli henüz etkinleştirilmedi. Firma yöneticinizle iletişime geçin.');
+ });
  const admin='/sites/:tenantId/:siteId/customer-portal/shares',base='/customer-portal/orders';
  api.post(admin+'/lookup-user',req=>scoped(req,async c=>{const username=req.body?.username;if(typeof username!=='string'||! /^[a-z0-9][a-z0-9._-]{2,39}$/i.test(username.trim()))fail(400,'INVALID_INPUT','Geçerli kullanıcı adı gerekli.');return {user:await manage(c,'lookup',{username:username.trim().toLowerCase()})};},'members.manage'));
  api.get(admin,req=>scoped(req,async(c,s)=>({shares:await manage(c,'list',{}),customers:(await c.query('SELECT id,name FROM master_customers WHERE tenant_id=$1 AND site_id=$2 AND deleted_at IS NULL ORDER BY name',[s.tenantId,s.siteId])).rows,orders:(await c.query('SELECT id,customer_id "customerId",order_number "orderNumber" FROM orders WHERE tenant_id=$1 AND site_id=$2 AND customer_id IS NOT NULL ORDER BY created_at DESC',[s.tenantId,s.siteId])).rows}),'members.manage'));

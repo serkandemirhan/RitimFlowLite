@@ -390,6 +390,10 @@ async function picture(p, name) {
           .click();
         await p.waitForFunction(() => state.orders.some(o => o.id === "NEW-ORDER"));
         assert.equal(await p.evaluate(() => state.jobs.filter(j => j.order === "NEW-ORDER").length), 0);
+        // New orders defer routing until the explicit order-detail action.
+        await p.evaluate(() => openOrder('NEW-ORDER'));
+        await p.locator('#demo-route-name').selectOption('İmalat');
+        await p.getByRole('button',{name:'Rotayı Kaydet',exact:true}).click();
         await p.evaluate(() => newJobFor("NEW-ORDER"));
         await plan(p, "NEW-FIRST", 100, 0, "CNC-02");
         assert.equal(

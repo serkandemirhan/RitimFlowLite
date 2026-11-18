@@ -236,10 +236,10 @@ async function picture(p, name) {
     [
       "inspection",
       inspecting,
-      { "ux05-ig": 10, "ux05-is": 5, "ux05-ir": 5 },
+      { "ux05-ig": 15, "ux05-is": 5 },
       "inspect",
     ],
-    ["rework", reworking, { "ux05-rg": 4, "ux05-rs": 1 }, "rework"],
+    ["rework", reworking, {}, "rework"],
     ["pause", producing, {}, "pause"],
     ["close", completed(), {}, "close"],
   ])
@@ -247,6 +247,14 @@ async function picture(p, name) {
       const seedCopy = structuredClone(seed);
       if (method === "close") seedCopy.jobs[0].state = "running";
       return isolated(seedCopy, 390, async (p) => {
+        if(method==='rework'){
+          await p.evaluate(()=>go('quality'));
+          await p.locator('summary').filter({hasText:'Kalite Sonucunu Gir'}).click();
+          await p.locator('[id^=qc-good-]').fill('4');
+          await p.locator('[id^=qc-scrap-]').fill('1');
+          await blocked(p,()=>p.evaluate(()=>RitimQC.rework(state.reworkTasks[0].id)));
+          return;
+        }
         await operator(p, fields);
         await blocked(p, () =>
           p.evaluate((method) => RitimUX05[method]("WO-P0"), method),

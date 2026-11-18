@@ -158,6 +158,8 @@ async function picture(p, name) {
   base = `http://127.0.0.1:${server.address().port}/`;
   browser = await chromium.launch({
     headless: true,
+    // Use the bundled full Chromium PDF viewer, not headless-shell's download path.
+    channel: 'chromium',
     executablePath:
       process.env.AUDIT_CHROME || undefined,
   });
@@ -428,10 +430,10 @@ async function picture(p, name) {
           .getByRole("button", { name: "Yeniden İşlemeyi Kaydet", exact: true })
           .click();
         await p
-          .getByRole("button", { name: "Kalite Sonucunu Gir", exact: true })
+          .locator("summary").filter({hasText:"Kalite Sonucunu Gir"})
           .click();
-        await p.locator("#ux05-rg").fill("4");
-        await p.locator("#ux05-rs").fill("1");
+        await p.locator("[id^=qc-good-]").fill("4");
+        await p.locator("[id^=qc-scrap-]").fill("1");
         await p
           .getByRole("button", {
             name: "Rework Kontrolünü Onayla",

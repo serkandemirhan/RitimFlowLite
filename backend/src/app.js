@@ -21,7 +21,7 @@ function buildApp({pool,verifier=null,logger=false,isolatedDevelopment=false,wor
   if(bff)bff.routes(app);else app.get('/auth/config',async()=>({enabled:false,manualTokenAllowed:isolatedDevelopment}));
   app.get('/health/live',async()=>({status:'ok'}));
   app.get('/health/ready',async(request,reply)=>{
-    try {await checkReadiness(pool,{isolatedDevelopment:workflowEnabled});return {status:'ok'};}
+    try {const features=await checkReadiness(pool,{isolatedDevelopment:workflowEnabled});return {status:'ok',features};}
     catch (_) {return reply.code(503).send({error:{code:'DATABASE_UNAVAILABLE',message:'Database unavailable',requestId:request.id}});}
   });
   app.register(async function(api){
