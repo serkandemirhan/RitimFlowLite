@@ -16,7 +16,7 @@ test('login retains customer destination on success/failure, rejects open redire
   const request=next=>app.inject({method:'POST',url:'/auth/login',headers:{origin:'https://app.example'},payload:{email:'customer@example.test',password:'test-password',next}});
   let r=await request('/customer-portal.html');assert.equal(r.statusCode,303);assert.equal(r.headers.location,'/customer-portal.html');
   r=await request('https://evil.example');assert.equal(r.headers.location,'/');
-  success=false;r=await request('/customer-sharing.html');assert.equal(r.headers.location,'/auth/login?failed=1&next=%2Fcustomer-sharing.html');
+  success=false;r=await request('/customer-sharing.html');assert.equal(r.statusCode,401);assert.ok(r.body.includes('name="next" value="/customer-sharing.html"'));
   const page=await app.inject('/auth/login?next=%2Fcustomer-portal.html');assert.equal(page.statusCode,200);assert.ok(page.body.includes('name="next" value="/customer-portal.html"'));
  }finally{await app.close()}
 });

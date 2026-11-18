@@ -9,11 +9,22 @@
 - Browser coverage uses mocked API responses and simulated EventSource; PostgreSQL/API tests separately exercise live streams and revocation. It does not prove real identity-provider onboarding, Vercel proxy buffering or physical-device operation.
 - Screenshots overwrite the fixed artifacts/customer-portal directory (customer and sharing, mobile and desktop). Backend evidence stays in artifacts/native-postgres.
 
-### Release blocked by baseline drift
+### Platform reconciliation and remaining release step
 
-A read-only check of the configured cloud database found versions 001?074, while origin/main contains 001?069. Main pushes trigger Vercel deployments. Do not merge this branch into main or run its standalone migrator against that database: the current migrator deliberately rejects unknown versions 070?074 and readiness requires exact migration parity. First reconcile the deployed platform implementation and its migration history with main, then rebase this portal change, retest, back up, migrate and reprovision the restricted runtime before routing traffic. Do not delete migration history or bypass readiness to make the deployment pass. The local 075 hybrid pilot is not implicitly approved for production by this portal change.
+The feature branch now includes the deployed platform migrations 070?074, their runtime grants, platform management pages, workspace-aware login and /platform routing. A read-only check confirmed that all 74 deployed migration checksums match these files. The unpublished hybrid pilot 075 is deliberately absent from this release.
 
-The current development workspace also has the portal integrated alongside platform/hybrid changes; those unrelated changes are intentionally not included in this feature branch. No live grants, accounts or production data were changed during review.
+The combined branch passes **295 backend tests** on disposable PostgreSQL, including a real 074-to-076 upgrade test, exact history preservation, repeat execution, restricted grants, rejection of altered histories and rejection of unexpected 075. Runtime readiness and backup/restore pass. Mobile/desktop portal verification and cloud build pass. The RC1 packaging allowlist now includes the PWA and other UI assets already referenced by the application, with root-relative links normalized before fingerprinting; all 12 packaging tests pass.
+
+Before merging (main triggers Vercel):
+
+1. Finish all GitHub checks for the final commit and verify a current recoverable backup of the target database.
+2. Generate the owner-executed script with `node scripts/windows/build-customer-portal-upgrade.cjs`. The result is `artifacts/cloud-setup/supabase-upgrade-076.sql`.
+3. Execute the complete script once as the existing schema owner in Supabase SQL Editor, or use protected migration credentials. It verifies all 001?074 checksums, adds only 076 and grants only the four new portal functions. It can be safely repeated when history is unchanged. Do not use the restricted application account or bypass the checks.
+4. Merge PR #2 immediately after the successful 076 result, wait for Vercel, and verify /health/ready plus customer/admin login, scope isolation and stream reconnect. The old deployment can report not-ready between migration and deployment because readiness requires exact migration parity.
+5. Keep sharing disabled operationally (no grants) until real external-account and proxy acceptance succeeds. Revoking shares is the feature rollback; preserve migration history. A code rollback must retain schema 076 awareness.
+
+Only the restricted runtime connection was available during review, so no live schema changes, grants, accounts or customer data were made. The missing owner access/SQL execution is the remaining release dependency.
+
 
 ## Scope
 
