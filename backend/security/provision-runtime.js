@@ -14,6 +14,9 @@ async function provisionRuntime(client,schema,role,{isolatedDevelopment=false}={
  await client.query(`REVOKE ALL ON ALL TABLES IN SCHEMA ${s} FROM PUBLIC, ${u}`);
  await client.query(`REVOKE ALL ON ALL FUNCTIONS IN SCHEMA ${s} FROM PUBLIC, ${u}`);
  await client.query(`GRANT USAGE ON SCHEMA ${s} TO ${u}`);
+ if((await client.query("SELECT to_regclass($1) IS NOT NULL available",[schema+'.portal_requests'])).rows[0].available){
+  await client.query(`GRANT EXECUTE ON FUNCTION ${s}.ritim_portal_accounts(text,jsonb) TO ${u}; GRANT SELECT,INSERT ON ${s}.portal_requests,${s}.portal_messages,${s}.portal_files,${s}.portal_reads,${s}.portal_revisions TO ${u}; GRANT UPDATE(status,proposed,baseline,version,revision,updated_at) ON ${s}.portal_requests TO ${u}; GRANT UPDATE(seen_at) ON ${s}.portal_reads TO ${u}; GRANT UPDATE(revoked_at) ON ${s}.portal_files TO ${u}`);
+ }
  if((await client.query("SELECT to_regprocedure($1) IS NOT NULL available",[schema+'.ritim_portal_order_list(uuid)'])).rows[0].available){await client.query(`GRANT EXECUTE ON FUNCTION ${s}.ritim_portal_order_list(uuid),${s}.ritim_portal_access(uuid,uuid),${s}.ritim_portal_share_ids(uuid),${s}.ritim_portal_manage(text,jsonb) TO ${u}`);}
  await client.query(`GRANT EXECUTE ON FUNCTION ${s}.ritim_change_workspace_code(uuid,uuid,text,text,text) TO ${u}`);
  await client.query(`GRANT EXECUTE ON FUNCTION ${s}.ritim_platform_user_details(uuid,uuid) TO ${u}`);

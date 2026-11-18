@@ -89,6 +89,12 @@
     "workspace.webmanifest",
     "assets/pwa/operator-192.png",
     "assets/pwa/operator-512.png",
-    "assets/pwa/operator-maskable-512.png"
+    "assets/pwa/operator-maskable-512.png",
+    "customer-portal.html",
+    "customer-sharing.html",
+    "assets/js/customer-portal.js",
+    "assets/css/customer-portal.css",
+    "assets/js/customer-collaboration.js",
+    "assets/css/customer-collaboration.css"
   ]
 }

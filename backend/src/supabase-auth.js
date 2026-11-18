@@ -28,6 +28,7 @@ function makeSupabaseBff({url,publishableKey,appOrigin,pool,verifier,recoveryEna
   const invitationProvider=invitationsEnabled?require('./workspace-invitations').deliveryProvider({url,secretKey,appOrigin,authRequest,fetcher}):null;
   const passwordProvider=secretKey?require('./workspace-password').provider({url,secretKey,fetcher}):null;
   const userProvider=secretKey?require('./workspace-users').provider({url,secretKey,fetcher}):null;
+  app.decorate('portalProviders',{userProvider,passwordProvider});
   require('./workspace-admin-page').routes(app,{pool,verifier,tokenFor,origin,invitationsEnabled,invitationProvider,passwordProvider,userProvider});
   require('./supabase-invitation').routes(app,{pool,verifier,authRequest,origin,acceptSession,tokenFor,invitationsEnabled,secretKey});
   app.addContentTypeParser('application/x-www-form-urlencoded',{parseAs:'string',bodyLimit:4096},(_req,body,done)=>done(null,Object.fromEntries(new URLSearchParams(body))));
