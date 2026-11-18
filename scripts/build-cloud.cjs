@@ -21,4 +21,6 @@ const publicPaths=[...assets].map(x=>'/'+x).concat(['/workspace.webmanifest','/w
 const hash=crypto.createHash('sha256').update(html);for(const asset of assets)hash.update(fs.readFileSync(path.join(root,asset)));
 const workerTemplate=fs.readFileSync(path.join(root,'operator-sw.js'),'utf8');hash.update(workerTemplate);for(const asset of publicPaths.filter(x=>!assets.has(x.slice(1))))hash.update(fs.readFileSync(path.join(root,asset.slice(1))));
 const worker=workerTemplate.replace('__BUILD_VERSION__',hash.digest('hex').slice(0,20)).replace('__PWA_ASSETS__',JSON.stringify(publicPaths));fs.writeFileSync(path.join(out,'operator-sw.js'),worker);
+// Customer portal assets are static shells only; never cache customer API data.
+for(const asset of ['customer-portal.html','customer-sharing.html','assets/js/customer-portal.js','assets/css/customer-portal.css']){const target=path.join(out,asset);fs.mkdirSync(path.dirname(target),{recursive:true});fs.copyFileSync(path.join(root,asset),target)}
 fs.writeFileSync(path.join(out,'index.html'),html);console.log('Cloud UI packaged:',assets.size,'assets plus local PDF renderer');

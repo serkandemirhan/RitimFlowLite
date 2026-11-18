@@ -14,6 +14,7 @@ async function provisionRuntime(client,schema,role,{isolatedDevelopment=false}={
  await client.query(`REVOKE ALL ON ALL TABLES IN SCHEMA ${s} FROM PUBLIC, ${u}`);
  await client.query(`REVOKE ALL ON ALL FUNCTIONS IN SCHEMA ${s} FROM PUBLIC, ${u}`);
  await client.query(`GRANT USAGE ON SCHEMA ${s} TO ${u}`);
+ await client.query(`GRANT EXECUTE ON FUNCTION ${s}.ritim_portal_order_list(uuid),${s}.ritim_portal_access(uuid,uuid),${s}.ritim_portal_share_ids(uuid),${s}.ritim_portal_manage(text,jsonb) TO ${u}`);
  if(isolatedDevelopment)await client.query(`GRANT EXECUTE ON FUNCTION ${s}.ritim_admin_workspace(text,jsonb) TO ${u}`);
  if(isolatedDevelopment)await client.query(`GRANT EXECUTE ON FUNCTION ${s}.ritim_password_target(uuid) TO ${u}`);
  if(isolatedDevelopment)await client.query(`GRANT EXECUTE ON FUNCTION ${s}.ritim_manage_invitation(text,jsonb),${s}.ritim_accept_invitation(uuid,text,text,text) TO ${u}`);

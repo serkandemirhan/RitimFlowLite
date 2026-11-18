@@ -23,7 +23,7 @@ function makeSupabaseBff({url,publishableKey,appOrigin,pool,verifier,recoveryEna
  }
  function origin(req){if(req.headers.origin!==appOrigin)throw new HttpError(403,'ORIGIN_REJECTED','İstek kaynağı doğrulanamadı.')}
  function tokenFor(req){const value=String(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith(cookieName+'='))?.slice(cookieName.length+1);if(!value)return null;if(!['GET','HEAD','OPTIONS'].includes(req.method))origin(req);return value}
- const {loginPage}=require('./auth-presentation');
+ const {loginPage,loginDestination}=require('./auth-presentation');
  async function routes(app){
   const invitationProvider=invitationsEnabled?require('./workspace-invitations').deliveryProvider({url,secretKey,appOrigin,authRequest,fetcher}):null;
   const passwordProvider=secretKey?require('./workspace-password').provider({url,secretKey,fetcher}):null;
@@ -37,22 +37,23 @@ function makeSupabaseBff({url,publishableKey,appOrigin,pool,verifier,recoveryEna
    reply.header('Cache-Control','no-store').header('Referrer-Policy','same-origin').header('X-Content-Type-Options','nosniff').header('Content-Security-Policy',`default-src 'none'; style-src ${team?"'self' ":''}'unsafe-inline'; script-src ${scripts}; form-action 'self'; frame-ancestors 'none'; base-uri 'none'`);
   }return payload});
   app.get('/auth/config',async()=>({enabled:true,provider:'supabase',manualTokenAllowed:false,refreshEnabled:true,recoveryEnabled}));
-  app.get('/auth/login',async(req,reply)=>reply.type('text/html').send(loginPage(req.query?.failed==='1')));
+  app.get('/auth/login',async(req,reply)=>reply.type('text/html').send(loginPage(req.query?.failed==='1',req.query?.next)));
   app.post('/auth/login',{bodyLimit:4096},async(req,reply)=>{
    origin(req);const {email:login,password}=req.body||{};
+   const next=loginDestination(req.body?.next),failed='/auth/login?failed=1'+(next==='/'?'':'&next='+encodeURIComponent(next));
    if(typeof login!=='string'||typeof password!=='string'||!login.trim()||!password||login.length>254||password.length>1024)throw new HttpError(400,'INVALID_INPUT','Kullanıcı adı veya e-posta ve şifre gerekli.');
    let email=login.trim();
    if(!email.includes('@')){
-    if(!/^[a-z0-9][a-z0-9._-]{2,39}$/i.test(email))return reply.code(303).redirect('/auth/login?failed=1');
+    if(!/^[a-z0-9][a-z0-9._-]{2,39}$/i.test(email))return reply.code(303).redirect(failed);
     const found=await pool.query('SELECT ritim_username_login($1) AS account',[email.toLowerCase()]);
-    if(!found.rows[0]?.account?.subject)return reply.code(303).redirect('/auth/login?failed=1');
+    if(!found.rows[0]?.account?.subject)return reply.code(303).redirect(failed);
     const account=found.rows[0].account;email=account.existingIdentity?await require('./workspace-users').existingEmail({url,secretKey,fetcher},account.subject):require('./workspace-users').email(account.subject);
-    if(!email)return reply.code(303).redirect('/auth/login?failed=1');
+    if(!email)return reply.code(303).redirect(failed);
    }
    const r=await authRequest('/token?grant_type=password',{email,password});
-   if(!r.ok){if(r.status>=500)throw new HttpError(503,'AUTH_UNAVAILABLE','Kimlik hizmeti kullanilamiyor.');return reply.code(303).redirect('/auth/login?failed=1')}
-   try{await acceptSession(await r.json(),reply)}catch(e){if(e.statusCode===401)return reply.code(303).redirect('/auth/login?failed=1');throw e}
-   return reply.code(303).redirect('/');
+   if(!r.ok){if(r.status>=500)throw new HttpError(503,'AUTH_UNAVAILABLE','Kimlik hizmeti kullanilamiyor.');return reply.code(303).redirect(failed)}
+   try{await acceptSession(await r.json(),reply)}catch(e){if(e.statusCode===401)return reply.code(303).redirect(failed);throw e}
+   return reply.code(303).redirect(next);
   });
   app.post('/auth/refresh',async(req,reply)=>{
    origin(req);
