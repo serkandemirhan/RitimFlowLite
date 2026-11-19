@@ -93,6 +93,7 @@
     "customer-portal.html",
     "customer-sharing.html",
     "assets/js/customer-portal.js",
+    "assets/js/customer-portal-navigation.js",
     "assets/css/customer-portal.css",
     "assets/js/customer-collaboration.js",
     "assets/css/customer-collaboration.css",

@@ -32,8 +32,8 @@ const {build,sha} = require('./build-rc1.cjs');
     assert(await page.evaluate(()=>['RitimPersistence','RitimTransactions','RitimIntegrity','RitimQuantities'].every(k=>!!window[k])));
     assert.equal(await page.evaluate(()=>localStorage.getItem('ritimLiteAnonymousDemoV1')),null);
     const loaded=await page.locator('script[src],link[rel=stylesheet]').evaluateAll(nodes=>nodes.map(n=>new URL(n.src||n.href).pathname));
-    const portalSources=new Set(['assets/js/customer-portal.js','assets/js/customer-collaboration.js','assets/css/customer-portal.css','assets/css/customer-collaboration.css']);
-    assert.deepEqual(loaded.sort(),built.manifest.assets.filter(x=>/\.(js|css)$/.test(x.target) && x.source!=='assets/js/legacy-archive.js' && !['assets/js/customer-portal.js','assets/css/customer-portal.css'].includes(x.source)).map(x=>'/'+x.target).sort());
+    const portalSources=new Set(['assets/js/customer-portal.js','assets/js/customer-portal-navigation.js','assets/js/customer-collaboration.js','assets/css/customer-portal.css','assets/css/customer-collaboration.css']);
+    assert.deepEqual(loaded.sort(),built.manifest.assets.filter(x=>/\.(js|css)$/.test(x.target) && x.source!=='assets/js/legacy-archive.js' && !['assets/js/customer-portal.js','assets/js/customer-portal-navigation.js','assets/css/customer-portal.css'].includes(x.source)).map(x=>'/'+x.target).sort());
     for(const item of built.manifest.assets) {
       const response=await context.request.get(base+'/'+item.target);
       assert.equal(response.status(),200);
