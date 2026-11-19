@@ -11,3 +11,5 @@
 
 .customer-sharing-workspace .portal-form label:has(input[type=checkbox]){display:flex;align-items:center;gap:8px}.customer-sharing-workspace .portal-form label:has(input[type=checkbox]) input{order:-1;min-height:0}.customer-sharing-workspace textarea:focus-visible{outline-color:var(--ui-primary,#285bd4)}
 .customer-sharing-workspace [hidden]{display:none!important}
+.customer-settings-compact{width:min(520px,calc(100vw - 32px))}.customer-settings-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}.customer-settings-heading h3{margin:0}.customer-settings-permissions{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px 0}.customer-settings-compact summary{cursor:pointer;font-weight:600}.customer-settings-compact .customer-share-form>.btn.sm{justify-self:start}.customer-settings-compact [role=status]:empty{display:none}.customer-settings-compact input[readonly]{background:var(--surface,#fff);color:var(--ui-ink,#193450)}
+@media(max-width:440px){.customer-settings-permissions{grid-template-columns:1fr}}

@@ -14,7 +14,8 @@ async function checkReadiness(pool,{isolatedDevelopment=false}={}){
  // Explicit rolling-upgrade baseline only; arbitrary missing/unknown versions still fail.
  const customerCollaboration=actual.rows.some(r=>r.version==='077');
  const pendingPortal=!customerPortal&&actual.rows.length===74&&actual.rows.at(-1)?.version==='074';
- const required=files.filter(f=>(!pendingPortal||!f.startsWith('076_'))&&(customerCollaboration||!f.startsWith('077_')));
+ const customerSharingDefaults=actual.rows.some(r=>r.version==='078');
+ const required=files.filter(f=>(!pendingPortal||!f.startsWith('076_'))&&(customerCollaboration||!f.startsWith('077_'))&&(customerSharingDefaults||!f.startsWith('078_')));
  if(actual.rows.length!==required.length||required.some((f,i)=>actual.rows[i].version!==f.split('_')[0]||!require('./migration-checksum').checksums(fs.readFileSync(path.join(directory,f),'utf8')).includes(actual.rows[i].checksum)))throw Error('Migration version mismatch');
  if(customerPortal){const portalSecurity=await pool.query("SELECT has_function_privilege(current_user,'ritim_portal_order_list(uuid)','EXECUTE') AND has_function_privilege(current_user,'ritim_portal_access(uuid,uuid)','EXECUTE') AND has_function_privilege(current_user,'ritim_portal_share_ids(uuid)','EXECUTE') AND has_function_privilege(current_user,'ritim_portal_manage(text,jsonb)','EXECUTE') AND NOT has_table_privilege(current_user,'customer_portal_shares','SELECT,INSERT,UPDATE,DELETE') ok");if(!portalSecurity.rows[0]?.ok)throw Error('Customer portal boundary invalid');}
  else {const partial=await pool.query("SELECT to_regclass('customer_portal_shares') IS NULL AND to_regprocedure('ritim_portal_access(uuid,uuid)') IS NULL ok");if(!partial.rows[0]?.ok)throw Error('Unrecorded portal schema');}
@@ -52,6 +53,8 @@ async function checkReadiness(pool,{isolatedDevelopment=false}={}){
   const tables=await pool.query("SELECT count(*)=5 AND bool_and(relrowsecurity AND relforcerowsecurity AND has_table_privilege(current_user,oid,'SELECT,INSERT') AND NOT has_table_privilege(current_user,oid,'DELETE')) ok FROM pg_class WHERE relnamespace=current_schema()::regnamespace AND relname=ANY($1::text[])",[['portal_requests','portal_messages','portal_files','portal_reads','portal_revisions']]);
   if(!boundary.rows[0]?.ok||!tables.rows[0]?.ok)throw Error('Customer collaboration boundary invalid');
  }
- return {customerPortal,...(customerCollaboration?{customerCollaboration:true}:{})};
+ if(customerSharingDefaults){const boundary=await pool.query("SELECT has_function_privilege(current_user,'ritim_portal_settings(text,jsonb)','EXECUTE') AND NOT has_function_privilege(current_user,'ritim_portal_sync(uuid)','EXECUTE') AND NOT has_function_privilege(current_user,'ritim_portal_access_v2(uuid,uuid)','EXECUTE') AND NOT has_function_privilege(current_user,'ritim_portal_order_list_v2(uuid)','EXECUTE') AND NOT has_function_privilege(current_user,'ritim_portal_manage_v2(text,jsonb)','EXECUTE') AND NOT has_table_privilege(current_user,'portal_customer_settings','SELECT,INSERT,UPDATE,DELETE') ok");if(!boundary.rows[0]?.ok)throw Error('Customer sharing defaults boundary invalid');}
+ else if((await pool.query("SELECT to_regclass('portal_customer_settings') IS NOT NULL found")).rows[0].found)throw Error('Unrecorded customer sharing defaults schema');
+ return {customerPortal,...(customerCollaboration?{customerCollaboration:true}:{}),...(customerSharingDefaults?{customerSharingDefaults:true}:{})};
 }
 module.exports={checkReadiness,expectedMigrations};

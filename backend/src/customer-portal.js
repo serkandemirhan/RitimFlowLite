@@ -47,6 +47,19 @@ function routes(api){
   if(!r.rows[0]?.available)fail(503,'FEATURE_NOT_ENABLED','Müşteri paneli henüz etkinleştirilmedi. Firma yöneticinizle iletişime geçin.');
  });
  const admin='/sites/:tenantId/:siteId/customer-portal/shares',base='/customer-portal/orders';
+ const settings='/sites/:tenantId/:siteId/customer-portal/customers/:customerId/settings';
+ async function customerSettings(req,save){return scoped(req,async c=>{
+  if(!(await c.query("SELECT to_regprocedure('ritim_portal_settings(text,jsonb)') IS NOT NULL ok")).rows[0].ok)fail(503,'FEATURE_NOT_ENABLED','Paylaşım ayarları için 078 veritabanı güncellemesi gerekli.');
+  const p={customerId:identifier(req.params.customerId)};
+  if(save){const b=req.body||{};for(const key of ['automatic','accessEnabled','includeQuality','includeDocuments']){if(typeof b[key]!=='boolean')fail(400,'INVALID_INPUT','Geçersiz paylaşım ayarı.');p[key]=b[key];}
+   if(!Number.isSafeInteger(b.version)||b.version<0)fail(400,'INVALID_INPUT','Geçersiz ayar sürümü.');
+   p.version=b.version;p.permissions=require('./customer-collaboration').options(b.permissions);p.auditId=crypto.randomUUID();
+  }
+  try{return {settings:(await c.query('SELECT ritim_portal_settings($1,$2::jsonb) result',[save?'save':'get',JSON.stringify(p)])).rows[0].result};}
+  catch(e){if(e.code==='40001')fail(409,'VERSION_CONFLICT','Ayarlar değişti. Pencereyi yeniden açın.');if(e.code==='42501')fail(403,'FORBIDDEN','Firma yöneticisi yetkisi gerekli.');if(e.code==='P0002')fail(404,'NOT_FOUND','Müşteri bulunamadı.');throw e;}
+ },'members.manage');}
+ api.get(settings,req=>customerSettings(req,false));
+ api.put(settings,req=>customerSettings(req,true));
  api.post(admin+'/lookup-user',req=>scoped(req,async c=>{const username=req.body?.username;if(typeof username!=='string'||! /^[a-z0-9][a-z0-9._-]{2,39}$/i.test(username.trim()))fail(400,'INVALID_INPUT','Geçerli kullanıcı adı gerekli.');return {user:await manage(c,'lookup',{username:username.trim().toLowerCase()})};},'members.manage'));
  api.get(admin,req=>scoped(req,async(c,s)=>({collaborationEnabled:await require('./customer-collaboration').available(c),shares:await manage(c,'list',{}),customers:(await c.query('SELECT id,name FROM master_customers WHERE tenant_id=$1 AND site_id=$2 AND deleted_at IS NULL ORDER BY name',[s.tenantId,s.siteId])).rows,orders:(await c.query('SELECT id,customer_id "customerId",order_number "orderNumber" FROM orders WHERE tenant_id=$1 AND site_id=$2 AND customer_id IS NOT NULL ORDER BY created_at DESC',[s.tenantId,s.siteId])).rows}),'members.manage'));
  api.put(admin,req=>scoped(req,async c=>{const b=req.body;if(!b||typeof b!=='object'||Array.isArray(b)||Object.keys(b).some(k=>!['customerId','userId','orderId','includeQuality','includeDocuments','permissions'].includes(k)))fail(400,'INVALID_INPUT','Geçersiz paylaşım.');for(const k of ['includeQuality','includeDocuments'])if(b[k]!==undefined&&typeof b[k]!=='boolean')fail(400,'INVALID_INPUT','Geçersiz paylaşım seçeneği.');return {share:await manage(c,'save',{id:crypto.randomUUID(),auditId:crypto.randomUUID(),customerId:identifier(b.customerId),userId:identifier(b.userId),orderId:identifier(b.orderId),includeQuality:!!b.includeQuality,includeDocuments:!!b.includeDocuments,...(b.permissions?{permissions:require('./customer-collaboration').options(b.permissions)}:{})})};},'members.manage'));

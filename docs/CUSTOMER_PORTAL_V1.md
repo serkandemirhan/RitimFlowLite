@@ -2,6 +2,16 @@
 
 The customer portal at /customer-portal.html exposes only explicitly shared orders. Tenant administrators manage sharing inside the existing Flow workspace: **Paylaş** on an order row, **Paylaşım ayarları** on an existing customer, and the incoming-request section below the order/customer lists. Customer settings are scoped to the selected existing customer; creating a portal account never creates a duplicate customer master record. The old /customer-sharing.html URL redirects to the order workspace. Customers receive no internal viewer role or site membership. Migration 077 adds managed customer accounts and collaboration as described below; the original 076 release notes remain as historical verification evidence.
 
+## Customer sharing defaults release 078
+
+Customer settings now contain username, initial/new password, panel access, automatic sharing and Save. Permissions are collapsed under **Görülebilecek bilgiler**; copying the portal link is a small action next to the customer name. An account selector appears only for customers with multiple existing accounts. Existing passwords are never returned; provider-managed accounts retain their existing password-management boundary.
+
+Automatic sharing is opt-in per existing customer and site. It covers existing and future orders, materialized when the manager or customer refreshes the list (the customer list refreshes every ten seconds). Each order still uses the existing revocable grant boundary. Existing manual permissions and explicit revocations are preserved. Turning automatic sharing off revokes automatic grants only; turning panel access off blocks every order, including manual grants and accounts created later. Detail permissions remain independent opt-ins. Concurrent settings saves use a version check.
+
+Deploy the code first: readiness accepts 077 and customer settings retain the previous UI until activation. Generate the owner upgrade with `node scripts/windows/build-customer-sharing-upgrade.cjs`, then execute the complete `artifacts/cloud-setup/supabase-upgrade-078.sql` using the existing schema owner after a backup. The script verifies all previous checksums, applies 078 transactionally, and grants only the public API functions to the restricted runtime role. Verify SQL result `078` and `features.customerSharingDefaults=true` at `/health/ready`, then reload the customer settings. Do not roll back to code unaware of 078 after activation.
+
+Password provisioning and settings persistence are separate operations. If the identity provider fails, the UI explicitly reports that sharing settings were saved but the credential operation failed; it does not claim complete success. Automated provider tests use a stub and do not replace a real identity-provider login check.
+
 ## Customer collaboration release 077
 
 - Tenant administrators can create customer usernames/passwords, reset passwords for exclusively managed customer accounts, and block/unblock customer access. Passwords remain in the identity provider and are excluded from audit payloads. Account creation/reset requires the existing server-side `SUPABASE_SECRET_KEY`; it is never supplied by the browser. Existing shared identities cannot be reset through this customer-account interface.

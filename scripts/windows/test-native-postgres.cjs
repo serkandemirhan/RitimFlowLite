@@ -35,7 +35,7 @@ async function smoke(databaseUrl) {
     migration = new Pool({connectionString: roles.roleUrl('ritim_smoke_migration'), options: '-c search_path=ritim_smoke'});
     const applied = await migrate(migration);
     const repeat = await migrate(migration);
-    if (applied.length !== 76 || repeat.length !== 0) throw Error('Unexpected migration/repeat result');
+    if (applied.length !== 77 || repeat.length !== 0) throw Error('Unexpected migration/repeat result');
     const client = await migration.connect();
     try {
       await client.query('BEGIN');
@@ -55,7 +55,7 @@ async function smoke(databaseUrl) {
     const version = (await admin.query('SHOW server_version')).rows[0].server_version;
     const result = {serverVersion:version, migrations:applied.length, repeatMigrations:repeat.length, restrictedRuntime:true, checks};
     fs.writeFileSync(path.join(evidence,'runtime-smoke.json'), JSON.stringify(result,null,2)+'\n');
-    console.log('Native API smoke: 76 migrations, repeat 0, restricted runtime readiness 200, unauthenticated session 401');
+    console.log('Native API smoke: 77 migrations, repeat 0, restricted runtime readiness 200, unauthenticated session 401');
   } finally {
     if (app) await app.close();
     if (runtime) await runtime.end();
@@ -77,7 +77,7 @@ async function operationsSmoke(databaseUrl, privateDirectory) {
   finally {await before.end();}
   await ops.initialize(config,adminIdentity);
   await assert.rejects(ops.initialize(config,adminIdentity),/already exist/);
-  assert.equal((await ops.upgrade(config)).length,76);
+  assert.equal((await ops.upgrade(config)).length,77);
   assert.deepEqual(await ops.upgrade(config),[]);
   await ops.provision(config);
   await ops.ready(config);
@@ -104,7 +104,7 @@ async function operationsSmoke(databaseUrl, privateDirectory) {
       assert.equal((await restoredPool.query('SELECT datdba FROM pg_database WHERE datname=$1',[original.datname])).rows[0].datdba,original.datdba);
     }
   }finally{await restoredPool.end();}
-  const report={status:'PASS',sourceDatabase:config.database,restoreDatabase:restored,migrations:76,repeatMigrations:0,restoredOrderQuantity:42,forcedRls:true,restrictedReadiness:true,existingDatabaseOwnershipPreserved:true,destructiveActionsRejected:true,backupSha256:crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')};
+  const report={status:'PASS',sourceDatabase:config.database,restoreDatabase:restored,migrations:77,repeatMigrations:0,restoredOrderQuantity:42,forcedRls:true,restrictedReadiness:true,existingDatabaseOwnershipPreserved:true,destructiveActionsRejected:true,backupSha256:crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')};
   fs.writeFileSync(path.join(evidence,'windows-operations.json'),JSON.stringify(report,null,2)+'\n');
   console.log('Windows database operations PASS: initialize, migrate, provision, restricted readiness, backup/restore, fictional quantity 42 and FORCE RLS preserved; destructive targets refused.');
 }
@@ -141,7 +141,7 @@ async function main() {
     url.pathname = '/ritim_native_test';
     // Assert the target before fictional fixtures: new loopback cluster and dedicated database only.
     if (url.hostname !== '127.0.0.1' || url.pathname !== '/ritim_native_test') throw Error('Invalid disposable target');
-    if(process.argv.includes('--portal-collaboration')){const result=spawnSync(process.execPath,['--test','test/customer-portal.test.js','test/customer-portal-upgrade.test.js','test/customer-portal-login.test.js','test/customer-collaboration.test.js','test/customer-collaboration-upgrade.test.js'],{cwd:path.join(root,'backend'),env:{...process.env,TEST_DATABASE_URL:url.toString()},encoding:'utf8',windowsHide:true,maxBuffer:10*1024*1024});const output=(result.stdout||'')+(result.stderr||'');fs.mkdirSync(path.join(root,'artifacts/customer-portal'),{recursive:true});fs.writeFileSync(path.join(root,'artifacts/customer-portal/backend.tap'),output.split(password).join('[REDACTED]'));console.log(output.split(password).join('[REDACTED]'));if(result.status!==0)throw Error('Portal collaboration tests failed');return;}
+    if(process.argv.includes('--portal-collaboration')){const result=spawnSync(process.execPath,['--test','test/customer-portal.test.js','test/customer-portal-upgrade.test.js','test/customer-portal-login.test.js','test/customer-collaboration.test.js','test/customer-collaboration-upgrade.test.js','test/customer-sharing-upgrade.test.js'],{cwd:path.join(root,'backend'),env:{...process.env,TEST_DATABASE_URL:url.toString()},encoding:'utf8',windowsHide:true,maxBuffer:10*1024*1024});const output=(result.stdout||'')+(result.stderr||'');fs.mkdirSync(path.join(root,'artifacts/customer-portal'),{recursive:true});fs.writeFileSync(path.join(root,'artifacts/customer-portal/backend.tap'),output.split(password).join('[REDACTED]'));console.log(output.split(password).join('[REDACTED]'));if(result.status!==0)throw Error('Portal collaboration tests failed');return;}
     if(process.argv.includes('--cloud-upgrade')){await require('./verify-cloud-upgrade-sql.cjs')(url.toString());return;}
     if(process.argv.includes('--operations-upgrade')){await require('./verify-operations-upgrade.cjs')(url.toString());return;}
     if(process.argv.includes('--operations-audit-recheck')){await require('./recheck-operations-audit.cjs')(url.toString());return;}
@@ -168,7 +168,7 @@ async function main() {
     const qualityOnly=process.argv.includes('--quality-only');
     const planningOnly=process.argv.includes('--planning-only');
     const files = process.argv.includes('--order-lifecycle')?['test/order-lifecycle.test.js']:process.argv.includes('--shipping-workspace')?['test/shipping-workspace.test.js','test/b04b1a-quality.test.js','test/recovery-routes.test.js']:process.argv.includes('--operator-access')?['test/b04a-production.test.js']:process.argv.includes('--team-users')?['test/workspace-administration.test.js','test/workspace-users.test.js']:planningOnly?['test/b03b-planning.test.js']:qualityOnly?['test/b04b1a-quality.test.js']:fs.readdirSync(path.join(root,'backend/test')).filter(x=>x.endsWith('.test.js')).sort().map(x=>'test/'+x);
-    const result = spawnSync(process.execPath,['--test','--test-reporter=tap',...files],{
+    const result = spawnSync(process.execPath,['--test','--test-concurrency=4','--test-reporter=tap',...files],{
       cwd:path.join(root,'backend'), encoding:'utf8', maxBuffer:32*1024*1024, timeout:300000, windowsHide:true,
       env:{...process.env, PATH:bin+path.delimiter+process.env.PATH, TEST_DATABASE_URL:url.toString()},
     });
