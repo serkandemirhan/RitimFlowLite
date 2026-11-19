@@ -64,6 +64,7 @@ $('request-order').onchange=()=>{if($('request-order').value)openRequest($('requ
 for(const b of document.querySelectorAll('[data-close]'))b.onclick=()=>$(b.dataset.close).close();
 $('order-dialog').addEventListener('close',()=>{stop();selected=null;window.RitimPortalCollaboration?.clear();$('detail').replaceChildren();list();});
 $('request-dialog').addEventListener('close',()=>{requestOpenEpoch++;activeRequest=null;window.RitimPortalCollaboration?.clear();$('portal-requests-content').replaceChildren();});
+addEventListener('portal-request-opened',e=>{activeRequest=e.detail;$('request-create').hidden=true;});
 addEventListener('portal-requests-changed',()=>loadRequests().catch(e=>notice(e.message)));
 $('settings-logout').onclick=()=>$('logout').click();
 $('search').oninput=list;$('refresh').onclick=async()=>{try{notice();if(admin)await loadAdmin();else{await loadOrders();await loadRequests();if(selected)await select(selected)}}catch(e){notice(e.message)}};$('logout').onclick=async()=>{try{await api('/auth/logout',{method:'POST'});login();notice()}catch(e){notice(e.message)}};addEventListener('pagehide',()=>{stop();clearTimeout(listTimer);listEpoch++;adminEpoch++});addEventListener('pageshow',e=>{if(e.persisted)start()});addEventListener('offline',()=>{$('connection').textContent='Çevrimdışı · Veriler güncel olmayabilir'});start();
