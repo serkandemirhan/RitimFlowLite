@@ -146,6 +146,20 @@ function routes(api){
   api.post(base+'/requests/:requestId/files',{bodyLimit:4300000},req=>scope(req,(c,s)=>addFile(c,s,req.body,identifier(req.params.requestId))));
   api.get(base+'/files/:fileId',req=>scope(req,(c,s)=>download(c,s,req.params.fileId)));
  }
+ // Aggregate only shares authorized for this identity; re-check each scope to handle revocation.
+ api.get('/customer-portal/collaboration/requests',async req=>{
+  const visible=await require('./db').inTransaction(req.server.pgPool,async c=>(await c.query('SELECT ritim_portal_order_list($1) result',[req.auth.userId])).rows[0].result);
+  const requests=[];let truncated=visible.truncated===true;
+  for(const order of visible.orders){
+   try{await access(req.server.pgPool,req.auth,order.shareId,async(c,s)=>{
+    if(!s.permissions?.requests)return;
+    const result=await list(c,{...s,external:true,identity:req.auth});truncated||=result.truncated;
+    requests.push(...result.requests.map(r=>({id:r.id,shareId:order.shareId,title:r.title,kind:r.kind,status:r.status,createdAt:r.createdAt,updatedAt:r.updatedAt,orderNumber:r.orderNumber,customer:r.customer,unread:r.unread})));
+   });}catch(e){if(e.statusCode!==404)throw e;}
+  }
+  requests.sort((a,b)=>new Date(b.updatedAt)-new Date(a.updatedAt)||a.id.localeCompare(b.id));
+  return {requests,truncated};
+ });
  api.get('/customer-portal/orders/:shareId/media/:fileId',req=>access(req.server.pgPool,req.auth,req.params.shareId,(c,s)=>download(c,{...s,external:true,identity:req.auth},req.params.fileId)));
  api.post(customer+'/requests',req=>external(req,async(c,s)=>{
   const b=req.body||{},rid=identifier(b.id),mid=identifier(b.messageId),title=text(b.title,120),body=text(b.body),p=proposed(b.proposed);
