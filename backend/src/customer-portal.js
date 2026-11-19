@@ -31,7 +31,7 @@ async function projection(c,s){
  if(s.permissions?.production===false)order.productionOrders=[];
  if(s.permissions?.workOrders===false)order.workOrders=[];
  order.media=await require('./customer-collaboration').media(c,{...s,external:true});
- return {order:{...order,permissions:s.permissions,shareId:s.id,tenantId:s.tenantId,siteId:s.siteId,includeQuality:s.includeQuality,includeDocuments:s.includeDocuments},updatedAt:new Date().toISOString()};
+ return {order:{...order,...await require('./customer-portal-summary').summary(c,s),permissions:s.permissions,shareId:s.id,tenantId:s.tenantId,siteId:s.siteId,includeQuality:s.includeQuality,includeDocuments:s.includeDocuments},updatedAt:new Date().toISOString()};
 }
 async function detail(pool,identity,id){return access(pool,identity,id,projection);}
 async function document(c,s,id){
@@ -64,7 +64,7 @@ function routes(api){
  api.get(admin,req=>scoped(req,async(c,s)=>({collaborationEnabled:await require('./customer-collaboration').available(c),shares:await manage(c,'list',{}),customers:(await c.query('SELECT id,name FROM master_customers WHERE tenant_id=$1 AND site_id=$2 AND deleted_at IS NULL ORDER BY name',[s.tenantId,s.siteId])).rows,orders:(await c.query('SELECT id,customer_id "customerId",order_number "orderNumber" FROM orders WHERE tenant_id=$1 AND site_id=$2 AND customer_id IS NOT NULL ORDER BY created_at DESC',[s.tenantId,s.siteId])).rows}),'members.manage'));
  api.put(admin,req=>scoped(req,async c=>{const b=req.body;if(!b||typeof b!=='object'||Array.isArray(b)||Object.keys(b).some(k=>!['customerId','userId','orderId','includeQuality','includeDocuments','permissions'].includes(k)))fail(400,'INVALID_INPUT','Geçersiz paylaşım.');for(const k of ['includeQuality','includeDocuments'])if(b[k]!==undefined&&typeof b[k]!=='boolean')fail(400,'INVALID_INPUT','Geçersiz paylaşım seçeneği.');return {share:await manage(c,'save',{id:crypto.randomUUID(),auditId:crypto.randomUUID(),customerId:identifier(b.customerId),userId:identifier(b.userId),orderId:identifier(b.orderId),includeQuality:!!b.includeQuality,includeDocuments:!!b.includeDocuments,...(b.permissions?{permissions:require('./customer-collaboration').options(b.permissions)}:{})})};},'members.manage'));
  api.delete(admin+'/:shareId',req=>scoped(req,async c=>({share:await manage(c,'revoke',{id:identifier(req.params.shareId),auditId:crypto.randomUUID()})}),'members.manage'));
- api.get(base,req=>inTransaction(req.server.pgPool,async c=>(await c.query('SELECT ritim_portal_order_list($1) result',[req.auth.userId])).rows[0].result));
+ api.get(base,async req=>{const result=await inTransaction(req.server.pgPool,async c=>(await c.query('SELECT ritim_portal_order_list($1) result',[req.auth.userId])).rows[0].result);const orders=[];for(const order of result.orders){try{orders.push(await access(req.server.pgPool,req.auth,order.shareId,async(c,s)=>({...order,...await require('./customer-portal-summary').summary(c,s)})));}catch(e){if(e.statusCode!==404)throw e;}}return {...result,orders};});
  api.get(base+'/:shareId',req=>detail(req.server.pgPool,req.auth,req.params.shareId));
  api.get(base+'/:shareId/documents/:documentId',req=>access(req.server.pgPool,req.auth,req.params.shareId,(c,s)=>document(c,s,req.params.documentId)));
  require('./customer-portal-stream').routes(api,{base,detail});
