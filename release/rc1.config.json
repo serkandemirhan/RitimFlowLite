@@ -95,6 +95,8 @@
     "assets/js/customer-portal.js",
     "assets/css/customer-portal.css",
     "assets/js/customer-collaboration.js",
-    "assets/css/customer-collaboration.css"
+    "assets/css/customer-collaboration.css",
+    "integration/customer-sharing.js",
+    "assets/css/customer-sharing-workspace.css"
   ]
 }
