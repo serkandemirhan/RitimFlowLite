@@ -25,7 +25,7 @@ test('portal conversations, permissions, attachments and approved revisions are 
   await t.test('new permissions are opt-in and legacy entry points are inaccessible',async()=>{
    await require('../src/db').inTransaction(pool,async c=>{await c.query('SELECT ritim_open_scope($1,$2,$3)',[ua,ta,sa]);await c.query("SELECT ritim_portal_manage('list','{}'::jsonb)");});
    const managed=await api('GET',manager+'/shares');assert.equal(managed.statusCode,200,managed.body);
-   const r=await api('GET','/api/v1/customer-portal/orders/'+share,undefined,'customer');assert.equal(r.statusCode,200,r.body);assert.deepEqual(r.json().order.productionOrders,[]);assert.deepEqual(r.json().order.workOrders,[]);assert.equal(r.json().order.permissions.requests,true);
+   const r=await api('GET','/api/v1/customer-portal/orders/'+share,undefined,'customer');assert.equal(r.statusCode,200,r.body);assert.deepEqual(r.json().order.productionOrders,[]);assert.deepEqual(r.json().order.workOrders,[]);assert.equal(r.json().order.permissions.requests,true);assert.equal(r.json().order.productionStatus,null);assert.equal(r.json().order.totalJobs,null);assert(r.json().order.createdAt);assert.equal(r.json().order.netShipped,0);
    await assert.rejects(pool.query('SELECT ritim_portal_access_v1($1,$2)',[customer,share]),/permission denied/);
    assert.equal((await api('GET',internal+'/accounts',undefined,'customer')).statusCode,403);
   });
@@ -40,9 +40,9 @@ test('portal conversations, permissions, attachments and approved revisions are 
    const duplicate=await api('POST',external()+'/requests',{id:requestId,messageId,title:'Duplicate',kind:'question',body:'Retry'},'customer');assert.equal(duplicate.statusCode,409);
   });
   await t.test('internal notes and their files never appear to customers',async()=>{
-   const mid=id();let r=await api('POST',internal+'/requests/'+requestId+'/messages',{id:mid,version:4,internal:true,body:'PRIVATE STAFF NOTE'});assert.equal(r.statusCode,200,r.body);
+   const beforePublic=(await api('GET',external()+'/requests',undefined,'customer')).json().requests.find(r=>r.id===requestId).updatedAt;const mid=id();let r=await api('POST',internal+'/requests/'+requestId+'/messages',{id:mid,version:4,internal:true,body:'PRIVATE STAFF NOTE'});assert.equal(r.statusCode,200,r.body);
    const fid=id();r=await api('POST',internal+'/requests/'+requestId+'/files',{id:fid,messageId:mid,filename:'internal.pdf',mime:'application/pdf',contentBase64:Buffer.from('%PDF-1.4 private').toString('base64')});assert.equal(r.statusCode,200,r.body);
-   r=await api('GET',external()+'/requests/'+requestId,undefined,'customer');assert(!r.body.includes('PRIVATE STAFF NOTE'));assert(!r.body.includes('internal.pdf'));assert.equal((await api('GET',external()+'/files/'+fid,undefined,'customer')).statusCode,404);
+   r=await api('GET',external()+'/requests/'+requestId,undefined,'customer');assert(!r.body.includes('PRIVATE STAFF NOTE'));assert(!r.body.includes('internal.pdf'));assert.equal((await api('GET',external()+'/requests',undefined,'customer')).json().requests.find(r=>r.id===requestId).updatedAt,beforePublic);assert.equal((await api('GET',external()+'/files/'+fid,undefined,'customer')).statusCode,404);
    assert.equal((await api('POST',external()+'/requests/'+requestId+'/messages',{id:id(),version:5,body:'invalid',internal:true},'customer')).statusCode,403);
    assert.equal((await api('GET',internal+'/requests/'+requestId,undefined,'admin-b')).statusCode,403);
    assert.equal((await api('GET',external()+'/requests/'+requestId,undefined,'other')).statusCode,404);
