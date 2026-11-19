@@ -1,6 +1,6 @@
 # Customer portal and platform reconciliation
 
-The customer portal at /customer-portal.html exposes only explicitly shared orders. Tenant administrators manage grants and customer conversations at /customer-sharing.html. Customers receive no internal viewer role or site membership. Migration 077 adds managed customer accounts and collaboration as described below; the original 076 release notes remain as historical verification evidence.
+The customer portal at /customer-portal.html exposes only explicitly shared orders. Tenant administrators manage sharing inside the existing Flow workspace: **Paylaş** on an order row, **Paylaşım ayarları** on an existing customer, and the incoming-request section below the order/customer lists. Customer settings are scoped to the selected existing customer; creating a portal account never creates a duplicate customer master record. The old /customer-sharing.html URL redirects to the order workspace. Customers receive no internal viewer role or site membership. Migration 077 adds managed customer accounts and collaboration as described below; the original 076 release notes remain as historical verification evidence.
 
 ## Customer collaboration release 077
 

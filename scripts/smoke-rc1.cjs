@@ -33,7 +33,7 @@ const {build,sha} = require('./build-rc1.cjs');
     assert.equal(await page.evaluate(()=>localStorage.getItem('ritimLiteAnonymousDemoV1')),null);
     const loaded=await page.locator('script[src],link[rel=stylesheet]').evaluateAll(nodes=>nodes.map(n=>new URL(n.src||n.href).pathname));
     const portalSources=new Set(['assets/js/customer-portal.js','assets/js/customer-collaboration.js','assets/css/customer-portal.css','assets/css/customer-collaboration.css']);
-    assert.deepEqual(loaded.sort(),built.manifest.assets.filter(x=>/\.(js|css)$/.test(x.target) && x.source!=='assets/js/legacy-archive.js' && !portalSources.has(x.source)).map(x=>'/'+x.target).sort());
+    assert.deepEqual(loaded.sort(),built.manifest.assets.filter(x=>/\.(js|css)$/.test(x.target) && x.source!=='assets/js/legacy-archive.js' && !['assets/js/customer-portal.js','assets/css/customer-portal.css'].includes(x.source)).map(x=>'/'+x.target).sort());
     for(const item of built.manifest.assets) {
       const response=await context.request.get(base+'/'+item.target);
       assert.equal(response.status(),200);
@@ -46,7 +46,7 @@ const {build,sha} = require('./build-rc1.cjs');
     assert.equal(await page.evaluate(()=>localStorage.getItem('ritimLiteAnonymousDemoV1')),null);
     // The standalone portal shells load their own assets, not the production console bundle.
     await page.route('**/api/v1/**',route=>route.fulfill({json:{identity:{id:'static-smoke'},memberships:[],orders:[]}}));
-    for(const entry of ['customer-portal.html','customer-sharing.html']){
+    for(const entry of ['customer-portal.html']){
       await page.goto(base+'/'+entry);
       await page.waitForFunction(()=>!!window.RitimPortalCollaboration);
       const portalLoaded=await page.locator('script[src],link[rel=stylesheet]').evaluateAll(nodes=>nodes.map(n=>new URL(n.src||n.href).pathname));
