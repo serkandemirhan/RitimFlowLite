@@ -39,9 +39,9 @@ async function requestRow(c,s,requestId,lock=false){
  const r=(await c.query('SELECT * FROM portal_requests WHERE tenant_id=$1 AND site_id=$2 AND id=$3'+(lock?' FOR UPDATE':''),[...args(s),identifier(requestId)])).rows[0];
  if(!r||(s.external&&(r.order_id!==s.orderId||r.customer_id!==s.customerId)))fail(404,'NOT_FOUND','Talep bulunamadı.');return r;
 }
-function publicRequest(r){return {id:r.id,orderId:r.order_id,customerId:r.customer_id,title:r.title,kind:r.kind,proposed:r.proposed,baseline:r.baseline,status:r.status,version:r.version,revision:r.revision,createdAt:r.created_at,updatedAt:r.updated_at,orderNumber:r.order_number,customer:r.customer,unread:r.unread===true};}
+function publicRequest(r){return {id:r.id,orderId:r.order_id,customerId:r.customer_id,title:r.title,kind:r.kind,proposed:r.proposed,baseline:r.baseline,status:r.status,version:r.version,revision:r.revision,createdAt:r.created_at,updatedAt:r.updated_at,orderNumber:r.order_number,customer:r.customer,unread:r.unread===true,lastMessage:r.last_message||null,awaitingParty:['applied','rejected','withdrawn'].includes(r.status)?null:r.status==='waiting_customer'&&r.last_side!=='customer'?'customer':'staff'};}
 async function list(c,s){
- const rows=(await c.query(`SELECT r.*,CASE WHEN $4 THEN GREATEST(r.created_at,(SELECT MAX(created_at) FROM portal_messages pm WHERE (pm.tenant_id,pm.site_id,pm.request_id)=(r.tenant_id,r.site_id,r.id) AND NOT pm.internal),(SELECT MAX(pf.created_at) FROM portal_files pf JOIN portal_messages pm ON (pm.tenant_id,pm.site_id,pm.id)=(pf.tenant_id,pf.site_id,pf.message_id) WHERE (pf.tenant_id,pf.site_id,pf.request_id)=(r.tenant_id,r.site_id,r.id) AND NOT pm.internal AND pf.revoked_at IS NULL)) ELSE r.updated_at END updated_at,o.order_number,o.customer,EXISTS(SELECT 1 FROM portal_messages m WHERE (m.tenant_id,m.site_id,m.request_id)=(r.tenant_id,r.site_id,r.id) AND (NOT $4 OR NOT m.internal) AND m.actor_id<>$3 AND m.created_at>COALESCE((SELECT seen_at FROM portal_reads v WHERE (v.tenant_id,v.site_id,v.request_id,v.user_id)=(r.tenant_id,r.site_id,r.id,$3)),'-infinity')) unread FROM portal_requests r JOIN orders o ON (o.tenant_id,o.site_id,o.id)=(r.tenant_id,r.site_id,r.order_id) WHERE r.tenant_id=$1 AND r.site_id=$2 AND (NOT $4 OR (r.order_id=$5 AND r.customer_id=$6 AND o.customer_id=$6)) ORDER BY r.updated_at DESC,r.id LIMIT 501`,[...args(s),s.identity.userId,!!s.external,s.orderId||null,s.customerId||null])).rows;
+ const rows=(await c.query(`SELECT r.*,CASE WHEN $4 THEN GREATEST(r.created_at,(SELECT MAX(created_at) FROM portal_messages pm WHERE (pm.tenant_id,pm.site_id,pm.request_id)=(r.tenant_id,r.site_id,r.id) AND NOT pm.internal),(SELECT MAX(pf.created_at) FROM portal_files pf JOIN portal_messages pm ON (pm.tenant_id,pm.site_id,pm.id)=(pf.tenant_id,pf.site_id,pf.message_id) WHERE (pf.tenant_id,pf.site_id,pf.request_id)=(r.tenant_id,r.site_id,r.id) AND NOT pm.internal AND pf.revoked_at IS NULL)) ELSE r.updated_at END updated_at,o.order_number,o.customer,latest.body last_message,latest.side last_side,EXISTS(SELECT 1 FROM portal_messages m WHERE (m.tenant_id,m.site_id,m.request_id)=(r.tenant_id,r.site_id,r.id) AND (NOT $4 OR NOT m.internal) AND m.actor_id<>$3 AND m.created_at>COALESCE((SELECT seen_at FROM portal_reads v WHERE (v.tenant_id,v.site_id,v.request_id,v.user_id)=(r.tenant_id,r.site_id,r.id,$3)),'-infinity')) unread FROM portal_requests r JOIN orders o ON (o.tenant_id,o.site_id,o.id)=(r.tenant_id,r.site_id,r.order_id) LEFT JOIN LATERAL (SELECT left(pm.body,180) body,pm.side FROM portal_messages pm WHERE (pm.tenant_id,pm.site_id,pm.request_id)=(r.tenant_id,r.site_id,r.id) AND NOT pm.internal ORDER BY pm.created_at DESC,pm.id DESC LIMIT 1) latest ON true WHERE r.tenant_id=$1 AND r.site_id=$2 AND (NOT $4 OR (r.order_id=$5 AND r.customer_id=$6 AND o.customer_id=$6)) ORDER BY r.updated_at DESC,r.id LIMIT 501`,[...args(s),s.identity.userId,!!s.external,s.orderId||null,s.customerId||null])).rows;
  return {requests:rows.slice(0,500).map(publicRequest),truncated:rows.length>500};
 }
 async function detail(c,s,requestId){
@@ -49,7 +49,9 @@ async function detail(c,s,requestId){
  const messages=(await c.query('SELECT id,side,internal,body,status,created_at "createdAt" FROM portal_messages WHERE tenant_id=$1 AND site_id=$2 AND request_id=$3 AND (NOT $4 OR NOT internal) ORDER BY created_at,id',[...args(s),r.id,!!s.external])).rows;
  const files=(await c.query(`SELECT f.id,f.message_id "messageId",f.filename,f.mime,f.category,octet_length(f.content) size FROM portal_files f JOIN portal_messages m ON (m.tenant_id,m.site_id,m.id)=(f.tenant_id,f.site_id,f.message_id) WHERE f.tenant_id=$1 AND f.site_id=$2 AND f.request_id=$3 AND f.revoked_at IS NULL AND (NOT $4 OR NOT m.internal) ORDER BY f.created_at,f.id`,[...args(s),r.id,!!s.external])).rows;
  const revisions=(await c.query('SELECT number,before_state "before",after_state "after",reason,created_at "createdAt" FROM portal_revisions WHERE tenant_id=$1 AND site_id=$2 AND request_id=$3 ORDER BY number',[...args(s),r.id])).rows;
- return {request:publicRequest(r),messages,files:s.external&&!s.permissions?.videos?files.filter(f=>!f.mime.startsWith('video/')):files,revisions};
+ const latest=messages.filter(m=>!m.internal).at(-1);r.last_message=latest?.body?.slice(0,180);r.last_side=latest?.side;
+ const current=await snapshot(c,s,r.order_id);current.drawingRevision=current.drawing&&(!s.external||s.permissions?.drawings)?(await c.query('SELECT revision FROM drawing_revisions WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND id=$4',[...args(s),r.order_id,current.drawing])).rows[0]?.revision:null;
+ return {current,request:publicRequest(r),messages,files:s.external&&!s.permissions?.videos?files.filter(f=>!f.mime.startsWith('video/')):files,revisions};
 }
 async function message(c,s,r,b){
  if(b.internal!==undefined&&typeof b.internal!=='boolean')fail(400,'INVALID_INPUT','Not türü geçersiz.');
@@ -97,7 +99,12 @@ async function download(c,s,fileId){
  return {filename:f.filename,mime:f.mime,contentBase64:f.content.toString('base64'),allowDownload:!s.external||s.permissions.download===true};
 }
 function canFile(s,f){return f.category==='video'?s.permissions?.videos:f.category==='drawing'?s.permissions?.drawings:s.includeDocuments;}
-async function media(c,s){if(!await available(c))return [];return (await c.query('SELECT id,filename,mime,category,octet_length(content) size FROM portal_files WHERE tenant_id=$1 AND site_id=$2 AND order_id=$3 AND request_id IS NULL AND revoked_at IS NULL ORDER BY created_at,id',[...args(s),s.orderId])).rows.filter(f=>!s.external||canFile(s,f));}
+async function media(c,s){
+ if(!await available(c))return [];
+ return (await c.query(`SELECT f.id,f.filename,f.mime,f.category,octet_length(f.content) size,f.created_at "publishedAt",dr.revision,CASE WHEN dr.id IS NULL THEN 'unverified' WHEN dr.id=(SELECT dp.revision_id FROM drawing_publications dp WHERE (dp.tenant_id,dp.site_id,dp.order_id)=(f.tenant_id,f.site_id,f.order_id) ORDER BY dp.sequence DESC LIMIT 1) THEN 'current' ELSE 'previous' END "revisionState"
+ FROM portal_files f LEFT JOIN LATERAL (SELECT r.id,r.revision FROM drawing_revisions r JOIN drawing_publications p ON (p.tenant_id,p.site_id,p.order_id,p.revision_id)=(r.tenant_id,r.site_id,r.order_id,r.id) WHERE (r.tenant_id,r.site_id,r.order_id)=(f.tenant_id,f.site_id,f.order_id) AND r.sha256=f.sha256 AND f.category='drawing' AND p.created_at<=f.created_at ORDER BY p.sequence DESC LIMIT 1) dr ON true
+ WHERE f.tenant_id=$1 AND f.site_id=$2 AND f.order_id=$3 AND f.request_id IS NULL AND f.revoked_at IS NULL ORDER BY f.created_at DESC,f.id`,[...args(s),s.orderId])).rows.filter(f=>!s.external||canFile(s,f));
+}
 async function apply(c,s,r,b){
  if(r.kind!=='change')fail(400,'CHANGE_REQUIRED','Yalnız değişiklik talebi revizyon oluşturabilir.');
  if(r.status!=='approved'||r.version!==b.version)fail(409,'VERSION_CONFLICT','Onaylı güncel talep gerekli.');
@@ -154,7 +161,7 @@ function routes(api){
    try{await access(req.server.pgPool,req.auth,order.shareId,async(c,s)=>{
     if(!s.permissions?.requests)return;
     const result=await list(c,{...s,external:true,identity:req.auth});truncated||=result.truncated;
-    requests.push(...result.requests.map(r=>({id:r.id,shareId:order.shareId,title:r.title,kind:r.kind,status:r.status,createdAt:r.createdAt,updatedAt:r.updatedAt,orderNumber:r.orderNumber,customer:r.customer,unread:r.unread})));
+    requests.push(...result.requests.map(r=>({id:r.id,shareId:order.shareId,title:r.title,kind:r.kind,status:r.status,createdAt:r.createdAt,updatedAt:r.updatedAt,orderNumber:r.orderNumber,customer:r.customer,unread:r.unread,lastMessage:r.lastMessage,awaitingParty:r.awaitingParty})));
    });}catch(e){if(e.statusCode!==404)throw e;}
   }
   requests.sort((a,b)=>new Date(b.updatedAt)-new Date(a.updatedAt)||a.id.localeCompare(b.id));
