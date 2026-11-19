@@ -10,6 +10,7 @@ test('migration identity tolerates checkout line endings but rejects changed SQL
 });
 test('normalized Linux checkout accepts only the exact deployed mixed-ending SQL',()=>{
  const deployed=[
+  ['077_customer_collaboration.sql','70d6ec6605771c0a3ee32c88af32dd797f1063f00f3b6834c4f59814d580f52d'],
   ['071_platform_overview.sql','8385cd9bb3d304ce6b0b59ede4d91d756301b59f90bd8aaa60f07c100ff45e82'],
   ['072_workspace_platform_sections.sql','fd4023d23e8cdc46892ecd9f271cf4f257e661696f042b8521eb8307927e534a'],
   ['073_platform_user_details.sql','b672162c2bb0f0811f70a524dcd7f9d2c1a89d9a705b463af525142ae32fe37b'],

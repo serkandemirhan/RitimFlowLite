@@ -6,7 +6,7 @@ function upgradeSql({schema='ritim',runtime='ritim_runtime'}={}){
  const dir=path.join(__dirname,'../migrations'),files=fs.readdirSync(dir).filter(f=>/^\d{3}_.*\.sql$/.test(f)&&Number(f.slice(0,3))<77).sort();
  if(files.length!==75||files.some(f=>f.startsWith('075_')))throw Error('Expected deployed 001-074 and 076 history');
  const expected=files.map(f=>`('${f.slice(0,3)}',ARRAY[${checksums(fs.readFileSync(path.join(dir,f),'utf8')).map(h=>`'${h}'`).join(',')}]::text[])`).join(',\n');
- const sql=fs.readFileSync(path.join(dir,'077_customer_collaboration.sql'),'utf8'),hash=crypto.createHash('sha256').update(sql).digest('hex');
+ const sql=fs.readFileSync(path.join(dir,'077_customer_collaboration.sql'),'utf8').replace(/\r\n/g,'\n'),hash=crypto.createHash('sha256').update(sql).digest('hex');
  return `-- Additive release 077. Run as the existing schema owner after a backup.
 BEGIN;
 SET LOCAL lock_timeout='10s';
